@@ -1,4 +1,4 @@
-# **Space Escaper Remake**
+# **Space Escaper**
 
 Redesign aller Objekte, UI Überarbeitung, 
 Double Tap Schutzschild, Neues, Sounddesign, Achievments, Deutsch u. Englisch, Vertikalität, Mini Tutorial
@@ -16,7 +16,8 @@ Double Tap Schutzschild, Neues, Sounddesign, Achievments, Deutsch u. Englisch, V
 **Moritz Binneweiß** - Lead Sound Designer
 
 
-### **Space Escaper**
+# **Space Escaper**
+
 #### **Entwicklung**
 **Anian Geist** - Lead Developer
 
