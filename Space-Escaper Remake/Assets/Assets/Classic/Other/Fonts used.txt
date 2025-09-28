@@ -1,0 +1,3 @@
+ANIMO = Pirulen
+SPACE ESCAPER = good-times
+Ingame = Neuropol X

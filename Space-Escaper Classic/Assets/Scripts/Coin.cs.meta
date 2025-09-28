@@ -1,0 +1,13 @@
+fileFormatVersion: 2
+guid: c08f5a24ccbefd4419d5412e6eb2aa9d
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences:
+  - dustVFX: {fileID: 2137087609567259740, guid: d8f0099df63275647a8bcf646df1ca00,
+      type: 3}
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
