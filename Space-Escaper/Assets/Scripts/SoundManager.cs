@@ -12,9 +12,6 @@ public class SoundManager : MonoBehaviour
     public AudioSource MenuMusic;
     public AudioSource GameMusic;
 
-
-
-
     public Button sFXButton;
     public Sprite sFXOn;
     public Sprite sFXOff;
@@ -22,7 +19,6 @@ public class SoundManager : MonoBehaviour
     public Button musicButton;
     public Sprite musicOn;
     public Sprite musicOff;
-   
 
     private bool isMuted;
     private bool isMusicMuted;
@@ -57,7 +53,7 @@ public class SoundManager : MonoBehaviour
 
     void Update()
     {
-        if(PlayerPrefs.GetInt("SFXMUTED") == 1)
+        if (PlayerPrefs.GetInt("SFXMUTED") == 1)
         {
             sFXButton.GetComponent<Image>().sprite = sFXOn;
             Engine.enabled = true;
@@ -74,7 +70,7 @@ public class SoundManager : MonoBehaviour
             Coin.enabled = false;
         }
 
-        if(PlayerPrefs.GetInt("MUSICMUTED") == 1)
+        if (PlayerPrefs.GetInt("MUSICMUTED") == 1)
         {
             musicButton.GetComponent<Image>().sprite = musicOn;
             MenuMusic.enabled = true;
@@ -87,7 +83,8 @@ public class SoundManager : MonoBehaviour
             GameMusic.enabled = false;
         }
     }
-   public void PlayExplosion()
+
+    public void PlayExplosion()
     {
         Explosion.Play();
     }

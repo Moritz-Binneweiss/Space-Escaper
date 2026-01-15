@@ -20,7 +20,7 @@ public class Coin : MonoBehaviour
 
     private void OnTriggerEnter(Collider other)
     {
-        if(other.tag == "Player")
+        if (other.tag == "Player")
         {
             Collider coll = gameObject.GetComponent<CapsuleCollider>();
             coll.enabled = false;
@@ -32,4 +32,3 @@ public class Coin : MonoBehaviour
         }
     }
 }
-

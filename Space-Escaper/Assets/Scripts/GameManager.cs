@@ -1,29 +1,37 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
-using UnityEngine;
-using UnityEngine.UI;
 using GooglePlayGames;
 using GooglePlayGames.BasicApi.SavedGame;
+using UnityEngine;
 using UnityEngine.Advertisements;
-using System;
+using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour
 {
     private const int COIN_SCORE_AMOUNT = 1;
 
-   public static GameManager Instance { set; get; }
+    public static GameManager Instance { set; get; }
 
     private bool isGameStarted = false;
     private PlayerMotor motor;
-    
-
 
     //UI and the UI fields
-    public Animator gameCanvas, menuAnim, coinAnim, shopAnim;
-    public Text scoreText, coinText, hiscoreText, modifierText, menuCoinText;
-    private float score, coinScore, modifierScore;
-    private int lastScore, menuCoinScore;
+    public Animator gameCanvas,
+        menuAnim,
+        coinAnim,
+        shopAnim;
+    public Text scoreText,
+        coinText,
+        hiscoreText,
+        modifierText,
+        menuCoinText;
+    private float score,
+        coinScore,
+        modifierScore;
+    private int lastScore,
+        menuCoinScore;
 
     //Shop
     public List<int> shipPrices;
@@ -44,7 +52,8 @@ public class GameManager : MonoBehaviour
 
     //Deathmenu
     public Animator deathMenuAnim;
-    public Text deadScoreText, deadCoinText;
+    public Text deadScoreText,
+        deadCoinText;
 
     private bool msbeg = true;
 
@@ -67,14 +76,19 @@ public class GameManager : MonoBehaviour
         Advertisement.Initialize("3852577");
 
         // GPS
-        GooglePlayGames.BasicApi.PlayGamesClientConfiguration config = new GooglePlayGames.BasicApi.PlayGamesClientConfiguration.Builder().EnableSavedGames().Build();
+        GooglePlayGames.BasicApi.PlayGamesClientConfiguration config =
+            new GooglePlayGames.BasicApi.PlayGamesClientConfiguration.Builder()
+                .EnableSavedGames()
+                .Build();
         PlayGamesPlatform.InitializeInstance(config);
         PlayGamesPlatform.Activate();
         OnConnectionResponse(PlayGamesPlatform.Instance.localUser.authenticated);
-        Social.localUser.Authenticate((bool success) =>
-        {
-            OnConnectionResponse(success);
-        });
+        Social.localUser.Authenticate(
+            (bool success) =>
+            {
+                OnConnectionResponse(success);
+            }
+        );
 
         //Shop for Pc
         menuCoinScore = PlayerPrefs.GetInt("MenuCoins");
@@ -99,7 +113,7 @@ public class GameManager : MonoBehaviour
         shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
 
         foreach (Transform t in skinButtonContainer)
-                t.gameObject.SetActive(false);
+            t.gameObject.SetActive(false);
         skinButtonContainer.GetChild(currentShop).gameObject.SetActive(true);
 
         foreach (Transform t in flameContainer)
@@ -114,12 +128,11 @@ public class GameManager : MonoBehaviour
 
     private void Update()
     {
-        if(isGameStarted)
+        if (isGameStarted)
         {
-            
             //Bump the Score up
             score += (Time.deltaTime * modifierScore * 3);
-            if(lastScore != (int)score)
+            if (lastScore != (int)score)
             {
                 lastScore = (int)score;
                 scoreText.text = score.ToString("0");
@@ -128,10 +141,10 @@ public class GameManager : MonoBehaviour
 
         //if (msbeg == true)
         //{
-         //   menuCoinText.text = PlayerPrefs.GetInt("MenuCoins").ToString();
-         //   hiscoreText.text = PlayerPrefs.GetInt("Hiscore").ToString();
-            
-       // }
+        //   menuCoinText.text = PlayerPrefs.GetInt("MenuCoins").ToString();
+        //   hiscoreText.text = PlayerPrefs.GetInt("Hiscore").ToString();
+
+        // }
     }
 
     IEnumerator Wait()
@@ -180,17 +193,19 @@ public class GameManager : MonoBehaviour
         deathMenuAnim.SetTrigger("Dead");
 
         menuCoinScore = PlayerPrefs.GetInt("MenuCoins");
-        menuCoinScore += (int) coinScore;
+        menuCoinScore += (int)coinScore;
 
         reviveScore = score;
 
         PlayerPrefs.SetInt("MenuCoins", menuCoinScore);
 
-        shipContainer.GetChild(PlayerPrefs.GetInt("CurrentShip")).gameObject.GetComponent<Renderer>().enabled = false;
+        shipContainer
+            .GetChild(PlayerPrefs.GetInt("CurrentShip"))
+            .gameObject.GetComponent<Renderer>()
+            .enabled = false;
 
         //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = false;
         flameContainer.GetChild(selectedShop).gameObject.SetActive(false);
-
 
         //Check if this is a Highscore
         if (score > PlayerPrefs.GetInt("Hiscore"))
@@ -211,19 +226,22 @@ public class GameManager : MonoBehaviour
         ShowOptions sod = new ShowOptions();
         sod.resultCallback = Revive;
 
-        Advertisement.Show("rewardedVideo",sod);
+        Advertisement.Show("rewardedVideo", sod);
 
         reviveButton.SetActive(false);
     }
 
     public void Revive(ShowResult sr)
     {
-        if(sr == ShowResult.Finished)
+        if (sr == ShowResult.Finished)
         {
             deathMenuAnim.SetTrigger("Allive");
             gameCanvas.SetTrigger("Show");
             score = reviveScore;
-            shipContainer.GetChild(PlayerPrefs.GetInt("CurrentShip")).gameObject.GetComponent<Renderer>().enabled = true;
+            shipContainer
+                .GetChild(PlayerPrefs.GetInt("CurrentShip"))
+                .gameObject.GetComponent<Renderer>()
+                .enabled = true;
             //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = true;
             flameContainer.GetChild(selectedShop).gameObject.SetActive(true);
             motor.StartRunning();
@@ -233,7 +251,7 @@ public class GameManager : MonoBehaviour
             OnPlayButton();
         }
     }
-    
+
     public void ShopOn()
     {
         menuAnim.SetTrigger("Hide");
@@ -283,16 +301,13 @@ public class GameManager : MonoBehaviour
             OpenSave(true);
             OpenSave(false);
         }
-        else
-        {
-          
-        }
+        else { }
     }
 
     //Leaderboard
     public void OnLeaderboardClick()
     {
-        if(Social.localUser.authenticated)
+        if (Social.localUser.authenticated)
         {
             Social.ShowLeaderboardUI();
         }
@@ -300,19 +315,23 @@ public class GameManager : MonoBehaviour
 
     public void ReportScore(int score)
     {
-        Social.ReportScore(score, GPGSIds.leaderboard_highscore, (bool success) =>
-        {
-        });
+        Social.ReportScore(score, GPGSIds.leaderboard_highscore, (bool success) => { });
     }
 
     // Cloud Saving
     private bool isSaving = false;
+
     public void OpenSave(bool saving)
     {
-        if(Social.localUser.authenticated)
+        if (Social.localUser.authenticated)
         {
             isSaving = saving;
-            ((PlayGamesPlatform)Social.Active).SavedGame.OpenWithAutomaticConflictResolution("SpaceEscaper",GooglePlayGames.BasicApi.DataSource.ReadCacheOrNetwork,ConflictResolutionStrategy.UseLongestPlaytime, SaveGameOpened);
+            ((PlayGamesPlatform)Social.Active).SavedGame.OpenWithAutomaticConflictResolution(
+                "SpaceEscaper",
+                GooglePlayGames.BasicApi.DataSource.ReadCacheOrNetwork,
+                ConflictResolutionStrategy.UseLongestPlaytime,
+                SaveGameOpened
+            );
         }
     }
 
@@ -320,14 +339,21 @@ public class GameManager : MonoBehaviour
     {
         if (status == SavedGameRequestStatus.Success)
         {
-            if(isSaving)//Writting
+            if (isSaving) //Writting
             {
                 byte[] data = System.Text.ASCIIEncoding.ASCII.GetBytes(GetSaveString());
-                SavedGameMetadataUpdate update = new SavedGameMetadataUpdate.Builder().WithUpdatedDescription("Saved at " + DateTime.Now.ToString()).Build();
+                SavedGameMetadataUpdate update = new SavedGameMetadataUpdate.Builder()
+                    .WithUpdatedDescription("Saved at " + DateTime.Now.ToString())
+                    .Build();
 
-                ((PlayGamesPlatform)Social.Active).SavedGame.CommitUpdate(meta, update, data, SaveUpdate);
+                ((PlayGamesPlatform)Social.Active).SavedGame.CommitUpdate(
+                    meta,
+                    update,
+                    data,
+                    SaveUpdate
+                );
             }
-            else//Reading
+            else //Reading
             {
                 ((PlayGamesPlatform)Social.Active).SavedGame.ReadBinaryData(meta, SaveRead);
             }
@@ -335,15 +361,12 @@ public class GameManager : MonoBehaviour
     }
 
     //Success save
-    private void SaveUpdate(SavedGameRequestStatus status, ISavedGameMetadata meta)
-    {
-        
-    }
+    private void SaveUpdate(SavedGameRequestStatus status, ISavedGameMetadata meta) { }
 
     //Load
     private void SaveRead(SavedGameRequestStatus status, byte[] data)
     {
-        if(status == SavedGameRequestStatus.Success)
+        if (status == SavedGameRequestStatus.Success)
         {
             string saveData = System.Text.ASCIIEncoding.ASCII.GetString(data);
             LoadSaveString(saveData);
@@ -354,9 +377,9 @@ public class GameManager : MonoBehaviour
 
     public void ShopLeft()
     {
-        if(selectedShop <= 0)
+        if (selectedShop <= 0)
         {
-            selectedShop = 2    ;
+            selectedShop = 2;
         }
         else
         {
@@ -395,7 +418,6 @@ public class GameManager : MonoBehaviour
         shops[1] = 4;
         shops[2] = 7;
 
-
         SetShopMenu(shops[selectedShop]);
     }
 
@@ -431,14 +453,10 @@ public class GameManager : MonoBehaviour
         {
             shopSpriteContainer.GetChild(ind + 1).gameObject.SetActive(true);
         }
-
     }
-
 
     public void TryBuyingShip(int index)
     {
-
-
         //if unlocked already
         if ((unlockedShips & 1 << index) == 1 << index)
         {
@@ -450,7 +468,7 @@ public class GameManager : MonoBehaviour
             shipContainer.GetChild(0).gameObject.SetActive(true);
 
             currentShip = index;
-            
+
             PlayerPrefs.SetInt("CurrentShip", currentShip);
 
             Debug.Log("Hey " + PlayerPrefs.GetInt("CurrentShip"));
@@ -496,7 +514,7 @@ public class GameManager : MonoBehaviour
                 //flameContainer.GetChild(selectedShop).gameObject.GetComponent<ParticleSystem>().enableEmission = false;
 
                 currentShip = index;
-                
+
                 PlayerPrefs.SetInt("CurrentShip", currentShip);
 
                 currentShop = selectedShop;
@@ -506,10 +524,8 @@ public class GameManager : MonoBehaviour
                     t.gameObject.SetActive(false);
                 shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
 
-
                 OpenSave(true);
             }
         }
     }
-
 }

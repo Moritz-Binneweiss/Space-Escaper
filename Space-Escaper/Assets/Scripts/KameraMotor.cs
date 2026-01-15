@@ -38,7 +38,11 @@ public class KameraMotor : MonoBehaviour
 
         Vector3 desiredPosition = lookAt.position + offset;
         //desiredPosition.x = 0;
-        transform.position = Vector3.Lerp(transform.position,desiredPosition,Time.deltaTime);
-        transform.rotation = Quaternion.Lerp(transform.rotation,Quaternion.Euler(rotation),Time.deltaTime * 1f);
+        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime);
+        transform.rotation = Quaternion.Lerp(
+            transform.rotation,
+            Quaternion.Euler(rotation),
+            Time.deltaTime * 1f
+        );
     }
 }

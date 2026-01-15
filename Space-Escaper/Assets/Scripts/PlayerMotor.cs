@@ -16,7 +16,6 @@ public class PlayerMotor : MonoBehaviour
 
     public Vector3 targetPosition;
 
-
     //
     private bool isRunning = false;
 
@@ -34,13 +33,10 @@ public class PlayerMotor : MonoBehaviour
     private float originalSpeed = 11f;
     private float speed;
     private float speedIncreaseLastTick;
-   private float speedIncreaseTime = 5f;
+    private float speedIncreaseTime = 5f;
     private float speedIncreaseAmount = 0.2f;
 
     private SoundManager engine;
-
-
-
 
     // Start is called before the first frame update
     void Start()
@@ -54,10 +50,9 @@ public class PlayerMotor : MonoBehaviour
         boom = GameObject.FindGameObjectWithTag("Audio").GetComponent<SoundManager>();
     }
 
- 
     // Update is called once per frame
     /// <summary>
-    /// 
+    ///
     /// </summary>
     void Update()
     {
@@ -68,18 +63,18 @@ public class PlayerMotor : MonoBehaviour
 
         if (Time.time - speedIncreaseLastTick > speedIncreaseTime)
         {
-        speedIncreaseLastTick = Time.time;
-        speed += speedIncreaseAmount;
-        GameManager.Instance.UpdateModifier(speed - originalSpeed);
+            speedIncreaseLastTick = Time.time;
+            speed += speedIncreaseAmount;
+            GameManager.Instance.UpdateModifier(speed - originalSpeed);
         }
 
         //Gather the input on which lane we should be
         if (MobileInput.Instance.SwipeLeft)
             MoveLane(false);
-       
+
         if (MobileInput.Instance.SwipeRight)
             MoveLane(true);
-            
+
         // Calculate where we should be in the future
         Vector3 targetPosition = transform.position.z * Vector3.forward;
         if (desiredLane == 0)
@@ -93,15 +88,14 @@ public class PlayerMotor : MonoBehaviour
         moveVector.z = speed;
 
         //Move the Ship
-            controller.Move(moveVector * Time.deltaTime);
-
+        controller.Move(moveVector * Time.deltaTime);
 
         //Rotate the Ship were it is going
         //Vector3 dir = controller.velocity;
         //if(dir != Vector3.zero)
         //{
-            //dir.y = 0;
-            //transform.forward = Vector3.Lerp(transform.forward, dir, TURN_SPEED);
+        //dir.y = 0;
+        //transform.forward = Vector3.Lerp(transform.forward, dir, TURN_SPEED);
         //}
     }
 

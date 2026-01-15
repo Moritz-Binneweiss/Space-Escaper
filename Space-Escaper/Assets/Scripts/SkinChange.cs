@@ -4,7 +4,6 @@ using UnityEngine;
 
 public class SkinChange : MonoBehaviour
 {
-
     public GameObject aristocrat;
     public GameObject aristocrat2;
     public GameObject aristocrat3;
@@ -12,17 +11,13 @@ public class SkinChange : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-
         aristocrat.SetActive(true);
         aristocrat2.SetActive(false);
         aristocrat3.SetActive(false);
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    void Update() { }
 
     public void ChangeSkin2()
     {

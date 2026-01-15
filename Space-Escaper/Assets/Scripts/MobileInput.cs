@@ -11,13 +11,28 @@ public class MobileInput : MonoBehaviour
 
     public static MobileInput Instance { set; get; }
 
-    private bool tap, swipeLeft, swipeRight;
-    private Vector2 swipeDelta, startTouch;
+    private bool tap,
+        swipeLeft,
+        swipeRight;
+    private Vector2 swipeDelta,
+        startTouch;
 
-    public bool Tap { get { return tap; } }
-    public Vector2 SwipeDelta { get { return swipeDelta; } }
-    public bool SwipeLeft { get { return swipeLeft; } }
-    public bool SwipeRight { get { return swipeRight; } }
+    public bool Tap
+    {
+        get { return tap; }
+    }
+    public Vector2 SwipeDelta
+    {
+        get { return swipeDelta; }
+    }
+    public bool SwipeLeft
+    {
+        get { return swipeLeft; }
+    }
+    public bool SwipeRight
+    {
+        get { return swipeRight; }
+    }
 
     private void Start()
     {
@@ -51,12 +66,15 @@ public class MobileInput : MonoBehaviour
         if (Input.touches.Length != 0)
         {
             if (Input.touches[0].phase == TouchPhase.Began)
-            { 
-            tap = true;
-            startTouch = Input.mousePosition;
+            {
+                tap = true;
+                startTouch = Input.mousePosition;
             }
         }
-        else if (Input.touches[0].phase == TouchPhase.Ended || Input.touches[0].phase == TouchPhase.Canceled)
+        else if (
+            Input.touches[0].phase == TouchPhase.Ended
+            || Input.touches[0].phase == TouchPhase.Canceled
+        )
         {
             startTouch = swipeDelta = Vector2.zero;
         }
@@ -90,18 +108,13 @@ public class MobileInput : MonoBehaviour
                 swipeLeft = true;
                 anim.SetTrigger("Left");
             }
-             
             else
             {
                 swipeRight = true;
                 anim.SetTrigger("Right");
             }
-                
 
             startTouch = swipeDelta = Vector2.zero;
-           
         }
-
     }
-
 }

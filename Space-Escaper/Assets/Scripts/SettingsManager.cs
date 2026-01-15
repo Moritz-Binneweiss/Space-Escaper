@@ -5,7 +5,9 @@ using UnityEngine;
 
 public class SettingsManager : MonoBehaviour
 {
-    public Animator pauseAnim, settingsAnim, menuAniim;
+    public Animator pauseAnim,
+        settingsAnim,
+        menuAniim;
 
     public static bool GameIsPaused = false;
 
@@ -16,10 +18,7 @@ public class SettingsManager : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    void Update() { }
 
     public void SettingsOn()
     {
@@ -49,11 +48,11 @@ public class SettingsManager : MonoBehaviour
 
     public void Paused()
     {
-       GameIsPaused = true;
+        GameIsPaused = true;
     }
 
     public void Continued()
     {
         GameIsPaused = false;
     }
- }
+}

@@ -35,10 +35,15 @@ public class FieldManager : MonoBehaviour
 
     public void SpawnTile(int tileIndex)
     {
-        GameObject go = Instantiate(tilePrefabs[tileIndex], transform.forward * zSpawn, transform.rotation);
+        GameObject go = Instantiate(
+            tilePrefabs[tileIndex],
+            transform.forward * zSpawn,
+            transform.rotation
+        );
         activeTiles.Add(go);
         zSpawn += tileLength;
     }
+
     private void DeleteTile()
     {
         Destroy(activeTiles[0]);
