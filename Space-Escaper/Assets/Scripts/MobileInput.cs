@@ -70,13 +70,13 @@ public class MobileInput : MonoBehaviour
                 tap = true;
                 startTouch = Input.mousePosition;
             }
-        }
-        else if (
-            Input.touches[0].phase == TouchPhase.Ended
-            || Input.touches[0].phase == TouchPhase.Canceled
-        )
-        {
-            startTouch = swipeDelta = Vector2.zero;
+            else if (
+                Input.touches[0].phase == TouchPhase.Ended
+                || Input.touches[0].phase == TouchPhase.Canceled
+            )
+            {
+                startTouch = swipeDelta = Vector2.zero;
+            }
         }
         #endregion
 

@@ -10,7 +10,6 @@ public class KameraMotor : MonoBehaviour
     public Vector3 offset = new Vector3(0, 0f, 0f);
     public Vector3 rotation = new Vector3(0, 0, 0);
 
-    private float originalSpeed = 0f;
     private float speed = 0f;
     private float speedIncreaseLastTick;
     private float speedIncreaseTime = 5f;
