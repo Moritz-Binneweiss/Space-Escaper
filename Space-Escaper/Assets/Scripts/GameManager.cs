@@ -55,8 +55,6 @@ public class GameManager : MonoBehaviour
     public Text deadScoreText,
         deadCoinText;
 
-    private bool msbeg = true;
-
     private void Awake()
     {
         Time.timeScale = 1f;
@@ -75,6 +73,7 @@ public class GameManager : MonoBehaviour
         //Advertisement
         Advertisement.Initialize("3852577");
 
+#if UNITY_ANDROID
         // GPS
         GooglePlayGames.BasicApi.PlayGamesClientConfiguration config =
             new GooglePlayGames.BasicApi.PlayGamesClientConfiguration.Builder()
@@ -89,6 +88,7 @@ public class GameManager : MonoBehaviour
                 OnConnectionResponse(success);
             }
         );
+#endif
 
         //Shop for Pc
         menuCoinScore = PlayerPrefs.GetInt("MenuCoins");
@@ -157,7 +157,7 @@ public class GameManager : MonoBehaviour
     {
         isGameStarted = true;
         motor.StartRunning();
-        FindObjectOfType<KameraMotor>().IsMoving = true;
+        FindFirstObjectByType<KameraMotor>().IsMoving = true;
         gameCanvas.SetTrigger("Show");
         menuAnim.SetTrigger("Hide");
         //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = true;
@@ -223,11 +223,7 @@ public class GameManager : MonoBehaviour
 
     public void RequestRevive()
     {
-        ShowOptions sod = new ShowOptions();
-        sod.resultCallback = Revive;
-
-        Advertisement.Show("rewardedVideo", sod);
-
+        Advertisement.Show("rewardedVideo");
         reviveButton.SetActive(false);
     }
 
@@ -323,6 +319,7 @@ public class GameManager : MonoBehaviour
 
     public void OpenSave(bool saving)
     {
+#if UNITY_ANDROID
         if (Social.localUser.authenticated)
         {
             isSaving = saving;
@@ -333,10 +330,12 @@ public class GameManager : MonoBehaviour
                 SaveGameOpened
             );
         }
+#endif
     }
 
     private void SaveGameOpened(SavedGameRequestStatus status, ISavedGameMetadata meta)
     {
+#if UNITY_ANDROID
         if (status == SavedGameRequestStatus.Success)
         {
             if (isSaving) //Writting
@@ -358,6 +357,7 @@ public class GameManager : MonoBehaviour
                 ((PlayGamesPlatform)Social.Active).SavedGame.ReadBinaryData(meta, SaveRead);
             }
         }
+#endif
     }
 
     //Success save

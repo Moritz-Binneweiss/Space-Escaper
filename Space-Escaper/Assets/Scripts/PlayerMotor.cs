@@ -46,7 +46,8 @@ public class PlayerMotor : MonoBehaviour
         controller = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
         Vector3 explosionPos = transform.position;
-        drive.GetComponent<ParticleSystem>().enableEmission = false;
+        var emission = drive.GetComponent<ParticleSystem>().emission;
+        emission.enabled = false;
         boom = GameObject.FindGameObjectWithTag("Audio").GetComponent<SoundManager>();
     }
 
@@ -59,7 +60,8 @@ public class PlayerMotor : MonoBehaviour
         if (!isRunning)
             return;
 
-        drive.GetComponent<ParticleSystem>().enableEmission = true;
+        var emission = drive.GetComponent<ParticleSystem>().emission;
+        emission.enabled = true;
 
         if (Time.time - speedIncreaseLastTick > speedIncreaseTime)
         {
@@ -118,7 +120,8 @@ public class PlayerMotor : MonoBehaviour
         isRunning = false;
         GameManager.Instance.OnDeath();
         Instantiate(explosionVFX, transform.position, Quaternion.identity);
-        drive.GetComponent<ParticleSystem>().enableEmission = false;
+        var emission = drive.GetComponent<ParticleSystem>().emission;
+        emission.enabled = false;
         boom.PlayExplosion();
         engine.StopEngine();
     }
