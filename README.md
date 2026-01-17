@@ -1,36 +1,29 @@
 # **Space Escaper**
 
-Redesign aller Objekte, UI Überarbeitung,
+V.1.3.1
+
+Unity Version 6000.2.6f2
+
+TODO: Redesign aller Objekte, UI Überarbeitung,
 Double Tap Schutzschild, Neues, Sounddesign, Achievments, Deutsch u. Englisch, Vertikalität, Mini Tutorial
 
 ## **Mitwirkende**
 
-### **Space Escaper Version 2.0.0**
-
 #### **Entwicklung**
 
-**Moritz Binneweiß** - Lead Developer
+**Moritz Binneweiß** - Developer
 
 #### **Design**
 
-**Moritz Binneweiß** - Lead Designer
+**Moritz Binneweiß** - Designer
 
 #### **Musik**
 
-**Moritz Binneweiß** - Lead Sound Designer
+**Moritz Binneweiß** - Sound Designer
 
-# **Space Escaper**
+### **In older Versions**
 
-#### **Entwicklung**
-
-**Anian Geist** - Lead Developer
-
-#### **Design**
-
-**Moritz Binneweiß** - Lead Designer
-
-#### **Musik**
-
-**Julian Daniel Görner** - Hauptmenü Instrumental
-
-**Hayden Folker** - "Cloud Nine" als Ingame Instrumental
+- **Anian Geist** - Lead Developer
+- **Moritz Binneweiß** - Lead Designer
+- **Julian Daniel Görner** - Main Menu Instrumental
+- **Hayden Folker** - "Cloud Nine" als Ingame Instrumental
