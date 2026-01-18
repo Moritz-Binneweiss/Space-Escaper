@@ -52,5 +52,6 @@
         "temp/": true,
         "Temp/": true
     },
-    "dotnet.defaultSolution": "Space-Escaper.sln"
+    "dotnet.defaultSolution": "Space-Escaper.slnx",
+    "dotnet.preferCSharpExtension": true
 }
