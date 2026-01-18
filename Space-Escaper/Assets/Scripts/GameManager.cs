@@ -134,7 +134,7 @@ public class GameManager : MonoBehaviour
     {
         isGameStarted = true;
         motor.StartRunning();
-        FindFirstObjectByType<KameraMotor>().IsMoving = true;
+        FindFirstObjectByType<CameraMotor>().IsMoving = true;
         gameCanvas.SetTrigger("Show");
         menuAnim.SetTrigger("Hide");
         //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = true;

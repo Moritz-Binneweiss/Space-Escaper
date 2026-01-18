@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using UnityEngine;
 
-public class KameraMotor : MonoBehaviour
+public class CameraMotor : MonoBehaviour
 {
     public Transform lookAt;
     public Vector3 offset = new Vector3(0, 0f, 0f);

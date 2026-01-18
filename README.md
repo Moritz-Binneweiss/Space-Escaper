@@ -1,6 +1,6 @@
 # **Space Escaper**
 
-V.1.3.1
+V.1.3.2
 
 Unity Version 6000.2.6f2
 
