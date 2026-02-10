@@ -32,15 +32,15 @@ public class AudioSystem : MonoBehaviour
     public Button musicButton;
     public Sprite musicOn;
     public Sprite musicOff;
-    public Toggle audioStyleToggle;
+    public Toggle audioToggle;
 
     private AudioSource sfxSource;
     private AudioSource engineSource;
     private AudioSource musicSource;
 
-    private bool sfxMuted;
-    private bool musicMuted;
-    private bool useNewAudio = true;
+    private bool useNewSounds = true;
+    private bool musicMuted = false;
+    private bool sfxMuted = false;
 
     void Awake()
     {
@@ -58,26 +58,57 @@ public class AudioSystem : MonoBehaviour
 
     void Start()
     {
+        // Create AudioSources dynamically
         sfxSource = gameObject.AddComponent<AudioSource>();
         engineSource = gameObject.AddComponent<AudioSource>();
         musicSource = gameObject.AddComponent<AudioSource>();
 
-        musicSource.loop = true;
+        // Configure AudioSources
+        sfxSource.playOnAwake = false;
+        engineSource.playOnAwake = false;
         engineSource.loop = true;
-        engineSource.mute = true;
+        musicSource.playOnAwake = false;
+        musicSource.loop = true;
 
-        useNewAudio = PlayerPrefs.GetInt("USENEWSOUNDS", 1) == 1;
-        musicMuted = PlayerPrefs.GetInt("MUSICMUTED", 1) == 0;
-        sfxMuted = PlayerPrefs.GetInt("SFXMUTED", 1) == 0;
+        // Load preferences
+        useNewSounds = PlayerPrefs.GetInt("USENEWSOUNDS", 1) == 1;
+        musicMuted = PlayerPrefs.GetInt("MUSICMUTED", 1) == 0; // 1 = ON, 0 = MUTED
+        sfxMuted = PlayerPrefs.GetInt("SFXMUTED", 1) == 0; // 1 = ON, 0 = MUTED
 
-        if (audioStyleToggle != null)
+        // Setup UI
+        if (audioToggle != null)
         {
-            audioStyleToggle.isOn = useNewAudio;
-            audioStyleToggle.onValueChanged.AddListener(OnAudioStyleChanged);
+            audioToggle.isOn = useNewSounds;
+            audioToggle.onValueChanged.AddListener(OnAudioStyleChanged);
         }
 
-        engineSource.clip = useNewAudio ? newEngine : classicEngine;
+        if (sfxButton != null)
+        {
+            sfxButton.onClick.AddListener(MutePressed);
+        }
+
+        if (musicButton != null)
+        {
+            musicButton.onClick.AddListener(MusicMutePressed);
+        }
+
+        Debug.Log(
+            "[AudioSystem] Started! useNewSounds="
+                + useNewSounds
+                + " musicMuted="
+                + musicMuted
+                + " sfxMuted="
+                + sfxMuted
+        );
+        StartMenuMusic();
         UpdateUI();
+    }
+
+    private AudioClip GetClip(AudioClip newClip, AudioClip classicClip)
+    {
+        if (useNewSounds && newClip != null)
+            return newClip;
+        return classicClip;
     }
 
     void Update()
@@ -87,139 +118,173 @@ public class AudioSystem : MonoBehaviour
 
     private void UpdateUI()
     {
-        if (sfxButton != null)
+        // Update button sprites
+        if (sfxButton != null && sfxOn != null && sfxOff != null)
         {
-            sfxMuted = PlayerPrefs.GetInt("SFXMUTED", 1) == 0;
             sfxButton.GetComponent<Image>().sprite = sfxMuted ? sfxOff : sfxOn;
-            sfxSource.volume = sfxMuted ? 0f : 1f;
-            engineSource.volume = sfxMuted ? 0f : 1f;
         }
 
-        if (musicButton != null)
+        if (musicButton != null && musicOn != null && musicOff != null)
         {
-            musicMuted = PlayerPrefs.GetInt("MUSICMUTED", 1) == 0;
             musicButton.GetComponent<Image>().sprite = musicMuted ? musicOff : musicOn;
-            musicSource.volume = musicMuted ? 0f : 1f;
         }
+
+        // Apply mute state using volume
+        sfxSource.volume = sfxMuted ? 0f : 1f;
+        engineSource.volume = sfxMuted ? 0f : 1f;
+        musicSource.volume = musicMuted ? 0f : 1f;
     }
 
     private void OnAudioStyleChanged(bool isOn)
     {
-        useNewAudio = isOn;
-        PlayerPrefs.SetInt("USENEWSOUNDS", useNewAudio ? 1 : 0);
-        engineSource.clip = useNewAudio ? newEngine : classicEngine;
+        useNewSounds = isOn;
+        PlayerPrefs.SetInt("USENEWSOUNDS", isOn ? 1 : 0);
+        PlayerPrefs.Save();
 
+        // Switch music seamlessly
         if (musicSource.isPlaying)
         {
             float currentTime = musicSource.time;
-            AudioClip currentClip = musicSource.clip;
-
-            if (currentClip == classicMenuMusic || currentClip == newMenuMusic)
+            AudioClip newClip = useNewSounds ? newMenuMusic : classicMenuMusic;
+            if (newClip != null && musicSource.clip != newClip)
             {
-                musicSource.clip = useNewAudio ? newMenuMusic : classicMenuMusic;
+                musicSource.clip = newClip;
+                musicSource.time = Mathf.Min(currentTime, newClip.length);
+                musicSource.Play();
             }
-            else if (currentClip == classicGameMusic || currentClip == newGameMusic)
-            {
-                musicSource.clip = useNewAudio ? newGameMusic : classicGameMusic;
-            }
-
-            musicSource.time = currentTime;
-            musicSource.Play();
         }
     }
 
     public void PlayExplosion()
     {
-        AudioClip clip = useNewAudio ? newExplosion : classicExplosion;
+        AudioClip clip = GetClip(newExplosion, classicExplosion);
         if (clip != null)
             sfxSource.PlayOneShot(clip);
     }
 
     public void PlayButton()
     {
-        AudioClip clip = useNewAudio ? newButton : classicButton;
+        AudioClip clip = GetClip(newButton, classicButton);
         if (clip != null)
             sfxSource.PlayOneShot(clip);
     }
 
     public void PlayCoin()
     {
-        AudioClip clip = useNewAudio ? newCoin : classicCoin;
+        AudioClip clip = GetClip(newCoin, classicCoin);
         if (clip != null)
             sfxSource.PlayOneShot(clip);
     }
 
     public void PlaySelectShip()
     {
-        AudioClip clip = useNewAudio ? newSelectShip : classicSelectShip;
+        AudioClip clip = GetClip(newSelectShip, classicSelectShip);
         if (clip != null)
             sfxSource.PlayOneShot(clip);
     }
 
     public void PlayDeselectShip()
     {
-        if (newDeselectShip != null)
+        if (useNewSounds && newDeselectShip != null)
+        {
             sfxSource.PlayOneShot(newDeselectShip);
+        }
     }
 
     public void PlayBuyShip()
     {
-        if (newBuyShip != null)
+        if (useNewSounds && newBuyShip != null)
+        {
             sfxSource.PlayOneShot(newBuyShip);
+        }
     }
 
     public void PlayEngine()
     {
-        if (engineSource.clip != null && !engineSource.isPlaying)
-            engineSource.Play();
+        AudioClip clip = GetClip(newEngine, classicEngine);
+        if (clip != null)
+            engineSource.PlayOneShot(clip);
     }
 
     public void StartEngine()
     {
-        engineSource.mute = false;
+        AudioClip clip = GetClip(newEngine, classicEngine);
+        if (clip != null && !engineSource.isPlaying)
+        {
+            engineSource.clip = clip;
+            engineSource.Play();
+        }
     }
 
     public void StopEngine()
     {
-        engineSource.mute = true;
+        if (engineSource.isPlaying)
+        {
+            engineSource.Stop();
+        }
     }
 
     public void StartMenuMusic()
     {
-        AudioClip clip = useNewAudio ? newMenuMusic : classicMenuMusic;
-        if (clip != null)
-        {
-            if (musicSource.clip != clip)
-            {
-                musicSource.clip = clip;
-                musicSource.Play();
-            }
-            else if (!musicSource.isPlaying)
-            {
-                musicSource.Play();
-            }
-        }
-    }
-
-    public void StopMenuMusic()
-    {
-        AudioClip clip = useNewAudio ? newGameMusic : classicGameMusic;
-        if (clip != null)
+        AudioClip clip = GetClip(newMenuMusic, classicMenuMusic);
+        if (clip != null && !musicSource.isPlaying)
         {
             musicSource.clip = clip;
             musicSource.Play();
         }
     }
 
+    public void StartGameMusic()
+    {
+        AudioClip clip = GetClip(newGameMusic, classicGameMusic);
+        Debug.Log(
+            "[AudioSystem] StartGameMusic called. useNewSounds="
+                + useNewSounds
+                + " clip="
+                + (clip != null ? clip.name : "NULL")
+                + " musicMuted="
+                + musicMuted
+                + " volume="
+                + musicSource.volume
+        );
+        if (clip != null)
+        {
+            musicSource.clip = clip;
+            musicSource.Play();
+            Debug.Log(
+                "[AudioSystem] Music playing: "
+                    + clip.name
+                    + " isPlaying="
+                    + musicSource.isPlaying
+                    + " clip.length="
+                    + clip.length
+                    + " clip.loadState="
+                    + clip.loadState
+            );
+        }
+    }
+
+    public void StopMenuMusic()
+    {
+        if (musicSource.isPlaying)
+        {
+            musicSource.Stop();
+        }
+    }
+
     public void MutePressed()
     {
         sfxMuted = !sfxMuted;
-        PlayerPrefs.SetInt("SFXMUTED", sfxMuted ? 0 : 1);
+        PlayerPrefs.SetInt("SFXMUTED", sfxMuted ? 0 : 1); // 1 = ON, 0 = MUTED
+        PlayerPrefs.Save();
+        UpdateUI();
     }
 
     public void MusicMutePressed()
     {
         musicMuted = !musicMuted;
-        PlayerPrefs.SetInt("MUSICMUTED", musicMuted ? 0 : 1);
+        PlayerPrefs.SetInt("MUSICMUTED", musicMuted ? 0 : 1); // 1 = ON, 0 = MUTED
+        PlayerPrefs.Save();
+        UpdateUI();
     }
 }

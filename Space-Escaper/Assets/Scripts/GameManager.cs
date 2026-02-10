@@ -133,6 +133,8 @@ public class GameManager : MonoBehaviour
     public void Play()
     {
         isGameStarted = true;
+        AudioSystem.Instance.StopMenuMusic();
+        AudioSystem.Instance.StartGameMusic();
         motor.StartRunning();
         FindFirstObjectByType<CameraMotor>().IsMoving = true;
         gameCanvas.SetTrigger("Show");
@@ -159,6 +161,7 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayButton()
     {
+        AudioSystem.Instance.PlayButton();
         UnityEngine.SceneManagement.SceneManager.LoadScene("Game");
     }
 
@@ -215,6 +218,7 @@ public class GameManager : MonoBehaviour
 
     public void ShopOn()
     {
+        AudioSystem.Instance.PlayButton();
         menuAnim.SetTrigger("Hide");
         shopAnim.SetTrigger("Show");
         hangar.SetActive(true);
@@ -222,6 +226,7 @@ public class GameManager : MonoBehaviour
 
     public void ShopOff()
     {
+        AudioSystem.Instance.PlayButton();
         menuAnim.SetTrigger("Show");
         shopAnim.SetTrigger("Hide");
         hangar.SetActive(false);
