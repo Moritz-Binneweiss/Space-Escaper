@@ -9,11 +9,11 @@ public class Coin : MonoBehaviour
 
     public GameObject dustVFX;
 
-    private SoundManager bling;
+    private AudioSystem bling;
 
     private void Start()
     {
-        bling = GameObject.FindGameObjectWithTag("Audio").GetComponent<SoundManager>();
+        bling = AudioSystem.Instance;
         anim = GetComponent<Animator>();
         Vector3 dustPos = transform.position;
     }

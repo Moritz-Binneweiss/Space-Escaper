@@ -1,47 +1,7 @@
 # **Space Escaper**
 
-**Version:** 1.3.2  
+**Version:** 1.4.0  
 **Unity Version:** 6000.2.6f2
-
----
-
-## 📋 **TODO - Roadmap for v.2.0.0**
-
-### 🎨 **Art & Visuals**
-
-- [ ] Remaster all game objects
-- [ ] Remaster all spaceships
-- [ ] Remaster obstacles
-- [ ] Remaster collectible coins
-- [ ] Remaster structures
-- [ ] Icon remaster
-- [ ] New fonts implementation
-
-### 🎮 **Gameplay Features**
-
-- [ ] Double tap shield mechanic
-- [ ] Verticality in level design
-- [ ] 5 collectible logbooks
-- [ ] Mini tutorial system
-
-### 🌐 **Localization & UI**
-
-- [ ] German language support
-- [ ] English language support
-- [ ] UI overhaul
-
-### 🎵 **Audio**
-
-- [ ] New sound design
-
-### 🏆 **Progression Systems**
-
-- [ ] Achievements system
-
-### 📱 **Marketing**
-
-- [ ] New trailer
-- [ ] New marketing materials
 
 ---
 
@@ -60,7 +20,87 @@
 
 ---
 
-## 📜 **Version History**
+## 📜 **Version History & Roadmap**
+
+## **v2.0.0** - Re-Release _(October 15, 2026)_
+
+- Re-Release to Google Play Store
+- Featuring all updates from 1.2.0 through 2.0.0
+- etc.
+
+##### **v1.9.2** - Revive Mechanic Reworked _(------- --, 2026)_
+
+<small>
+
+- [ ] Revive Mechanic working again
+
+</small>
+
+##### **v1.9.1** - Marketing Material _(------- --, 2026)_
+
+<small>
+
+- [ ] New trailer
+- [ ] New marketing materials
+
+</small>
+
+### **v1.9.0** - New Gameplay Features _(------- --, 2026)_
+
+- [ ] Double tap shield mechanic
+- [ ] Verticality in level design
+- [ ] Mini tutorial system
+
+### **v1.8.0** - Achievments & Collectibles _(------- --, 2026)_
+
+- [ ] Achievements System (Ingame)
+- [ ] Collectibles System
+- [ ] 5 collectible logbooks
+- [ ] 2 collectible plants
+- [ ] 2 collectible star-system cards
+
+### **v1.7.0** - Art & Visuals _(------- --, 2026)_
+
+- [ ] Remaster all game objects
+- [ ] Remaster all spaceships
+- [ ] Remaster obstacles
+- [ ] Remaster collectible coins
+- [ ] Remaster structures
+- [ ] Icon remaster
+- [ ] New fonts implementation
+
+### **v1.6.0** - Localization _(------- --, 2026)_
+
+- [ ] German language support
+- [ ] English language support
+
+##### **v1.5.2** - Credits _(------- --, 2026)_
+
+<small>
+
+- [ ] Added Credits Screen
+
+</small>
+
+##### **v1.5.1** - UI Overhaul _(------- --, 2026)_
+
+<small>
+
+- [ ] UI overhaul
+
+</small>
+
+### **v1.5.0** - Refactoring _(------- --, 2026)_
+
+- [ ] Reworked and Refactored all Game Engine and Development related things
+
+### **v1.4.0** - Audio System Rework _(February 10, 2026)_
+
+- New Sounds for [ ] Explosion, [ ] Button Press, [ ] Coin collected, [ ] Select and [ ] Deselect Spaceship, [ ] Buy new Ship, [ ] Engine
+- Reworked the whole Audio System
+- 🔀 Added audio toggle to switch between classic and new music/SFX
+- 🎵 New main menu music: **"Nerous Spaceport"**
+- 🎵 New in-game music: **"Striving Through Space"**
 
 ##### **v1.3.2** - Refactoring _(January 18, 2026)_
 
