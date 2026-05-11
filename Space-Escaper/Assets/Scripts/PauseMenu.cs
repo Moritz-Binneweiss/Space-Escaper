@@ -11,14 +11,14 @@ public class PauseMenu : MonoBehaviour
 
     public static bool GameIsPaused = false;
 
-    private SoundManager engine;
+    private AudioSystem engine;
 
     public SettingsManager sett;
 
     // Update is called once per frame
     void Start()
     {
-        engine = GameObject.FindGameObjectWithTag("Audio").GetComponent<SoundManager>();
+        engine = AudioSystem.Instance;
         sett = GetComponent<SettingsManager>();
     }
 

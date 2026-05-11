@@ -22,7 +22,7 @@ public class PlayerMotor : MonoBehaviour
     //Animation
     private Animator anim;
 
-    private SoundManager boom;
+    private AudioSystem boom;
 
     //Movement
     private CharacterController controller;
@@ -36,19 +36,19 @@ public class PlayerMotor : MonoBehaviour
     private float speedIncreaseTime = 5f;
     private float speedIncreaseAmount = 0.2f;
 
-    private SoundManager engine;
+    private AudioSystem engine;
 
     // Start is called before the first frame update
     void Start()
     {
-        engine = GameObject.FindGameObjectWithTag("Audio").GetComponent<SoundManager>();
+        engine = AudioSystem.Instance;
         speed = originalSpeed;
         controller = GetComponent<CharacterController>();
         anim = GetComponent<Animator>();
         Vector3 explosionPos = transform.position;
         var emission = drive.GetComponent<ParticleSystem>().emission;
         emission.enabled = false;
-        boom = GameObject.FindGameObjectWithTag("Audio").GetComponent<SoundManager>();
+        boom = AudioSystem.Instance;
     }
 
     // Update is called once per frame
