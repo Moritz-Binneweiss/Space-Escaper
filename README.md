@@ -1,7 +1,11 @@
 # **Space Escaper**
 
+> **Work in Progress**
+> Current snapshot: **May 11, 2026**
+> This project is still actively being developed and may change frequently.
+
 **Version:** 1.4.0  
-**Unity Version:** 6000.2.6f2
+**Unity Version:** 6000.4.5f1
 
 ---
 
@@ -94,7 +98,7 @@
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-### **v1.4.0** - Audio System Rework _(February 10, 2026)_
+### **v1.4.0** - Audio System Rework _(Work in Progress, 2026)_
 
 - New Sounds for [ ] Explosion, [ ] Button Press, [ ] Coin collected, [ ] Select and [ ] Deselect Spaceship, [ ] Buy new Ship, [ ] Engine
 - Reworked the whole Audio System
