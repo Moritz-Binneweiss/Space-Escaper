@@ -1,3 +1,24 @@
-version https://git-lfs.github.com/spec/v1
-oid sha256:858945acb1e7ea4850068e0603acfb9d9933cba5e7b289ecb8cd1fec7052860b
-size 765
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e3f331c548e0d384ca5afa4ee3e37199, type: 3}
+  m_Name: NewBank
+  m_EditorClassIdentifier: Assembly-CSharp::AudioBank
+  styleName: New
+  menuMusic: {fileID: 8300000, guid: b5d69617b47c7a548bc8a92a516b8f41, type: 3}
+  gameMusic: {fileID: 8300000, guid: efa6ab5cf74dc9a4685c9ebb2359e848, type: 3}
+  button: {fileID: 0}
+  coin: {fileID: 0}
+  explosion: {fileID: 0}
+  engine: {fileID: 0}
+  selectShip: {fileID: 0}
+  deselectShip: {fileID: 0}
+  buyShip: {fileID: 0}

@@ -18,6 +18,7 @@ public class AudioSystem : MonoBehaviour
     private const string PrefUseNewSounds = "USENEWSOUNDS";
     private const string PrefMusicMuted = "MUSICMUTED";
     private const string PrefSfxMuted = "SFXMUTED";
+    private const string PrefMasterVolume = "MASTERVOLUME";
 
     public static AudioSystem Instance { get; private set; }
 
@@ -37,6 +38,7 @@ public class AudioSystem : MonoBehaviour
     public Sprite musicOn;
     public Sprite musicOff;
     public Toggle audioToggle;
+    public Slider volumeSlider;
 
     private AudioSource sfxSource;
     private AudioSource engineSource;
@@ -48,6 +50,7 @@ public class AudioSystem : MonoBehaviour
     private bool useNewSounds = true;
     private bool musicMuted;
     private bool sfxMuted;
+    private float masterVolume = 1f;
 
     /// Which track the game currently wants to hear. Remembered so a style
     /// switch or an unmute can restart the right one.
@@ -132,6 +135,55 @@ public class AudioSystem : MonoBehaviour
         useNewSounds = PlayerPrefs.GetInt(PrefUseNewSounds, 1) == 1;
         musicMuted = PlayerPrefs.GetInt(PrefMusicMuted, 1) == 0; // 1 = on, 0 = muted
         sfxMuted = PlayerPrefs.GetInt(PrefSfxMuted, 1) == 0;
+        masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefMasterVolume, 1f));
+        AudioListener.volume = SliderToAmplitude(masterVolume);
+    }
+
+    /// Overall volume for everything the game plays, on top of the individual
+    /// mute switches. AudioListener.volume is global, so this covers any source,
+    /// not only the three owned by this class.
+    ///
+    /// The slider position is NOT used as the amplitude directly. Hearing is
+    /// logarithmic, so on a linear scale the bottom few percent swallow most of
+    /// the audible change (0.1 -> 0.2 is 6 dB) while the top third is barely
+    /// distinguishable (0.7 -> 1.0 is only 3 dB). Mapping the travel onto a
+    /// fixed decibel range instead makes every step of the slider sound equally
+    /// big. Note that squaring the value does NOT fix this - a power curve
+    /// stretches the whole dB range evenly and leaves the imbalance intact.
+    public void SetMasterVolume(float sliderPosition)
+    {
+        masterVolume = Mathf.Clamp01(sliderPosition);
+        AudioListener.volume = SliderToAmplitude(masterVolume);
+
+        // Deliberately no PlayerPrefs.Save() here - a slider fires this on every
+        // frame while being dragged. Flushed in OnApplicationPause/Quit instead.
+        // The slider position is stored, not the amplitude, so the handle comes
+        // back where the player left it.
+        PlayerPrefs.SetFloat(PrefMasterVolume, masterVolume);
+    }
+
+    /// How much quieter the very bottom of the slider is than the top.
+    /// 40 dB means every quarter of the travel roughly halves the perceived
+    /// loudness. Raise it for a slider that reaches "almost silent" sooner.
+    private const float VolumeRangeDb = 40f;
+
+    private static float SliderToAmplitude(float sliderPosition)
+    {
+        if (sliderPosition <= 0f)
+            return 0f;
+
+        return Mathf.Pow(10f, (sliderPosition - 1f) * VolumeRangeDb / 20f);
+    }
+
+    private void OnApplicationPause(bool paused)
+    {
+        if (paused)
+            PlayerPrefs.Save();
+    }
+
+    private void OnApplicationQuit()
+    {
+        PlayerPrefs.Save();
     }
 
     // ------------------------------------------------------------------
@@ -360,6 +412,13 @@ public class AudioSystem : MonoBehaviour
             musicButton.onClick.AddListener(ToggleMusicMuted);
         }
 
+        if (volumeSlider != null)
+        {
+            volumeSlider.onValueChanged.RemoveListener(SetMasterVolume);
+            volumeSlider.SetValueWithoutNotify(masterVolume);
+            volumeSlider.onValueChanged.AddListener(SetMasterVolume);
+        }
+
         RefreshUi();
     }
 
@@ -373,6 +432,7 @@ public class AudioSystem : MonoBehaviour
         musicOn = sceneCopy.musicOn;
         musicOff = sceneCopy.musicOff;
         audioToggle = sceneCopy.audioToggle;
+        volumeSlider = sceneCopy.volumeSlider;
 
         if (sceneCopy.classicBank != null)
             classicBank = sceneCopy.classicBank;
@@ -402,5 +462,8 @@ public class AudioSystem : MonoBehaviour
 
         if (audioToggle != null)
             audioToggle.SetIsOnWithoutNotify(useNewSounds);
+
+        if (volumeSlider != null)
+            volumeSlider.SetValueWithoutNotify(masterVolume);
     }
 }
