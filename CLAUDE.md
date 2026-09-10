@@ -77,11 +77,25 @@ Wichtig bei Änderungen daran:
 - Alle Properties gehören in den einen `UnityPerMaterial`-CBUFFER, sonst bricht die
   SRP-Batcher-Kompatibilitaet.
 
-**Bekannte Regression:** `Effects/.../Materials/ExplosionDistortion.mat` nutzte im
-Built-in einen GrabPass-Verzerrungsshader. Den gibt es in URP nicht; der Converter
-hat das Material auf URP Particles/Unlit gesetzt. Es rendert also, verzerrt aber
-nicht mehr - und koennte als sichtbares Sprite auffallen, wo vorher nur Verzerrung
-war. Soll bei v1.7.0 (Art-Remaster) ersetzt werden.
+**Bekannte Regression (provisorisch entschaerft, echte Loesung offen):**
+`Effects/.../Materials/ExplosionDistortion.mat` nutzte im Built-in einen
+GrabPass-Verzerrungsshader. GrabPass gibt es in URP nicht; der Converter hat das
+Material auf URP Particles/Unlit gesetzt. Ergebnis: statt einer unsichtbaren
+Verzerrung ein sichtbarer, hell-oranger Sprite mitten in der Explosion
+(im Play Mode bestaetigt).
+
+Provisorischer Fix (September 2026): Alpha von `_BaseColor` und `_Color` auf **0**
+gesetzt, RGB absichtlich stehen gelassen, damit der Originalwert
+(1.189, 0.767, 0.434) noch ablesbar ist. Das Partikel ist damit unsichtbar - der
+Zustand entspricht optisch dem vor der Migration.
+
+Was weiterhin fehlt: der Verzerrungseffekt selbst. Ein echter Ersatz waere ein
+URP-Shader ueber die Opaque Texture (Shader Graph, Scene-Color-Node). Gehoert zu
+v1.7.0 (Art-Remaster).
+
+Das Material haengt an einem Child namens `Shockwave` in zwei Prefabs:
+`BigExplosion.prefab` (die Todesexplosion des Spielers) und `Shockwave.prefab`.
+Beide Prefabs sind unveraendert - der Fix sitzt nur im Material.
 
 ## Sprache
 
