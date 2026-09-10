@@ -5,7 +5,7 @@
 > This project is still actively being developed and may change frequently.
 
 **Version:** 1.4.0  
-**Unity Version:** 6000.4.5f1
+**Unity Version:** 6000.6.0f1
 
 ---
 
