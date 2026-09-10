@@ -32,8 +32,13 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
 ## Unity-Besonderheiten in diesem Repo
 
-- **Git LFS ist aktiv** (siehe `.gitattributes`) — auch für `.unity`, `.asset`, `.anim`,
-  `.controller`. Diese Dateien sind dadurch nicht diffbar.
+- **Git LFS ist aktiv** (siehe `.gitattributes`), seit September 2026 aber **nur noch
+  für echte Binärdateien** (Texturen, Audio, Meshes, Libraries). Unity-YAML wie
+  `.unity`, `.prefab`, `.asset`, `.mat`, `.anim`, `.controller` liegt als Text im Repo
+  und ist damit diffbar — das Projekt nutzt Force Text serialization.
+  Diese Formate stehen bewusst auf `merge=binary`: Git würde bei einem Merge-Konflikt
+  zeilenweise mischen und dabei kaputtes YAML erzeugen. Ein Konflikt soll deshalb
+  hart fehlschlagen. Neue Textformate gehören **nicht** in LFS.
 - **`.meta`-Dateien immer mit committen.** Nach einem Unity-Upgrade ändern sich massenhaft
   `.meta`-Dateien (serializedVersion-Bumps) — das ist normal und gehört in einen eigenen
   Upgrade-Commit, nicht vermischt mit inhaltlichen Änderungen.
@@ -70,17 +75,28 @@ Bank wechseln. Wichtig für die Erweiterung:
   aktuell nur die zwei neuen Musikstücke; alle SFX kommen deshalb noch aus Classic.
   Das ist gewollt und kein Fehler.
 
-Drei Fallen, die hier schon einmal Bugs verursacht haben:
+Vier Fallen, die hier schon einmal Bugs verursacht haben:
 
-- **UI-Referenzen und DontDestroyOnLoad.** Die Buttons liegen in der Szene, das
-  AudioSystem überlebt den Reload. Deshalb übergibt die Szenenkopie in `Awake()`
-  ihre frischen Referenzen an die überlebende Instanz (`AdoptSceneReferencesFrom`),
-  bevor sie sich zerstört. Ohne das sind Mute-Buttons nach dem ersten Reload tot.
+- **UI-Referenzen und DontDestroyOnLoad.** Die Bedienelemente liegen unter
+  `UI/Settings` in der Szene (Toggle „Use new Sound", Lautstärkeregler, SFX- und
+  Musik-Button), das AudioSystem überlebt aber den Reload. Deshalb übergibt die
+  Szenenkopie in `Awake()` ihre frischen Referenzen an die überlebende Instanz
+  (`AdoptSceneReferencesFrom`), bevor sie sich zerstört. Ohne das sind Mute-Buttons
+  und Regler nach dem ersten Reload tot. **Neue UI-Elemente dort mit eintragen**,
+  sonst überleben sie den Szenenwechsel nicht.
 - **Musik nicht an zwei Stellen steuern.** `PlayerMotor.StartRunning()` rief früher
   zusätzlich einen Musik-Stopp auf und würgte damit die gerade gestartete
   Spielmusik ab. Musik gehört ausschließlich in `GameManager`.
 - **Mute ist Pause, nicht Lautstärke 0.** Musik wird pausiert (Position bleibt
   erhalten, Dekodierung stoppt wirklich), SFX werden gar nicht erst abgespielt.
+- **Der Lautstärkeregler ist nicht linear.** `SetMasterVolume` bildet die
+  Reglerposition exponentiell auf einen 40-dB-Bereich ab (`VolumeRangeDb`), sonst
+  passiert die gesamte hörbare Änderung in den unteren 20 % des Wegs. Wichtig:
+  Den Wert zu quadrieren hilft **nicht** — eine Potenzkurve streckt den dB-Bereich
+  gleichmäßig und lässt das Ungleichgewicht bestehen. In den PlayerPrefs steht die
+  Reglerposition, nicht die Amplitude. Beim Ziehen wird bewusst kein
+  `PlayerPrefs.Save()` aufgerufen (60×/Sekunde Schreibzugriff); der Wert wird in
+  `OnApplicationPause`/`OnApplicationQuit` weggeschrieben.
 
 **Import-Einstellungen** (September 2026 nach Unity-Empfehlung gesetzt): Musik auf
 *Streaming* + Load In Background, SFX auf *Decompress on Load* mit 22050 Hz und

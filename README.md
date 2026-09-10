@@ -138,6 +138,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
   - [ ] Engine
 - Reworked the whole Audio System
 - 🔀 Added audio toggle to switch between classic and new music/SFX
+- 🎚️ Added master volume slider to the settings menu
 - 🎵 New main menu music: **"Nerous Spaceport"**
 - 🎵 New in-game music: **"Striving Through Space"**
 - ⬆️ Switched Unity Version from **6000.2.6f2** to **6000.6.0f1**
