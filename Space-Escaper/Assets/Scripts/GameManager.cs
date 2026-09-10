@@ -136,7 +136,7 @@ public class GameManager : MonoBehaviour
         AudioSystem.Instance.StopMenuMusic();
         AudioSystem.Instance.StartGameMusic();
         motor.StartRunning();
-        FindFirstObjectByType<CameraMotor>().IsMoving = true;
+        FindAnyObjectByType<CameraMotor>().IsMoving = true;
         gameCanvas.SetTrigger("Show");
         menuAnim.SetTrigger("Hide");
         //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = true;

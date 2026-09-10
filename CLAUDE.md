@@ -54,25 +54,34 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
   `PlayerPrefs`-Werte.
 
-## Render Pipeline / URP-Migration
+## Render Pipeline: URP
 
-Das Projekt läuft auf der **Built-in Render Pipeline**, die Unity als deprecated
-markiert (Hub zeigt eine Warnung). Funktioniert weiterhin, aber ein URP-Wechsel ist
-eine Frage von wann, nicht ob — und muss **vor** dem geplanten Art-Remaster (v1.7.0)
-passieren, sonst wird Material-Arbeit doppelt gemacht.
+Das Projekt lief bis September 2026 auf der Built-in Render Pipeline und wurde auf
+**URP 17.6.0** umgestellt. Die Migration ist abgeschlossen: URP Asset liegt unter
+`Assets/New Universal Render Pipeline Asset.asset` und ist in Project Settings >
+Graphics zugewiesen, alle Materialien sind konvertiert.
 
-Aufwandslage, falls das ansteht:
+Shader-Verteilung: 34 Materialien auf `ANIMO/BendWorld`, 13 auf URP/Lit, 7 auf URP
+Particles (Lit/Unlit), 2 TextMesh Pro, 1 Skybox.
 
-- 13 der 47 Materialien nutzen den Standard-Shader → der URP-Konverter erledigt sie.
-- **32 Materialien hängen an `Assets/Shader/BendWorld.shader`** (`ANIMO/BendWorld`,
-  43 Zeilen, Curved-World-Effekt). Das ist ein **Surface Shader**
-  (`#pragma surface surf Lambert vertex:vert`) — die gibt es in URP nicht, er muss
-  neu geschrieben werden (Shader Graph mit Custom Function auf der Vertex-Position
-  oder handgeschrieben in URP-HLSL). Das ist der eigentliche Aufwand der Migration.
-- Trick dabei: die `.shader`-Datei **am selben Pfad ersetzen**, nicht neu anlegen —
-  dann bleibt die GUID erhalten und alle 32 Materialien behalten ihre Zuweisung.
-  Property-Namen `_MainTex` und `_Curvature` beibehalten, dann überleben auch die Werte.
-- uGUI/Canvas und TextMesh Pro sind von der Migration nicht betroffen.
+`Assets/Shader/BendWorld.shader` ist der handportierte Curved-World-Shader (vorher
+Surface Shader, jetzt URP mit ForwardLit / ShadowCaster / DepthOnly / DepthNormals).
+Wichtig bei Änderungen daran:
+
+- Die Krümmung (`BendObjectPosition`) muss in **jedem** Pass angewandt werden, sonst
+  passen Schatten und Tiefe nicht zur sichtbaren Geometrie. Im Built-in erledigte
+  das `addshadow`.
+- Property-Namen `_MainTex` und `_Curvature` sind bewusst URP-untypisch beibehalten
+  (statt `_BaseMap`), damit die 34 Materialien ihre Zuweisungen und Werte behalten.
+  Beim Umbenennen wären sie alle weg.
+- Alle Properties gehören in den einen `UnityPerMaterial`-CBUFFER, sonst bricht die
+  SRP-Batcher-Kompatibilitaet.
+
+**Bekannte Regression:** `Effects/.../Materials/ExplosionDistortion.mat` nutzte im
+Built-in einen GrabPass-Verzerrungsshader. Den gibt es in URP nicht; der Converter
+hat das Material auf URP Particles/Unlit gesetzt. Es rendert also, verzerrt aber
+nicht mehr - und koennte als sichtbares Sprite auffallen, wo vorher nur Verzerrung
+war. Soll bei v1.7.0 (Art-Remaster) ersetzt werden.
 
 ## Sprache
 

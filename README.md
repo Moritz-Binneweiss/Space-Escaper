@@ -70,6 +70,7 @@
 - [ ] Remaster obstacles
 - [ ] Remaster collectible coins
 - [ ] Remaster structures
+- [ ] Remaster effects
 - [ ] Icon remaster
 - [ ] New fonts implementation
 
@@ -105,6 +106,8 @@
 - 🔀 Added audio toggle to switch between classic and new music/SFX
 - 🎵 New main menu music: **"Nerous Spaceport"**
 - 🎵 New in-game music: **"Striving Through Space"**
+- ⬆️ Switched Unity Version from **6000.2.6f2** to **6000.6.0f1**
+- 🖼️ Switched Render Pipeline from **Built-in** to **URP 17.6.0**
 
 ##### **v1.3.2** - Refactoring _(January 18, 2026)_
 
