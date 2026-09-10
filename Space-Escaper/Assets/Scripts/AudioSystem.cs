@@ -1,31 +1,35 @@
 using UnityEngine;
+using UnityEngine.Audio;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+/// <summary>
+/// Central audio controller. Survives scene reloads via DontDestroyOnLoad and
+/// plays everything through three sources: one-shot SFX, the looping engine,
+/// and music.
+///
+/// Individual clips are not referenced here - they come from an <see cref="AudioBank"/>
+/// per style, so switching between the classic 2020 sounds and the new ones is
+/// simply a matter of reading from the other bank. Adding a sound to the game
+/// means adding one field to AudioBank, not two fields here.
+/// </summary>
 public class AudioSystem : MonoBehaviour
 {
+    private const string PrefUseNewSounds = "USENEWSOUNDS";
+    private const string PrefMusicMuted = "MUSICMUTED";
+    private const string PrefSfxMuted = "SFXMUTED";
+
     public static AudioSystem Instance { get; private set; }
 
-    [Header("Classic Audio Clips")]
-    public AudioClip classicExplosion;
-    public AudioClip classicButton;
-    public AudioClip classicEngine;
-    public AudioClip classicCoin;
-    public AudioClip classicSelectShip;
-    public AudioClip classicMenuMusic;
-    public AudioClip classicGameMusic;
+    [Header("Sound Banks")]
+    public AudioBank classicBank;
+    public AudioBank newBank;
 
-    [Header("New Audio Clips")]
-    public AudioClip newExplosion;
-    public AudioClip newButton;
-    public AudioClip newEngine;
-    public AudioClip newCoin;
-    public AudioClip newSelectShip;
-    public AudioClip newDeselectShip;
-    public AudioClip newBuyShip;
-    public AudioClip newMenuMusic;
-    public AudioClip newGameMusic;
+    [Header("Mixer Routing (optional)")]
+    public AudioMixerGroup musicGroup;
+    public AudioMixerGroup sfxGroup;
 
-    [Header("UI Elements")]
+    [Header("UI - lives in the scene, re-adopted on every scene load")]
     public Button sfxButton;
     public Sprite sfxOn;
     public Sprite sfxOff;
@@ -38,253 +42,365 @@ public class AudioSystem : MonoBehaviour
     private AudioSource engineSource;
     private AudioSource musicSource;
 
-    private bool useNewSounds = true;
-    private bool musicMuted = false;
-    private bool sfxMuted = false;
+    /// Stand-in used when a bank slot is empty, so clip lookups never need a null check.
+    private AudioBank emptyBank;
 
-    void Awake()
+    private bool useNewSounds = true;
+    private bool musicMuted;
+    private bool sfxMuted;
+
+    /// Which track the game currently wants to hear. Remembered so a style
+    /// switch or an unmute can restart the right one.
+    private enum Track
     {
-        if (Instance == null)
+        None,
+        Menu,
+        Game,
+    }
+
+    private Track currentTrack = Track.None;
+
+    // ------------------------------------------------------------------
+    // Lifetime
+
+    private void Awake()
+    {
+        if (Instance != null && Instance != this)
         {
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-        else
-        {
+            // A reloaded scene brings its own copy of this object along. That
+            // copy's inspector references point at the NEW scene's buttons,
+            // while the surviving instance still points at the destroyed ones.
+            // Hand them over before throwing the copy away - otherwise the mute
+            // buttons and the style toggle stop working after the first reload.
+            Instance.AdoptSceneReferencesFrom(this);
             Destroy(gameObject);
             return;
         }
+
+        Instance = this;
+        DontDestroyOnLoad(gameObject);
+
+        CreateSources();
+        LoadPreferences();
+
+        engineSource.mute = sfxMuted;
+        BindUi();
+
+        SceneManager.sceneLoaded += HandleSceneLoaded;
     }
 
-    void Start()
+    private void Start()
     {
-        // Create AudioSources dynamically
-        sfxSource = gameObject.AddComponent<AudioSource>();
-        engineSource = gameObject.AddComponent<AudioSource>();
-        musicSource = gameObject.AddComponent<AudioSource>();
+        PlayMenuMusic();
+    }
 
-        // Configure AudioSources
+    private void OnDestroy()
+    {
+        if (Instance != this)
+            return;
+
+        SceneManager.sceneLoaded -= HandleSceneLoaded;
+        Instance = null;
+    }
+
+    /// The game only ever reloads back into the main menu, so reset to that state.
+    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        StopEngine();
+        PlayMenuMusic();
+    }
+
+    private void CreateSources()
+    {
+        sfxSource = gameObject.AddComponent<AudioSource>();
         sfxSource.playOnAwake = false;
+        sfxSource.outputAudioMixerGroup = sfxGroup;
+
+        engineSource = gameObject.AddComponent<AudioSource>();
         engineSource.playOnAwake = false;
         engineSource.loop = true;
+        engineSource.outputAudioMixerGroup = sfxGroup;
+
+        musicSource = gameObject.AddComponent<AudioSource>();
         musicSource.playOnAwake = false;
         musicSource.loop = true;
-
-        // Load preferences
-        useNewSounds = PlayerPrefs.GetInt("USENEWSOUNDS", 1) == 1;
-        musicMuted = PlayerPrefs.GetInt("MUSICMUTED", 1) == 0; // 1 = ON, 0 = MUTED
-        sfxMuted = PlayerPrefs.GetInt("SFXMUTED", 1) == 0; // 1 = ON, 0 = MUTED
-
-        // Setup UI
-        if (audioToggle != null)
-        {
-            audioToggle.isOn = useNewSounds;
-            audioToggle.onValueChanged.AddListener(OnAudioStyleChanged);
-        }
-
-        if (sfxButton != null)
-        {
-            sfxButton.onClick.AddListener(MutePressed);
-        }
-
-        if (musicButton != null)
-        {
-            musicButton.onClick.AddListener(MusicMutePressed);
-        }
-
-        Debug.Log(
-            "[AudioSystem] Started! useNewSounds="
-                + useNewSounds
-                + " musicMuted="
-                + musicMuted
-                + " sfxMuted="
-                + sfxMuted
-        );
-        StartMenuMusic();
-        UpdateUI();
+        musicSource.outputAudioMixerGroup = musicGroup;
     }
 
-    private AudioClip GetClip(AudioClip newClip, AudioClip classicClip)
+    private void LoadPreferences()
     {
-        if (useNewSounds && newClip != null)
-            return newClip;
-        return classicClip;
+        useNewSounds = PlayerPrefs.GetInt(PrefUseNewSounds, 1) == 1;
+        musicMuted = PlayerPrefs.GetInt(PrefMusicMuted, 1) == 0; // 1 = on, 0 = muted
+        sfxMuted = PlayerPrefs.GetInt(PrefSfxMuted, 1) == 0;
     }
 
-    void Update()
+    // ------------------------------------------------------------------
+    // Clip lookup
+
+    private AudioBank Empty
     {
-        UpdateUI();
-    }
-
-    private void UpdateUI()
-    {
-        // Update button sprites
-        if (sfxButton != null && sfxOn != null && sfxOff != null)
+        get
         {
-            sfxButton.GetComponent<Image>().sprite = sfxMuted ? sfxOff : sfxOn;
-        }
-
-        if (musicButton != null && musicOn != null && musicOff != null)
-        {
-            musicButton.GetComponent<Image>().sprite = musicMuted ? musicOff : musicOn;
-        }
-
-        // Apply mute state using volume
-        sfxSource.volume = sfxMuted ? 0f : 1f;
-        engineSource.volume = sfxMuted ? 0f : 1f;
-        musicSource.volume = musicMuted ? 0f : 1f;
-    }
-
-    private void OnAudioStyleChanged(bool isOn)
-    {
-        useNewSounds = isOn;
-        PlayerPrefs.SetInt("USENEWSOUNDS", isOn ? 1 : 0);
-        PlayerPrefs.Save();
-
-        // Switch music seamlessly
-        if (musicSource.isPlaying)
-        {
-            float currentTime = musicSource.time;
-            AudioClip newClip = useNewSounds ? newMenuMusic : classicMenuMusic;
-            if (newClip != null && musicSource.clip != newClip)
-            {
-                musicSource.clip = newClip;
-                musicSource.time = Mathf.Min(currentTime, newClip.length);
-                musicSource.Play();
-            }
+            if (emptyBank == null)
+                emptyBank = ScriptableObject.CreateInstance<AudioBank>();
+            return emptyBank;
         }
     }
 
-    public void PlayExplosion()
+    private AudioBank NewSounds => newBank != null ? newBank : Empty;
+    private AudioBank ClassicSounds => classicBank != null ? classicBank : Empty;
+
+    /// Prefers the active style, but falls back to the other bank so a sound
+    /// that exists in only one style is still heard rather than silently missing.
+    private AudioClip Pick(AudioClip fromNew, AudioClip fromClassic)
     {
-        AudioClip clip = GetClip(newExplosion, classicExplosion);
-        if (clip != null)
-            sfxSource.PlayOneShot(clip);
+        if (useNewSounds)
+            return fromNew != null ? fromNew : fromClassic;
+        return fromClassic != null ? fromClassic : fromNew;
     }
 
-    public void PlayButton()
+    // ------------------------------------------------------------------
+    // Sound effects
+
+    private void PlaySfx(AudioClip clip)
     {
-        AudioClip clip = GetClip(newButton, classicButton);
-        if (clip != null)
-            sfxSource.PlayOneShot(clip);
+        // Muted SFX are not played at all - cheaper than playing them at zero volume.
+        if (sfxMuted || clip == null)
+            return;
+
+        sfxSource.PlayOneShot(clip);
     }
 
-    public void PlayCoin()
-    {
-        AudioClip clip = GetClip(newCoin, classicCoin);
-        if (clip != null)
-            sfxSource.PlayOneShot(clip);
-    }
+    public void PlayButton() => PlaySfx(Pick(NewSounds.button, ClassicSounds.button));
 
-    public void PlaySelectShip()
-    {
-        AudioClip clip = GetClip(newSelectShip, classicSelectShip);
-        if (clip != null)
-            sfxSource.PlayOneShot(clip);
-    }
+    public void PlayCoin() => PlaySfx(Pick(NewSounds.coin, ClassicSounds.coin));
 
-    public void PlayDeselectShip()
-    {
-        if (useNewSounds && newDeselectShip != null)
-        {
-            sfxSource.PlayOneShot(newDeselectShip);
-        }
-    }
+    public void PlayExplosion() => PlaySfx(Pick(NewSounds.explosion, ClassicSounds.explosion));
 
-    public void PlayBuyShip()
-    {
-        if (useNewSounds && newBuyShip != null)
-        {
-            sfxSource.PlayOneShot(newBuyShip);
-        }
-    }
+    public void PlaySelectShip() => PlaySfx(Pick(NewSounds.selectShip, ClassicSounds.selectShip));
 
-    public void PlayEngine()
-    {
-        AudioClip clip = GetClip(newEngine, classicEngine);
-        if (clip != null)
-            engineSource.PlayOneShot(clip);
-    }
+    public void PlayDeselectShip() =>
+        PlaySfx(Pick(NewSounds.deselectShip, ClassicSounds.deselectShip));
+
+    public void PlayBuyShip() => PlaySfx(Pick(NewSounds.buyShip, ClassicSounds.buyShip));
+
+    // ------------------------------------------------------------------
+    // Engine loop
 
     public void StartEngine()
     {
-        AudioClip clip = GetClip(newEngine, classicEngine);
-        if (clip != null && !engineSource.isPlaying)
+        AudioClip clip = Pick(NewSounds.engine, ClassicSounds.engine);
+        if (clip == null)
+            return;
+
+        if (engineSource.clip != clip)
         {
+            engineSource.Stop();
             engineSource.clip = clip;
-            engineSource.Play();
         }
+
+        engineSource.mute = sfxMuted;
+        if (!engineSource.isPlaying)
+            engineSource.Play();
     }
 
     public void StopEngine()
     {
         if (engineSource.isPlaying)
-        {
             engineSource.Stop();
-        }
     }
 
-    public void StartMenuMusic()
+    // ------------------------------------------------------------------
+    // Music
+
+    public void PlayMenuMusic() => PlayTrack(Track.Menu);
+
+    public void PlayGameMusic() => PlayTrack(Track.Game);
+
+    /// Stops music entirely. Use PlayMenuMusic / PlayGameMusic to switch tracks -
+    /// they handle the swap on their own.
+    public void StopMusic()
     {
-        AudioClip clip = GetClip(newMenuMusic, classicMenuMusic);
-        if (clip != null && !musicSource.isPlaying)
-        {
-            musicSource.clip = clip;
-            musicSource.Play();
-        }
+        currentTrack = Track.None;
+        musicSource.Stop();
     }
 
-    public void StartGameMusic()
+    private void PlayTrack(Track track)
     {
-        AudioClip clip = GetClip(newGameMusic, classicGameMusic);
-        Debug.Log(
-            "[AudioSystem] StartGameMusic called. useNewSounds="
-                + useNewSounds
-                + " clip="
-                + (clip != null ? clip.name : "NULL")
-                + " musicMuted="
-                + musicMuted
-                + " volume="
-                + musicSource.volume
-        );
-        if (clip != null)
-        {
-            musicSource.clip = clip;
-            musicSource.Play();
-            Debug.Log(
-                "[AudioSystem] Music playing: "
-                    + clip.name
-                    + " isPlaying="
-                    + musicSource.isPlaying
-                    + " clip.length="
-                    + clip.length
-                    + " clip.loadState="
-                    + clip.loadState
-            );
-        }
-    }
+        currentTrack = track;
 
-    public void StopMenuMusic()
-    {
-        if (musicSource.isPlaying)
+        AudioClip clip = ClipFor(track);
+        if (clip == null)
         {
             musicSource.Stop();
+            return;
         }
+
+        if (musicSource.clip != clip)
+        {
+            musicSource.Stop();
+            musicSource.clip = clip;
+        }
+
+        // Stay silent while muted; unmuting resumes through ToggleMusicMuted.
+        if (musicMuted)
+            return;
+
+        if (!musicSource.isPlaying)
+            musicSource.Play();
     }
 
-    public void MutePressed()
+    private AudioClip ClipFor(Track track)
+    {
+        if (track == Track.Menu)
+            return Pick(NewSounds.menuMusic, ClassicSounds.menuMusic);
+        if (track == Track.Game)
+            return Pick(NewSounds.gameMusic, ClassicSounds.gameMusic);
+        return null;
+    }
+
+    // ------------------------------------------------------------------
+    // Settings
+
+    /// Switches between the classic and the new sound set. Public so the style
+    /// can also be changed from somewhere other than the toggle.
+    public void SetUseNewSounds(bool value)
+    {
+        if (useNewSounds == value)
+            return;
+
+        useNewSounds = value;
+        PlayerPrefs.SetInt(PrefUseNewSounds, value ? 1 : 0);
+        PlayerPrefs.Save();
+
+        SwapRunningMusicToCurrentStyle();
+        SwapRunningEngineToCurrentStyle();
+        RefreshUi();
+    }
+
+    /// Keeps the playback position when the track changes, so switching style
+    /// mid-song is not jarring.
+    private void SwapRunningMusicToCurrentStyle()
+    {
+        AudioClip clip = ClipFor(currentTrack);
+        if (clip == null || musicSource.clip == clip)
+            return;
+
+        float position = musicSource.time;
+        bool wasPlaying = musicSource.isPlaying;
+
+        musicSource.Stop();
+        musicSource.clip = clip;
+        musicSource.time = Mathf.Clamp(position, 0f, Mathf.Max(0f, clip.length - 0.05f));
+
+        if (wasPlaying && !musicMuted)
+            musicSource.Play();
+    }
+
+    private void SwapRunningEngineToCurrentStyle()
+    {
+        if (!engineSource.isPlaying)
+            return;
+
+        AudioClip clip = Pick(NewSounds.engine, ClassicSounds.engine);
+        if (clip == null || engineSource.clip == clip)
+            return;
+
+        engineSource.clip = clip;
+        engineSource.Play();
+    }
+
+    public void ToggleSfxMuted()
     {
         sfxMuted = !sfxMuted;
-        PlayerPrefs.SetInt("SFXMUTED", sfxMuted ? 0 : 1); // 1 = ON, 0 = MUTED
+        PlayerPrefs.SetInt(PrefSfxMuted, sfxMuted ? 0 : 1); // 1 = on, 0 = muted
         PlayerPrefs.Save();
-        UpdateUI();
+
+        engineSource.mute = sfxMuted;
+        RefreshUi();
     }
 
-    public void MusicMutePressed()
+    public void ToggleMusicMuted()
     {
         musicMuted = !musicMuted;
-        PlayerPrefs.SetInt("MUSICMUTED", musicMuted ? 0 : 1); // 1 = ON, 0 = MUTED
+        PlayerPrefs.SetInt(PrefMusicMuted, musicMuted ? 0 : 1); // 1 = on, 0 = muted
         PlayerPrefs.Save();
-        UpdateUI();
+
+        // Pausing genuinely stops decoding, unlike volume 0, which keeps
+        // burning CPU and battery on a phone while you hear nothing.
+        if (musicMuted)
+            musicSource.Pause();
+        else
+            PlayTrack(currentTrack);
+
+        RefreshUi();
+    }
+
+    // ------------------------------------------------------------------
+    // UI
+
+    private void BindUi()
+    {
+        if (audioToggle != null)
+        {
+            audioToggle.onValueChanged.RemoveListener(SetUseNewSounds);
+            audioToggle.SetIsOnWithoutNotify(useNewSounds);
+            audioToggle.onValueChanged.AddListener(SetUseNewSounds);
+        }
+
+        if (sfxButton != null)
+        {
+            sfxButton.onClick.RemoveListener(ToggleSfxMuted);
+            sfxButton.onClick.AddListener(ToggleSfxMuted);
+        }
+
+        if (musicButton != null)
+        {
+            musicButton.onClick.RemoveListener(ToggleMusicMuted);
+            musicButton.onClick.AddListener(ToggleMusicMuted);
+        }
+
+        RefreshUi();
+    }
+
+    /// Called on the surviving instance when a reloaded scene brings a fresh copy.
+    private void AdoptSceneReferencesFrom(AudioSystem sceneCopy)
+    {
+        sfxButton = sceneCopy.sfxButton;
+        sfxOn = sceneCopy.sfxOn;
+        sfxOff = sceneCopy.sfxOff;
+        musicButton = sceneCopy.musicButton;
+        musicOn = sceneCopy.musicOn;
+        musicOff = sceneCopy.musicOff;
+        audioToggle = sceneCopy.audioToggle;
+
+        if (sceneCopy.classicBank != null)
+            classicBank = sceneCopy.classicBank;
+        if (sceneCopy.newBank != null)
+            newBank = sceneCopy.newBank;
+
+        BindUi();
+    }
+
+    /// Only runs when something actually changed - the old version did this
+    /// every frame in Update().
+    private void RefreshUi()
+    {
+        if (sfxButton != null && sfxOn != null && sfxOff != null)
+        {
+            Image image = sfxButton.GetComponent<Image>();
+            if (image != null)
+                image.sprite = sfxMuted ? sfxOff : sfxOn;
+        }
+
+        if (musicButton != null && musicOn != null && musicOff != null)
+        {
+            Image image = musicButton.GetComponent<Image>();
+            if (image != null)
+                image.sprite = musicMuted ? musicOff : musicOn;
+        }
+
+        if (audioToggle != null)
+            audioToggle.SetIsOnWithoutNotify(useNewSounds);
     }
 }

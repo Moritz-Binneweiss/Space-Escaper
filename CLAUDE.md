@@ -14,8 +14,9 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
 - `Space-Escaper/Assets/Scenes/Game.unity` — **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
-- `Space-Escaper/Assets/AudioSystem/` — Audio-Clips. Präfix `C_` = classic (Originale
-  von 2020), `N_` = neu. Der Laufzeit-Umschalter dazwischen ist `AudioSystem.useNewSounds`.
+- `Space-Escaper/Assets/AudioSystem/` — Audio-Clips plus `ClassicBank.asset`,
+  `NewBank.asset` und `GameAudio.mixer`. Dateipräfix `C_` = classic (Originale von
+  2020), `N_` = neu. Siehe Abschnitt „Audio-System“ unten.
 - `Space-Escaper/ProjectSettings/` — Android-Buildeinstellungen, Tags, Layer.
 
 ## Arbeitsweise
@@ -43,7 +44,6 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
 - `Assets/UI/` und `Assets/UI/Images/` enthalten 39 bitgleiche Duplikat-PNGs. Unklar,
   welche Kopie die Szene referenziert — vor UI-Arbeiten klären.
-- Alle Audio-Clips stehen auf *Decompress on Load*; Musik gehört auf *Streaming*.
 - Reste der 2023 entfernten Google-Play-Games-Integration: `GooglePlayGameSettings.txt`,
   `GvhProjectSettings.xml`, `AndroidResolverDependencies.xml`, `com.google` Scoped
   Registry in `manifest.json`.
@@ -53,6 +53,39 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   ruft `Revive()` ohne Gegenleistung durch.
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
   `PlayerPrefs`-Werte.
+
+## Audio-System
+
+Zentral ist `AudioSystem` (DontDestroyOnLoad, Singleton) mit drei AudioSources:
+One-Shot-SFX, Motor-Loop, Musik. Alle drei routen in `GameAudio.mixer`
+(Master → Music / SFX).
+
+**Clips liegen nicht im AudioSystem, sondern in `AudioBank`-ScriptableObjects** —
+`ClassicBank.asset` (Originalsounds 2020) und `NewBank.asset`. Umschalten heißt
+Bank wechseln. Wichtig für die Erweiterung:
+
+- **Einen neuen Sound hinzufügen = ein Feld in `AudioBank.cs`.** Beide Banks bieten
+  den Slot dann automatisch an. Nicht zurück zu Einzelfeldern im AudioSystem gehen.
+- Ein leerer Slot fällt automatisch auf die andere Bank zurück. `NewBank` enthält
+  aktuell nur die zwei neuen Musikstücke; alle SFX kommen deshalb noch aus Classic.
+  Das ist gewollt und kein Fehler.
+
+Drei Fallen, die hier schon einmal Bugs verursacht haben:
+
+- **UI-Referenzen und DontDestroyOnLoad.** Die Buttons liegen in der Szene, das
+  AudioSystem überlebt den Reload. Deshalb übergibt die Szenenkopie in `Awake()`
+  ihre frischen Referenzen an die überlebende Instanz (`AdoptSceneReferencesFrom`),
+  bevor sie sich zerstört. Ohne das sind Mute-Buttons nach dem ersten Reload tot.
+- **Musik nicht an zwei Stellen steuern.** `PlayerMotor.StartRunning()` rief früher
+  zusätzlich einen Musik-Stopp auf und würgte damit die gerade gestartete
+  Spielmusik ab. Musik gehört ausschließlich in `GameManager`.
+- **Mute ist Pause, nicht Lautstärke 0.** Musik wird pausiert (Position bleibt
+  erhalten, Dekodierung stoppt wirklich), SFX werden gar nicht erst abgespielt.
+
+**Import-Einstellungen** (September 2026 nach Unity-Empfehlung gesetzt): Musik auf
+*Streaming* + Load In Background, SFX auf *Decompress on Load* mit 22050 Hz und
+Vorbis-Qualität 0.6. Das hat den PCM-Speicher von ~75 MB auf ~0,8 MB gesenkt. Neue
+Clips entsprechend importieren, sonst landen sie wieder komplett im RAM.
 
 ## Render Pipeline: URP
 

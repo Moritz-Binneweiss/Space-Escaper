@@ -111,7 +111,8 @@ public class PlayerMotor : MonoBehaviour
     {
         isRunning = true;
         engine.StartEngine();
-        engine.StopMenuMusic();
+        // Music is handled by GameManager.Play(); stopping it here used to kill
+        // the game track a frame after it started.
     }
 
     private void Crash()
