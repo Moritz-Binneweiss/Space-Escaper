@@ -54,6 +54,26 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
   `PlayerPrefs`-Werte.
 
+## Render Pipeline / URP-Migration
+
+Das Projekt läuft auf der **Built-in Render Pipeline**, die Unity als deprecated
+markiert (Hub zeigt eine Warnung). Funktioniert weiterhin, aber ein URP-Wechsel ist
+eine Frage von wann, nicht ob — und muss **vor** dem geplanten Art-Remaster (v1.7.0)
+passieren, sonst wird Material-Arbeit doppelt gemacht.
+
+Aufwandslage, falls das ansteht:
+
+- 13 der 47 Materialien nutzen den Standard-Shader → der URP-Konverter erledigt sie.
+- **32 Materialien hängen an `Assets/Shader/BendWorld.shader`** (`ANIMO/BendWorld`,
+  43 Zeilen, Curved-World-Effekt). Das ist ein **Surface Shader**
+  (`#pragma surface surf Lambert vertex:vert`) — die gibt es in URP nicht, er muss
+  neu geschrieben werden (Shader Graph mit Custom Function auf der Vertex-Position
+  oder handgeschrieben in URP-HLSL). Das ist der eigentliche Aufwand der Migration.
+- Trick dabei: die `.shader`-Datei **am selben Pfad ersetzen**, nicht neu anlegen —
+  dann bleibt die GUID erhalten und alle 32 Materialien behalten ihre Zuweisung.
+  Property-Namen `_MainTex` und `_Curvature` beibehalten, dann überleben auch die Werte.
+- uGUI/Canvas und TextMesh Pro sind von der Migration nicht betroffen.
+
 ## Sprache
 
 Antworten auf Deutsch. Code, Bezeichner und Commit-Messages auf Englisch
