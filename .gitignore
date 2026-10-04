@@ -84,6 +84,10 @@
 **/[Aa]ssets/[Ss]treamingAssets/aa.meta
 **/[Aa]ssets/[Ss]treamingAssets/aa/*
 
+### JetBrains (Rider / IntelliJ) ###
+**/.idea/
+**/*.sln.iml
+
 ### VisualStudioCode ###
 **/.vscode/*
 !**/.vscode/settings.json

@@ -133,10 +133,9 @@ public class GameManager : MonoBehaviour
     public void Play()
     {
         isGameStarted = true;
-        AudioSystem.Instance.StopMenuMusic();
-        AudioSystem.Instance.StartGameMusic();
+        AudioSystem.Instance.PlayGameMusic();
         motor.StartRunning();
-        FindFirstObjectByType<CameraMotor>().IsMoving = true;
+        FindAnyObjectByType<CameraMotor>().IsMoving = true;
         gameCanvas.SetTrigger("Show");
         menuAnim.SetTrigger("Hide");
         //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = true;
@@ -239,6 +238,8 @@ public class GameManager : MonoBehaviour
 
     public void ShopLeft()
     {
+        AudioSystem.Instance.PlayButton();
+
         if (selectedShop <= 0)
         {
             selectedShop = 2;
@@ -252,6 +253,8 @@ public class GameManager : MonoBehaviour
 
     public void ShopRight()
     {
+        AudioSystem.Instance.PlayButton();
+
         if (selectedShop >= 2)
         {
             selectedShop = 0;
@@ -322,6 +325,8 @@ public class GameManager : MonoBehaviour
         //if unlocked already
         if ((unlockedShips & 1 << index) == 1 << index)
         {
+            AudioSystem.Instance.PlaySelectShip();
+
             //Physical change
             foreach (Transform t in shipContainer)
                 t.gameObject.SetActive(false);
@@ -351,6 +356,8 @@ public class GameManager : MonoBehaviour
         {
             if (menuCoinScore >= shipPrices[index - 1])
             {
+                AudioSystem.Instance.PlayBuyShip();
+
                 menuCoinScore -= shipPrices[index - 1];
 
                 menuCoinText.text = menuCoinScore.ToString();
