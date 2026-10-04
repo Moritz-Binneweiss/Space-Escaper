@@ -1,6 +1,6 @@
 # Space Escaper
 
-3-Lane Endless Runner für Android, Unity **6000.6.0f1**, Built-in Render Pipeline.
+3-Lane Endless Runner für Android, Unity **6000.6.0f1**, URP 17.6.0.
 Ursprünglich 2020 in Unity 2019.4 gebaut und im Play Store veröffentlicht — aktuell
 ein Legacy-Projekt, das schrittweise modernisiert wird. Hobbyprojekt, kein Zeitdruck,
 Arbeit passiert in unregelmäßigen Sessions.
@@ -73,7 +73,8 @@ Bank wechseln. Wichtig für die Erweiterung:
   den Slot dann automatisch an. Nicht zurück zu Einzelfeldern im AudioSystem gehen.
 - Ein leerer Slot fällt automatisch auf die andere Bank zurück. `NewBank` enthält
   aktuell nur die zwei neuen Musikstücke; alle SFX kommen deshalb noch aus Classic.
-  Das ist gewollt und kein Fehler.
+  Das ist gewollt und kein Fehler. Die neuen SFX sind auf **v1.7.0** verschoben
+  (Art- und Sound-Remaster); v1.4.0 wurde ohne sie abgeschlossen.
 
 Vier Fallen, die hier schon einmal Bugs verursacht haben:
 
@@ -140,7 +141,7 @@ Zustand entspricht optisch dem vor der Migration.
 
 Was weiterhin fehlt: der Verzerrungseffekt selbst. Ein echter Ersatz waere ein
 URP-Shader ueber die Opaque Texture (Shader Graph, Scene-Color-Node). Gehoert zu
-v1.7.0 (Art-Remaster).
+v1.7.0 (Art- und Sound-Remaster).
 
 Das Material haengt an einem Child namens `Shockwave` in zwei Prefabs:
 `BigExplosion.prefab` (die Todesexplosion des Spielers) und `Shockwave.prefab`.

@@ -14,7 +14,7 @@ a re-release.
 ---
 
 > [!NOTE]
-> **Work in Progress** — as of September 2026
+> **Work in Progress** — as of October 2026
 >
 > This project is still actively being developed and may change frequently.
 
@@ -90,7 +90,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] 2 collectible plants
 - [ ] 2 collectible star-system cards
 
-### **v1.7.0** — Art & Visuals _(------- --, 2026)_
+### **v1.7.0** — Art, Visuals & Sound _(------- --, 2026)_
 
 - [ ] Remaster all game objects
 - [ ] Remaster all spaceships
@@ -100,6 +100,14 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] Remaster effects
 - [ ] Icon remaster
 - [ ] New fonts implementation
+- 🔊 New sounds for:
+  - [ ] Explosion
+  - [ ] Button Press
+  - [ ] Coin collected
+  - [ ] Select Spaceship
+  - [ ] Deselect Spaceship
+  - [ ] Buy new Ship
+  - [ ] Engine
 
 ### **v1.6.0** — Localization _(------- --, 2026)_
 
@@ -126,17 +134,9 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-### **v1.4.0** — Audio System Rework _(Work in Progress, 2026)_
+### **v1.4.0** — Audio System Rework _(September 10, 2026)_
 
-- 🔊 New sounds for:
-  - [ ] Explosion
-  - [ ] Button Press
-  - [ ] Coin collected
-  - [ ] Select Spaceship
-  - [ ] Deselect Spaceship
-  - [ ] Buy new Ship
-  - [ ] Engine
-- Reworked the whole Audio System
+- 🔊 Reworked the whole Audio System
 - 🔀 Added audio toggle to switch between classic and new music/SFX
 - 🎚️ Added master volume slider to the settings menu
 - 🎵 New main menu music: **"Nerous Spaceport"**
