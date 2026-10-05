@@ -17,11 +17,6 @@ public class CameraMotor : MonoBehaviour
 
     public bool IsMoving { set; get; }
 
-    private void start()
-    {
-        transform.position = lookAt.position + offset;
-    }
-
     private void LateUpdate()
     {
         if (!IsMoving)

@@ -14,11 +14,11 @@ a re-release.
 ---
 
 > [!NOTE]
-> **Work in Progress** — as of October 2026
+> **Work in Progress** - as of October 2026
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.0 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.1 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -54,7 +54,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 ## 📜 **Version History & Roadmap**
 
-### **v2.0.0** — Re-Release _(October 15, 2026)_
+### **v2.0.0** — Re-Release _(October 15, 2027)_
 
 - Re-Release to Google Play Store
 - Featuring all updates from 1.2.0 through 2.0.0
@@ -133,6 +133,22 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 ### **v1.5.0** — Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
+- [ ] Arrow key controls for testing in Play Mode
+
+#### **v1.4.1** — Bug Fixes & Shop Prices _(October 5, 2026)_
+
+<small>
+
+- 🐛 Fixed purchased ships not being saved
+- 🐛 Fixed invisible ship and crash on first launch
+- 🐛 Fixed hangar showing the wrong ship and engine flame
+- 🐛 Fixed highscore differing from the displayed score
+- 🐛 Fixed coins being counted twice after a revive
+- 🐛 Fixed missing click sounds on most buttons
+- 🗑️ Hid the non-functional leaderboard button
+- 💰 Rebalanced ship prices to the actual coin income (250 / 750 / 1250)
+
+</small>
 
 ### **v1.4.0** — Audio System Rework _(September 10, 2026)_
 
