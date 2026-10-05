@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class GameManager : MonoBehaviour
 {
     private const int COIN_SCORE_AMOUNT = 1;
+    private const int STARTER_SHIP = 1;
 
     public static GameManager Instance { set; get; }
 
@@ -30,9 +31,13 @@ public class GameManager : MonoBehaviour
     private int lastScore,
         menuCoinScore;
 
+    // Coins of this run already added to MenuCoins. A revive keeps coinScore
+    // running, so a second death may only bank what was collected since.
+    private int bankedCoins;
+
     //Shop
     public List<int> shipPrices;
-    private int unlockedShips = 1;
+    private int unlockedShips;
     private int currentShip = 0;
     private int currentShop = 0;
     public Transform shipContainer;
@@ -69,8 +74,23 @@ public class GameManager : MonoBehaviour
 
         //Shop for Pc
         menuCoinScore = PlayerPrefs.GetInt("MenuCoins");
-        currentShip = PlayerPrefs.GetInt("CurrentShip");
+        currentShip = PlayerPrefs.GetInt("CurrentShip", STARTER_SHIP);
         currentShop = PlayerPrefs.GetInt("CurrentShop");
+
+        // Child 0 of shipContainer is the flame container, not a ship. A missing
+        // or broken value used to land there: no visible ship, and GetChild(-1)
+        // below threw on every fresh install.
+        if (currentShip < STARTER_SHIP || currentShip >= shipContainer.childCount)
+        {
+            currentShip = STARTER_SHIP;
+            currentShop = 0;
+        }
+        selectedShop = currentShop;
+
+        // The starter ship is always owned, and so is the ship being flown. Written
+        // back right away, otherwise switching ships would lock the old one again.
+        unlockedShips = PlayerPrefs.GetInt("UnlockedShips") | 1 << STARTER_SHIP | 1 << currentShip;
+        PlayerPrefs.SetInt("UnlockedShips", unlockedShips);
 
         foreach (Transform t in shipContainer)
             t.gameObject.SetActive(false);
@@ -83,7 +103,7 @@ public class GameManager : MonoBehaviour
 
         foreach (Transform t in shopShipContainer)
             t.gameObject.SetActive(false);
-        shopShipContainer.GetChild(currentShip).gameObject.SetActive(true);
+        shopShipContainer.GetChild(currentShip - 1).gameObject.SetActive(true);
 
         foreach (Transform t in shopSpriteContainer)
             t.gameObject.SetActive(false);
@@ -112,7 +132,7 @@ public class GameManager : MonoBehaviour
             if (lastScore != (int)score)
             {
                 lastScore = (int)score;
-                scoreText.text = score.ToString("0");
+                scoreText.text = lastScore.ToString();
             }
         }
 
@@ -139,7 +159,7 @@ public class GameManager : MonoBehaviour
         gameCanvas.SetTrigger("Show");
         menuAnim.SetTrigger("Hide");
         //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = true;
-        flameContainer.GetChild(selectedShop).gameObject.SetActive(true);
+        flameContainer.GetChild(currentShop).gameObject.SetActive(true);
         StartCoroutine(Wait());
     }
 
@@ -149,7 +169,7 @@ public class GameManager : MonoBehaviour
         coinScore++;
         coinText.text = coinScore.ToString("0");
         score += COIN_SCORE_AMOUNT;
-        scoreText.text = score.ToString("0");
+        scoreText.text = ((int)score).ToString();
     }
 
     public void UpdateModifier(float modifierAmount)
@@ -160,40 +180,36 @@ public class GameManager : MonoBehaviour
 
     public void OnPlayButton()
     {
-        AudioSystem.Instance.PlayButton();
         UnityEngine.SceneManagement.SceneManager.LoadScene("Game");
     }
 
     public void OnDeath()
     {
+        // Shown and saved as the same whole number. The death screen used to
+        // round while the highscore was truncated: 41.7 showed 42 but saved 41.
+        int finalScore = (int)score;
+
         gameCanvas.SetTrigger("Hide");
-        deadScoreText.text = score.ToString("0");
+        deadScoreText.text = finalScore.ToString();
         deadCoinText.text = coinScore.ToString("0");
         deathMenuAnim.SetTrigger("Dead");
 
-        menuCoinScore = PlayerPrefs.GetInt("MenuCoins");
-        menuCoinScore += (int)coinScore;
+        int runCoins = (int)coinScore;
+        menuCoinScore = PlayerPrefs.GetInt("MenuCoins") + runCoins - bankedCoins;
+        bankedCoins = runCoins;
 
         reviveScore = score;
 
         PlayerPrefs.SetInt("MenuCoins", menuCoinScore);
 
-        shipContainer
-            .GetChild(PlayerPrefs.GetInt("CurrentShip"))
-            .gameObject.GetComponent<Renderer>()
-            .enabled = false;
+        shipContainer.GetChild(currentShip).gameObject.GetComponent<Renderer>().enabled = false;
 
         //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = false;
-        flameContainer.GetChild(selectedShop).gameObject.SetActive(false);
+        flameContainer.GetChild(currentShop).gameObject.SetActive(false);
 
         //Check if this is a Highscore
-        if (score > PlayerPrefs.GetInt("Hiscore"))
-        {
-            float s = score;
-            if (s % 1 == 0)
-                s += 1;
-            PlayerPrefs.SetInt("Hiscore", (int)s);
-        }
+        if (finalScore > PlayerPrefs.GetInt("Hiscore"))
+            PlayerPrefs.SetInt("Hiscore", finalScore);
     }
 
     public void RequestRevive()
@@ -207,17 +223,13 @@ public class GameManager : MonoBehaviour
         deathMenuAnim.SetTrigger("Allive");
         gameCanvas.SetTrigger("Show");
         score = reviveScore;
-        shipContainer
-            .GetChild(PlayerPrefs.GetInt("CurrentShip"))
-            .gameObject.GetComponent<Renderer>()
-            .enabled = true;
-        flameContainer.GetChild(selectedShop).gameObject.SetActive(true);
+        shipContainer.GetChild(currentShip).gameObject.GetComponent<Renderer>().enabled = true;
+        flameContainer.GetChild(currentShop).gameObject.SetActive(true);
         motor.StartRunning();
     }
 
     public void ShopOn()
     {
-        AudioSystem.Instance.PlayButton();
         menuAnim.SetTrigger("Hide");
         shopAnim.SetTrigger("Show");
         hangar.SetActive(true);
@@ -225,7 +237,6 @@ public class GameManager : MonoBehaviour
 
     public void ShopOff()
     {
-        AudioSystem.Instance.PlayButton();
         menuAnim.SetTrigger("Show");
         shopAnim.SetTrigger("Hide");
         hangar.SetActive(false);
@@ -238,8 +249,6 @@ public class GameManager : MonoBehaviour
 
     public void ShopLeft()
     {
-        AudioSystem.Instance.PlayButton();
-
         if (selectedShop <= 0)
         {
             selectedShop = 2;
@@ -253,8 +262,6 @@ public class GameManager : MonoBehaviour
 
     public void ShopRight()
     {
-        AudioSystem.Instance.PlayButton();
-
         if (selectedShop >= 2)
         {
             selectedShop = 0;
@@ -303,7 +310,7 @@ public class GameManager : MonoBehaviour
         //if unlocked already
         if ((unlockedShips & 1 << ind) == 1 << ind)
         {
-            if (ind == PlayerPrefs.GetInt("CurrentShip"))
+            if (ind == currentShip)
             {
                 shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
                 Debug.Log(ind);
@@ -365,7 +372,8 @@ public class GameManager : MonoBehaviour
                 PlayerPrefs.SetInt("MenuCoins", menuCoinScore);
 
                 //Unlock in array
-                unlockedShips += 1 << index;
+                unlockedShips |= 1 << index;
+                PlayerPrefs.SetInt("UnlockedShips", unlockedShips);
 
                 //Physical Change
                 foreach (Transform t in shipContainer)
@@ -388,6 +396,10 @@ public class GameManager : MonoBehaviour
 
                 currentShop = selectedShop;
                 PlayerPrefs.SetInt("CurrentShop", currentShop);
+
+                // Coins were spent - write to disk now instead of waiting for
+                // the app to be paused or closed.
+                PlayerPrefs.Save();
 
                 foreach (Transform t in shopSpriteContainer)
                     t.gameObject.SetActive(false);

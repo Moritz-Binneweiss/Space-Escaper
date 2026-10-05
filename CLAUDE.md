@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` — 12 Skripte, ~1300 Zeilen. Einstiegspunkte:
+- `Space-Escaper/Assets/Scripts/` — 14 Skripte, ~1600 Zeilen. Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death — macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
 - `Space-Escaper/Assets/Scenes/Game.unity` — **die einzige Szene**. Menü, Hangar/Shop
@@ -49,15 +49,84 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
 - `Assets/UI/` und `Assets/UI/Images/` enthalten 39 bitgleiche Duplikat-PNGs. Unklar,
   welche Kopie die Szene referenziert — vor UI-Arbeiten klären.
-- Reste der 2023 entfernten Google-Play-Games-Integration: `GooglePlayGameSettings.txt`,
-  `GvhProjectSettings.xml`, `AndroidResolverDependencies.xml`, `com.google` Scoped
-  Registry in `manifest.json`.
-- `AndroidTargetSdkVersion: 29` — zu alt für Play-Store-Uploads.
+- Reste der im Januar 2026 (v1.3.2) entfernten Google-Play-Games-Integration:
+  `GooglePlayGameSettings.txt`, `GvhProjectSettings.xml`,
+  `AndroidResolverDependencies.xml`, `com.google` Scoped Registry in `manifest.json`.
+- **Play Store kommt erst mit v2.0** — als *neuer* Store-Eintrag, nicht als Update des
+  alten von 2020 (Entscheidung Oktober 2026). Bis dahin bewusst offen:
+  `AndroidTargetSdkVersion: 29` (Google verlangt seit 31.08.2026 API 36),
+  Debug-Signatur (`androidUseCustomKeystore: 0`), App Bundle. Der alte Paketname
+  `com.ANIMOGames.SpaceEscaper` bleibt bei Google Play dem alten Eintrag zugeordnet
+  und ist nicht wiederverwendbar — der neue Eintrag braucht einen neuen. Alte
+  Spielstände müssen deshalb nicht migriert werden.
+- Android läuft mit festen **30 fps**: Standard-Qualitätsstufe ist „Fastest" (vSync
+  aus), und kein Skript setzt `Application.targetFrameRate`.
+- Eingabe läuft noch über den alten Input Manager (`activeInputHandler: 0`), auch das
+  UI (`StandaloneInputModule` am EventSystem). Bei der Umstellung aufs Input System
+  muss das Modul mit getauscht werden, sonst reagiert kein Button mehr.
 - Standalone-App-ID ist noch `unity.DefaultCompany.FPS2` (Tutorial-Überbleibsel).
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
-  ruft `Revive()` ohne Gegenleistung durch.
+  ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
+  zusätzlich `TileManager.RespawnTile` auf — diese Verbindung existiert nur in der
+  Szene, nicht im Code.
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
-  `PlayerPrefs`-Werte.
+  `PlayerPrefs`-Werte. Der Pokal-Button im Hauptmenü (`UI/Menu/Leaderboard`) rief
+  danach eine nicht mehr existierende Methode auf und ist seit Oktober 2026
+  deaktiviert, nicht gelöscht.
+- Auf dem GameObject `Settings` hängt ein zweiter, unverdrahteter `SettingsManager`.
+  Alle Buttons nutzen den auf `GameManager`; der zweite ist toter Ballast.
+
+## Spielstand (PlayerPrefs)
+
+Schlüssel: `MenuCoins`, `Hiscore`, `CurrentShip`, `CurrentShop`, `UnlockedShips`, dazu
+die Audio-Schlüssel (siehe „Audio-System“). Mit v1.4.1 (Oktober 2026) wurden hier
+mehrere Bugs behoben; die Regeln dahinter:
+
+- `UnlockedShips` ist eine Bitmaske (Bit n = Schiff n). Bis Januar 2026 lag sie nur
+  im Google-Play-Games-Cloud-Save und fiel mit GPG ersatzlos weg — gekaufte Schiffe
+  waren danach nach jedem Szenen-Reload wieder gesperrt. Beim Laden gelten
+  Startschiff und aktuelles Schiff immer als freigeschaltet und werden sofort
+  zurückgeschrieben — sonst wäre ein nur implizit besessenes Schiff nach einem
+  Wechsel wieder gesperrt.
+- Fehlt `CurrentShip` (Neuinstallation) oder ist der Wert ungültig, fällt `Awake()`
+  aufs Startschiff zurück. Der Default 0 zeigte früher auf `FlameContainer` statt auf
+  ein Schiff und ließ `Awake()` und `OnDeath()` abstürzen. Lokal fiel das nie auf,
+  weil die PlayerPrefs gesetzt waren — **Neuinstallation gezielt testen.**
+- Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)score`), sonst
+  weichen Todesbildschirm und Highscore voneinander ab.
+- Münzen werden bei jedem Tod gutgeschrieben, nach einem Revive aber nur die seitdem
+  gesammelten (`bankedCoins`).
+- **Schiffspreise** (Oktober 2026 neu balanciert, vorher Testwerte von 1 Münze):
+  ARISTOCRAT-Skins **250**, FREETER **750**, VAGOR **1.250** — ein Preis pro Familie
+  wie im Original. Grundlage: Ø 5,9 Münzen pro Abschnitt (60 Einheiten), Strecke
+  nach T Sekunden = 11·T + 0,02·T², davon 60 % eingesammelt → ein Ø-Run von 60 s
+  bringt ~40 Münzen. Ziel: erstes Skin in der ersten Session, erster FREETER nach
+  ~45 min, erster VAGOR nach ~2 h, alles nach ~3,3 h. Die Originalpreise von 2021
+  (3.500 / 6.000 / 8.000) hätten über 20 h gebraucht. Der derzeit kostenlose
+  Revive hebt das Einkommen pro Run grob um 50–70 % — nach dessen Umbau (v1.9.2)
+  die Preise gegenprüfen.
+
+## Shop
+
+Bis zum geplanten Umbau auf ScriptableObjects hängt der Shop an Kind-Indizes. Schiffe
+sind 1–9 nummeriert: ARISTOCRAT 1–3, FREETER 4–6, VAGOR 7–9 (je drei Skins bilden eine
+Familie).
+
+- `shipContainer`: Kind 0 = `FlameContainer`, Kinder 1–9 = Schiffe, Index = Schiff
+- `buttonContainer`, `shopShipContainer`: Index = Schiff − 1
+- `shopSpriteContainer`: 0 = Select, 1 = Selected, Schiff + 1 = Preisschild
+- `flameContainer`, `skinButtonContainer`: Index = Familie (0–2)
+- `currentShop` ist die Familie des *geflogenen* Schiffs, `selectedShop` die gerade im
+  Hangar *angesehene*. Flammen und alles im Spiel gehören an `currentShop` — die
+  Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
+
+**Preisschilder sind Bilder, keine Texte.** `shipPrices` allein zu ändern reicht
+nicht — der Shop zeigt den Preis aus `Assets/UI/Images/ACT_250.png`, `FTR_750.png`
+und `VGR_1250.png`. Aufbau wie bei den Originalen (`ACT.png`, `FTR.png`, `VGR.png`,
+pixelgleich nachgeprüft): `ButtonBlanco.png` als Platte, `SECHSKANTMUTTER (1).png`
+als Icon, Zahl in `neuropol x rg.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und Zahl
+als Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert
+daneben und sind in der Szene nicht mehr referenziert.
 
 ## Audio-System
 
@@ -85,6 +154,11 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   (`AdoptSceneReferencesFrom`), bevor sie sich zerstört. Ohne das sind Mute-Buttons
   und Regler nach dem ersten Reload tot. **Neue UI-Elemente dort mit eintragen**,
   sonst überleben sie den Szenenwechsel nicht.
+  Aus demselben Grund **keine persistenten OnClick-Aufrufe ins AudioSystem**:
+  Klicksounds kommen von der Komponente `ButtonClickSound` am jeweiligen Button, die
+  über `AudioSystem.Instance` geht. Die alten Klick-Events zeigten seit Februar 2026
+  ins Leere. Kauf-Buttons haben bewusst keinen Klick, sie spielen eigene
+  Select-/Kauf-Sounds; der Start-Button hatte nie einen.
 - **Musik nicht an zwei Stellen steuern.** `PlayerMotor.StartRunning()` rief früher
   zusätzlich einen Musik-Stopp auf und würgte damit die gerade gestartete
   Spielmusik ab. Musik gehört ausschließlich in `GameManager`.
