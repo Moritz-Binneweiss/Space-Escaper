@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.2 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.3 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -33,7 +33,7 @@ git clone https://github.com/Moritz-Binneweiss/Space-Escaper.git
 ```
 
 Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
-`Assets/Scenes/Game.unity` — menu, hangar and gameplay all live in that one scene.
+`Assets/Scenes/Game.unity` - menu, hangar and gameplay all live in that one scene.
 
 ---
 
@@ -41,33 +41,39 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 ### **Current Team**
 
-- **Moritz Binneweiß** — Developer, Designer, Sound Designer
+- **Moritz Binneweiß** - Developer, Designer, Sound Designer
 
 ### **Previous Contributors**
 
-- **Anian Geist** — Lead Developer (v1.3.0)
-- **Moritz Binneweiß** — Lead Designer (v1.3.0)
-- **Julian Daniel Görner** — Main Menu Instrumental
-- **Hayden Folker** — "Cloud Nine" In-Game Instrumental
+- **Anian Geist** - Lead Developer (v1.3.0)
+- **Moritz Binneweiß** - Lead Designer (v1.3.0)
+- **Julian Daniel Görner** - Main Menu Instrumental
+- **Hayden Folker** - "Cloud Nine" In-Game Instrumental
 
 ---
 
 ## 📜 **Version History & Roadmap**
 
-### **v2.0.0** — Re-Release _(October 15, 2027)_
+### **v2.0.0** | Re-Release _(October 15, 2027)_
 
 - Re-Release to Google Play Store
 - Featuring all updates from 1.2.0 through 2.0.0
+- [ ] New store listing with a new package name
+- [ ] Release signing with a dedicated keystore instead of the debug key
+- [ ] Android App Bundle (.aab) and target API level 36
+- [ ] Android version code increased with every release
+- [ ] Optional: Google Play Games integration, e.g. for the leaderboard
 
-#### **v1.9.2** — Revive Mechanic Reworked _(------- --, 2026)_
+#### **v1.9.2** | Revive Mechanic Reworked _(------- --, 2026)_
 
 <small>
 
 - [ ] Revive Mechanic working again
+- [ ] Re-check ship prices after the revive rework
 
 </small>
 
-#### **v1.9.1** — Marketing Material _(------- --, 2026)_
+#### **v1.9.1** | Marketing Material _(------- --, 2026)_
 
 <small>
 
@@ -76,13 +82,14 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-### **v1.9.0** — New Gameplay Features _(------- --, 2026)_
+### **v1.9.0** | New Gameplay Features _(------- --, 2026)_
 
 - [ ] Double tap shield mechanic
 - [ ] Verticality in level design
+- [ ] Vertical swipe controls
 - [ ] Mini tutorial system
 
-### **v1.8.0** — Achievements & Collectibles _(------- --, 2026)_
+### **v1.8.0** | Achievements & Collectibles _(------- --, 2026)_
 
 - [ ] Achievements System (Ingame)
 - [ ] Collectibles System
@@ -90,7 +97,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] 2 collectible plants
 - [ ] 2 collectible star-system cards
 
-### **v1.7.0** — Art, Visuals & Sound _(------- --, 2026)_
+### **v1.7.0** | Art, Visuals & Sound _(------- --, 2026)_
 
 - [ ] Remaster all game objects
 - [ ] Remaster all spaceships
@@ -98,6 +105,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] Remaster collectible coins
 - [ ] Remaster structures
 - [ ] Remaster effects
+- [ ] Restore the explosion distortion effect lost in the URP switch
 - [ ] Icon remaster
 - [ ] New fonts implementation
 - 🔊 New sounds for:
@@ -109,12 +117,12 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
   - [ ] Buy new Ship
   - [ ] Engine
 
-### **v1.6.0** — Localization _(------- --, 2026)_
+### **v1.6.0** | Localization _(------- --, 2026)_
 
 - [ ] German language support
 - [ ] English language support
 
-#### **v1.5.2** — Credits _(------- --, 2026)_
+#### **v1.5.2** | Credits _(------- --, 2026)_
 
 <small>
 
@@ -122,19 +130,34 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-#### **v1.5.1** — UI Overhaul _(------- --, 2026)_
+#### **v1.5.1** | UI Overhaul _(------- --, 2026)_
 
 <small>
-
+ 
 - [ ] UI overhaul
+- [ ] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
+- [ ] Safe area support for notches and camera cutouts
+- [ ] Clean up duplicate and unused UI images
+- [ ] Decide what the leaderboard button should do (currently without function)
 
 </small>
 
-### **v1.5.0** — Refactoring _(------- --, 2026)_
+### **v1.5.0** | Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-#### **v1.4.2** — Input System & Engine Flame Fix _(October 5, 2026)_
+#### **v1.4.3** | Project Cleanup _(October 6, 2026)_
+
+<small>
+
+- 🗑️ Removed leftover Google Play Games files and the unused Google package registry
+- 🗑️ Removed an unused duplicate settings component
+- 🔧 Removed debug logs, empty update methods and unused imports
+- 🏷️ Replaced the leftover tutorial app ID for desktop builds
+
+</small>
+
+#### **v1.4.2** | Input System & Engine Flame Fix _(October 5, 2026)_
 
 <small>
 
@@ -144,7 +167,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-#### **v1.4.1** — Bug Fixes & Shop Prices _(October 5, 2026)_
+#### **v1.4.1** | Bug Fixes & Shop Prices _(October 5, 2026)_
 
 <small>
 
@@ -158,7 +181,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-### **v1.4.0** — Audio System Rework _(September 10, 2026)_
+### **v1.4.0** | Audio System Rework _(September 10, 2026)_
 
 - 🔊 Reworked the whole Audio System
 - 🔀 Added audio toggle to switch between classic and new music/SFX
@@ -168,7 +191,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - ⬆️ Switched Unity Version from **6000.2.6f2** to **6000.6.0f1**
 - 🖼️ Switched Render Pipeline from **Built-in** to **URP 17.6.0**
 
-#### **v1.3.2** — Refactoring _(January 18, 2026)_
+#### **v1.3.2** | Refactoring _(January 18, 2026)_
 
 <small>
 
@@ -181,7 +204,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-#### **v1.3.1** — Unity Update _(January 17, 2026)_
+#### **v1.3.1** | Unity Update _(January 17, 2026)_
 
 <small>
 
@@ -192,7 +215,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-### **v1.3.0** — UI & Vagor _(February 14, 2021)_
+### **v1.3.0** | UI & Vagor _(February 14, 2021)_
 
 - 🎨 Full UI overhaul with improved layout and readability
 - 🎨 Refined color palette for visual consistency
@@ -201,20 +224,20 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
   - Available in in-game shop
 - 🛠️ Internal UI refactoring for future expansions
 
-### **v1.2.0** — Leaderboard & Balancing _(November 13, 2020)_
+### **v1.2.0** | Leaderboard & Balancing _(November 13, 2020)_
 
 - 🏆 Added global highscore leaderboard
 - 💰 Rebalanced in-game shop prices
 - ⚙️ Backend adjustments for leaderboard data
 
-### **v1.1.0** — Content & Performance _(November 12, 2020)_
+### **v1.1.0** | Content & Performance _(November 12, 2020)_
 
 - 🧱 Added 10 new obstacles
 - ☄️ Added 11 new asteroid chunks
 - ⚡ Performance optimizations
 - 🐛 Bug fixes and stability improvements
 
-### **v1.0.0** — Initial Release _(October 15, 2020)_
+### **v1.0.0** | Initial Release _(October 15, 2020)_
 
 - 🎉 First public release
 - 🚀 Endless runner gameplay in space
@@ -224,7 +247,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - 🚀 Buy ships and unlock skins
 - 🎮 Core controls and UI implemented
 
-#### **v0.0.1** — Concept _(July 21, 2020)_
+#### **v0.0.1** | Concept _(July 21, 2020)_
 
 <small>
 
