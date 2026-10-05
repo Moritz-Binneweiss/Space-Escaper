@@ -68,8 +68,15 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) —
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
-- Auf dem GameObject `Settings` hängt ein zweiter, unverdrahteter `SettingsManager`.
-  Alle Buttons nutzen den auf `GameManager`; der zweite ist toter Ballast.
+- **Zwei Pause-Flags** (Zusammenführen geplant für v1.4.4):
+  `SettingsManager.GameIsPaused` entscheidet in `SettingsOff()`, ob „Zurück“ ins
+  Pause- oder ins Hauptmenü führt, und wird in `Start()` zurückgesetzt.
+  `PauseMenu.GameIsPaused` wird nur geschrieben, nie gelesen, und bleibt nach „Exit“
+  aus der Pause auf `true` stehen. `PauseMenu` holt sich den `SettingsManager` per
+  `GetComponent` vom eigenen GameObject (`GameManager`) - beide müssen dort
+  zusammen hängen bleiben. Ein zweiter, unverdrahteter `SettingsManager` auf
+  `UI/Settings` ist seit v1.4.3 entfernt. Der Exit-Button im Pause-Menü ruft
+  `GameManager.OnPlayButton` auf, `PauseMenu.Quit()` ist nicht verdrahtet.
 
 ## Spielstand (PlayerPrefs)
 
