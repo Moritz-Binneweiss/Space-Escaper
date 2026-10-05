@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.1 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.2 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -133,7 +133,16 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 ### **v1.5.0** — Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
-- [ ] Arrow key controls for testing in Play Mode
+
+#### **v1.4.2** — Input System & Engine Flame Fix _(October 5, 2026)_
+
+<small>
+
+- 🎮 Switched from the legacy Input Manager to the new Input System
+- ⌨️ Added arrow key controls for testing in Play Mode
+- 🐛 Fixed the missing engine flame on the Freeter
+
+</small>
 
 #### **v1.4.1** — Bug Fixes & Shop Prices _(October 5, 2026)_
 
@@ -145,7 +154,6 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - 🐛 Fixed highscore differing from the displayed score
 - 🐛 Fixed coins being counted twice after a revive
 - 🐛 Fixed missing click sounds on most buttons
-- 🗑️ Hid the non-functional leaderboard button
 - 💰 Rebalanced ship prices to the actual coin income (250 / 750 / 1250)
 
 </small>
