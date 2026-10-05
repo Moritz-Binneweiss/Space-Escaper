@@ -49,9 +49,6 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
 - `Assets/UI/` und `Assets/UI/Images/` enthalten 39 bitgleiche Duplikat-PNGs. Unklar,
   welche Kopie die Szene referenziert — vor UI-Arbeiten klären.
-- Reste der im Januar 2026 (v1.3.2) entfernten Google-Play-Games-Integration:
-  `GooglePlayGameSettings.txt`, `GvhProjectSettings.xml`,
-  `AndroidResolverDependencies.xml`, `com.google` Scoped Registry in `manifest.json`.
 - **Play Store kommt erst mit v2.0** — als *neuer* Store-Eintrag, nicht als Update des
   alten von 2020 (Entscheidung Oktober 2026). Bis dahin bewusst offen:
   `AndroidTargetSdkVersion: 29` (Google verlangt seit 31.08.2026 API 36),
