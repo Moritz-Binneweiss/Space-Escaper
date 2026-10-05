@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class CameraSwitch : MonoBehaviour
 {
@@ -13,9 +11,6 @@ public class CameraSwitch : MonoBehaviour
         maincam.SetActive(true);
         shopcam.SetActive(false);
     }
-
-    // Update is called once per frame
-    void Update() { }
 
     public void ShopCamera()
     {
