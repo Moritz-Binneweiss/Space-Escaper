@@ -61,18 +61,16 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   Spielstände müssen deshalb nicht migriert werden.
 - Android läuft mit festen **30 fps**: Standard-Qualitätsstufe ist „Fastest" (vSync
   aus), und kein Skript setzt `Application.targetFrameRate`.
-- Eingabe läuft noch über den alten Input Manager (`activeInputHandler: 0`), auch das
-  UI (`StandaloneInputModule` am EventSystem). Bei der Umstellung aufs Input System
-  muss das Modul mit getauscht werden, sonst reagiert kein Button mehr.
 - Standalone-App-ID ist noch `unity.DefaultCompany.FPS2` (Tutorial-Überbleibsel).
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
   ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
   zusätzlich `TileManager.RespawnTile` auf — diese Verbindung existiert nur in der
   Szene, nicht im Code.
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
-  `PlayerPrefs`-Werte. Der Pokal-Button im Hauptmenü (`UI/Menu/Leaderboard`) rief
-  danach eine nicht mehr existierende Methode auf und ist seit Oktober 2026
-  deaktiviert, nicht gelöscht.
+  `PlayerPrefs`-Werte. Der Pokal-Button im Hauptmenü (`UI/Menu/Leaderboard`) bleibt
+  trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) —
+  nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
+  existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
 - Auf dem GameObject `Settings` hängt ein zweiter, unverdrahteter `SettingsManager`.
   Alle Buttons nutzen den auf `GameManager`; der zweite ist toter Ballast.
 
@@ -120,6 +118,14 @@ Familie).
   Hangar *angesehene*. Flammen und alles im Spiel gehören an `currentShop` — die
   Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
 
+**Antriebsflammen** liegen im Prefab `Playership.prefab` (`FlameACT`, `FlameFTR` und
+eine Gruppe mit zwei `FlameVGR`), alle mit eingeschalteter Emission. Der Code schaltet
+nur die GameObjects an und aus. `PlayerMotor.drive` zeigt zusätzlich auf `FlameACT`
+und schaltet deren Emission im Run selbst ein. Deshalb **keine Emission-Overrides in
+der Szene**: Ein versehentlicher Override (September 2026, v1.4.0) ließ den FREETER
+bis v1.4.2 ohne sichtbaren Antrieb fliegen. Beim ARISTOCRAT fiel derselbe Override
+nicht auf, weil `drive` die Emission dort ohnehin einschaltet.
+
 **Preisschilder sind Bilder, keine Texte.** `shipPrices` allein zu ändern reicht
 nicht — der Shop zeigt den Preis aus `Assets/UI/Images/ACT_250.png`, `FTR_750.png`
 und `VGR_1250.png`. Aufbau wie bei den Originalen (`ACT.png`, `FTR.png`, `VGR.png`,
@@ -127,6 +133,34 @@ pixelgleich nachgeprüft): `ButtonBlanco.png` als Platte, `SECHSKANTMUTTER (1).p
 als Icon, Zahl in `neuropol x rg.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und Zahl
 als Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert
 daneben und sind in der Szene nicht mehr referenziert.
+
+## Eingabe (Input System)
+
+Seit Oktober 2026 (v1.4.2) läuft alle Eingabe über das **Input System Package**
+(`com.unity.inputsystem` 1.20.1). Active Input Handling steht auf „Input System
+Package (New)" (`activeInputHandler: 1`), der alte Input Manager ist aus. Diese
+Einstellung zu ändern erfordert einen Editor-Neustart.
+
+- **Kein `UnityEngine.Input` mehr verwenden** (`Input.GetMouseButton`, `Input.touches`,
+  `Input.GetKey` …). Das kompiliert weiterhin, wirft zur Laufzeit aber eine
+  `InvalidOperationException`. Neuer Code liest Geräte über `UnityEngine.InputSystem`.
+- `MobileInput` liest Touch und Maus über **einen** Codepfad: `Pointer.current` ist
+  auf dem Handy der Touchscreen (erster Finger), im Editor die Maus. Die Wisch-Logik
+  ist dieselbe wie vorher: 100 px Deadzone, ein Wischer pro Berührung, ausgelöst
+  schon während des Ziehens.
+- **Pfeiltasten ←/→** wechseln die Spur wie ein Wischer, zum Testen im Play Mode.
+  Im Editor kommen Tastatur und Maus nur an, wenn das Game-Fenster den Fokus hat
+  (Standardverhalten des Input Systems) — vorher einmal ins Game-Fenster klicken.
+- Das UI läuft über `InputSystemUIInputModule` am EventSystem, mit den
+  Standardaktionen aus dem Paket (`DefaultInputActions`). Das alte
+  `StandaloneInputModule` erkennt mit dem neuen Backend keinen Klick mehr — nicht
+  zurücktauschen.
+- Eingaben lassen sich im Play Mode per `InputSystem.QueueStateEvent` simulieren
+  (so wurde die Umstellung getestet: UI-Klick, Pfeiltasten, Maus-Wischer). Ohne
+  Fokus aufs Game-Fenster dafür vorübergehend `InputSystem.settings`
+  umstellen (`editorInputBehaviorInPlayMode = AllDeviceInputAlwaysGoesToGameView`,
+  `backgroundBehavior = IgnoreFocus`) und danach zurücksetzen. Die Settings sind
+  kein Asset, sie leben nur im Speicher.
 
 ## Audio-System
 

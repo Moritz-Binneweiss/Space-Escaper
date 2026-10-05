@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class MobileInput : MonoBehaviour
 {
@@ -13,7 +12,8 @@ public class MobileInput : MonoBehaviour
 
     private bool tap,
         swipeLeft,
-        swipeRight;
+        swipeRight,
+        isDragging;
     private Vector2 swipeDelta,
         startTouch;
 
@@ -48,73 +48,60 @@ public class MobileInput : MonoBehaviour
     {
         //Reseting all the booleans
         tap = swipeLeft = swipeRight = false;
+        swipeDelta = Vector2.zero;
 
-        //Let's check for inputs
-        #region Standalone Inputs
-        if (Input.GetMouseButtonDown(0))
+        #region Touch and Mouse Inputs
+        // Pointer.current is the touchscreen on the phone and the mouse in the
+        // Editor, so both share this path. On a touchscreen it follows the first
+        // finger.
+        Pointer pointer = Pointer.current;
+        if (pointer != null)
         {
-            tap = true;
-            startTouch = Input.mousePosition;
-        }
-        else if (Input.GetMouseButtonUp(0))
-        {
-            startTouch = swipeDelta = Vector2.zero;
-        }
-        #endregion
-
-        #region Mobile Inputs
-        if (Input.touches.Length != 0)
-        {
-            if (Input.touches[0].phase == TouchPhase.Began)
+            if (pointer.press.wasPressedThisFrame)
             {
                 tap = true;
-                startTouch = Input.mousePosition;
+                isDragging = true;
+                startTouch = pointer.position.ReadValue();
             }
-            else if (
-                Input.touches[0].phase == TouchPhase.Ended
-                || Input.touches[0].phase == TouchPhase.Canceled
-            )
+            else if (!pointer.press.isPressed)
             {
-                startTouch = swipeDelta = Vector2.zero;
+                isDragging = false;
             }
+
+            //Calculate distance
+            if (isDragging)
+                swipeDelta = pointer.position.ReadValue() - startTouch;
         }
         #endregion
-
-        //Calculate distance
-        swipeDelta = Vector2.zero;
-        if (startTouch != Vector2.zero)
-        {
-            //Let's check with mobile
-            if (Input.touches.Length != 0)
-            {
-                swipeDelta = Input.touches[0].position - startTouch;
-            }
-            //Let's check with standalone
-            else if (Input.GetMouseButton(0))
-            {
-                swipeDelta = (Vector2)Input.mousePosition - startTouch;
-            }
-        }
 
         //Let's check if we're beyond the deadzone
         if (swipeDelta.magnitude > DEADZONE)
         {
-            //This is a confirmed swipe
-            float x = swipeDelta.x;
-
-            //Left or Right
-            if (x < 0)
-            {
+            //This is a confirmed swipe, only one per drag
+            if (swipeDelta.x < 0)
                 swipeLeft = true;
-                anim.SetTrigger("Left");
-            }
             else
-            {
                 swipeRight = true;
-                anim.SetTrigger("Right");
-            }
 
-            startTouch = swipeDelta = Vector2.zero;
+            isDragging = false;
+            swipeDelta = Vector2.zero;
         }
+
+        #region Keyboard Inputs
+        // The arrow keys act like a swipe, for testing in Play Mode.
+        Keyboard keyboard = Keyboard.current;
+        if (keyboard != null)
+        {
+            if (keyboard.leftArrowKey.wasPressedThisFrame)
+                swipeLeft = true;
+            else if (keyboard.rightArrowKey.wasPressedThisFrame)
+                swipeRight = true;
+        }
+        #endregion
+
+        if (swipeLeft)
+            anim.SetTrigger("Left");
+        if (swipeRight)
+            anim.SetTrigger("Right");
     }
 }
