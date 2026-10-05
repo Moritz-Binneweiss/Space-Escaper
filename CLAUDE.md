@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` — 14 Skripte, ~1600 Zeilen. Einstiegspunkte:
+- `Space-Escaper/Assets/Scripts/` — 14 Skripte, ~1500 Zeilen. Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death — macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
 - `Space-Escaper/Assets/Scenes/Game.unity` — **die einzige Szene**. Menü, Hangar/Shop
@@ -107,6 +107,12 @@ mehrere Bugs behoben; die Regeln dahinter:
   (3.500 / 6.000 / 8.000) hätten über 20 h gebraucht. Der derzeit kostenlose
   Revive hebt das Einkommen pro Run grob um 50–70 % — nach dessen Umbau (v1.9.2)
   die Preise gegenprüfen.
+- **Merkposten: Der Spielstand ist unverschlüsselt** (früher ein TODO im
+  `GameManager`, in v1.4.3 hierher verschoben). PlayerPrefs lassen sich auf
+  gerooteten Geräten lesen und ändern. Ohne Echtgeld-Käufe und ohne Online-Rangliste
+  betrifft das nur den Spieler selbst. Kommt eins davon (z. B. ein Leaderboard über
+  Play Games in v2.0), neu bewerten: Verschlüsselung in der App hält nur
+  Gelegenheits-Schummler ab, weil der Schlüssel mit ausgeliefert wird.
 
 ## Shop
 

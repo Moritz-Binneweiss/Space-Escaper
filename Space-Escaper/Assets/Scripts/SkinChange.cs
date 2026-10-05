@@ -1,6 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SkinChange : MonoBehaviour
 {
@@ -15,9 +13,6 @@ public class SkinChange : MonoBehaviour
         aristocrat2.SetActive(false);
         aristocrat3.SetActive(false);
     }
-
-    // Update is called once per frame
-    void Update() { }
 
     public void ChangeSkin2()
     {

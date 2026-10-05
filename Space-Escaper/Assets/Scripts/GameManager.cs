@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -242,9 +240,6 @@ public class GameManager : MonoBehaviour
         hangar.SetActive(false);
     }
 
-    // Lokales Save-System via PlayerPrefs
-    // TODO: Später durch verschlüsseltes Save-System ersetzen
-
     private int selectedShop = 0;
 
     public void ShopLeft()
@@ -313,12 +308,10 @@ public class GameManager : MonoBehaviour
             if (ind == currentShip)
             {
                 shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
-                Debug.Log(ind);
             }
             else
             {
                 shopSpriteContainer.GetChild(0).gameObject.SetActive(true);
-                Debug.Log(ind);
             }
         }
         else
@@ -344,8 +337,6 @@ public class GameManager : MonoBehaviour
             currentShip = index;
 
             PlayerPrefs.SetInt("CurrentShip", currentShip);
-
-            Debug.Log("Hey " + PlayerPrefs.GetInt("CurrentShip"));
 
             currentShop = selectedShop;
             PlayerPrefs.SetInt("CurrentShop", currentShop);

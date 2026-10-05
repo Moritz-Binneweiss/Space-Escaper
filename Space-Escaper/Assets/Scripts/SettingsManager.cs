@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System.Configuration;
-using UnityEngine;
+﻿using UnityEngine;
 
 public class SettingsManager : MonoBehaviour
 {
@@ -16,9 +13,6 @@ public class SettingsManager : MonoBehaviour
     {
         GameIsPaused = false;
     }
-
-    // Update is called once per frame
-    void Update() { }
 
     public void SettingsOn()
     {
