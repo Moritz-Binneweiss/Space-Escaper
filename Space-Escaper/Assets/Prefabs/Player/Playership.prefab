@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2528854450160398044}
   m_Layer: 0
-  m_Name: GameObject
+  m_Name: FlameVagor
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -44,7 +44,7 @@ GameObject:
   - component: {fileID: 6663402070540160263}
   - component: {fileID: 5418644990295369219}
   m_Layer: 0
-  m_Name: FlameACT
+  m_Name: FlameAristocrat
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4798,7 +4798,7 @@ GameObject:
   - component: {fileID: 3289709456544727715}
   - component: {fileID: 3586302010532162221}
   m_Layer: 0
-  m_Name: FlameFTR
+  m_Name: FlameFreeter
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -9616,7 +9616,7 @@ GameObject:
   - component: {fileID: 8318191732027747390}
   - component: {fileID: 6339999868575566886}
   m_Layer: 0
-  m_Name: FlameVGR (1)
+  m_Name: FlameLeft
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14372,7 +14372,7 @@ GameObject:
   - component: {fileID: 5676667254612968290}
   - component: {fileID: 2342508419539742620}
   m_Layer: 0
-  m_Name: Scripts
+  m_Name: Ship
   m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -14478,7 +14478,7 @@ GameObject:
   - component: {fileID: 4441250837639803709}
   - component: {fileID: 6820921653035918402}
   m_Layer: 0
-  m_Name: FlameVGR
+  m_Name: FlameRight
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -19305,7 +19305,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 2fb25e73632dc8b41a74272c8a935ef9,
         type: 3}
       propertyPath: m_Name
-      value: FREETER SKIN 2
+      value: FreeterSkin2
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 2fb25e73632dc8b41a74272c8a935ef9,
         type: 3}
@@ -19410,7 +19410,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: dda27c84b5d01224c9b3dc17e6ee9db8,
         type: 3}
       propertyPath: m_Name
-      value: ARISTOCRAT SKIN 3
+      value: AristocratSkin3
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: dda27c84b5d01224c9b3dc17e6ee9db8,
         type: 3}
@@ -19510,7 +19510,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: beda8735778e3094bb5602ea783de00d,
         type: 3}
       propertyPath: m_Name
-      value: FREETER
+      value: FreeterSkin1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: beda8735778e3094bb5602ea783de00d,
         type: 3}
@@ -19535,7 +19535,7 @@ PrefabInstance:
     - target: {fileID: 8499378664476764039, guid: 90ee82ab76fed3848ba8b542bfc25994,
         type: 3}
       propertyPath: m_Name
-      value: VAGOR SKIN 3
+      value: VagorSkin3
       objectReference: {fileID: 0}
     - target: {fileID: 8499378664476764039, guid: 90ee82ab76fed3848ba8b542bfc25994,
         type: 3}
@@ -19710,7 +19710,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 0c05daf6aaa91d444b9bef2e528d1e75,
         type: 3}
       propertyPath: m_Name
-      value: ARISTOCRAT
+      value: AristocratSkin1
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0c05daf6aaa91d444b9bef2e528d1e75,
         type: 3}
@@ -19815,7 +19815,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: f6d1df4ce8d3d90478834ba0bac3be10,
         type: 3}
       propertyPath: m_Name
-      value: FREETER SKIN 3
+      value: FreeterSkin3
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: f6d1df4ce8d3d90478834ba0bac3be10,
         type: 3}
@@ -19840,7 +19840,7 @@ PrefabInstance:
     - target: {fileID: 7211011767657984371, guid: 8471fceb1d870b94190b178a68024884,
         type: 3}
       propertyPath: m_Name
-      value: VAGOR SKIN 2
+      value: VagorSkin2
       objectReference: {fileID: 0}
     - target: {fileID: 7211011767657984371, guid: 8471fceb1d870b94190b178a68024884,
         type: 3}
@@ -20015,7 +20015,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 0c05daf6aaa91d444b9bef2e528d1e75,
         type: 3}
       propertyPath: m_Name
-      value: ARISTOCRAT Skin 2
+      value: AristocratSkin2
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 0c05daf6aaa91d444b9bef2e528d1e75,
         type: 3}
@@ -20115,7 +20115,7 @@ PrefabInstance:
     - target: {fileID: 4194950023136234449, guid: d6f19c8b6650d8f4e9ddc5a8545bde71,
         type: 3}
       propertyPath: m_Name
-      value: VAGOR
+      value: VagorSkin1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: d6f19c8b6650d8f4e9ddc5a8545bde71, type: 3}

@@ -288,7 +288,7 @@ PrefabInstance:
     - target: {fileID: 919132149155446097, guid: 5b336bcc686ae854d996efa4df7f21c3,
         type: 3}
       propertyPath: m_Name
-      value: Hangar (1)
+      value: Hangar2
       objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 5b336bcc686ae854d996efa4df7f21c3,
         type: 3}

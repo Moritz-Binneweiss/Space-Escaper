@@ -137,7 +137,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] UI overhaul
 - [ ] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
 - [ ] Safe area support for notches and camera cutouts
-- [ ] Clean up duplicate and unused UI images
+- [ ] Clean up unused UI images
 - [ ] Decide what the leaderboard button should do (currently without function)
 
 </small>
@@ -153,7 +153,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] One shared pause state that only pauses during a run
 - [x] Unused Escape key binding removed from the UI input
 - [x] All scripts follow Unity's C# style guide
-- [ ] Consistent names for scene objects and project files
+- [x] Consistent names for scene objects and project files
 - [ ] Auto-pause when the app goes to the background
 - [ ] 60 FPS on Android instead of 30
 

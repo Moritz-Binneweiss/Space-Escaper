@@ -15,9 +15,15 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
-- `Space-Escaper/Assets/AudioSystem/` - Audio-Clips plus `ClassicBank.asset`,
-  `NewBank.asset` und `GameAudio.mixer`. Dateipräfix `C_` = classic (Originale von
-  2020), `N_` = neu. Siehe Abschnitt „Audio-System“ unten.
+- `Space-Escaper/Assets/AudioSystem/` - Audio-Clips in `Classic/` (Originale von 2020)
+  und `New/`, dazu `ClassicBank.asset`, `NewBank.asset` und `GameAudio.mixer`. Siehe
+  Abschnitt „Audio-System“ unten.
+- Übrige eigene Ordner in `Assets/`: `Ships/`, `Asteroids/`, `Items/` (Münze),
+  `Hangar/` und `Spaceports/` mit Modellen und `.blend`-Quellen samt Texturen,
+  dazu `Materials/`, `Prefabs/`, `Animations/`, `UI/Images/`, `UI/Fonts/`,
+  `Shaders/` und `About/` (Logos, App-Icon). `TextMesh Pro/` und
+  `Effects/EffectExamples/` sind Fremd-Pakete. Benennung siehe „Benennung von
+  Dateien und Objekten“.
 - `Space-Escaper/ProjectSettings/` - Android-Buildeinstellungen, Tags, Layer.
 
 ## Arbeitsweise
@@ -83,6 +89,49 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   `SerializedObject`.
 - **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
   dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich.
+
+## Benennung von Dateien und Objekten
+
+Seit v1.4.5 heißen alle eigenen Dateien, Ordner und Objekte in Szene und Prefabs
+einheitlich: **PascalCase, Englisch, ohne Leerzeichen und Sonderzeichen.**
+Fremd-Pakete (`TextMesh Pro/`, `Effects/EffectExamples/`) bleiben, wie sie
+geliefert wurden.
+
+- **Nummern in Serien dreistellig** (`Asteroid001`, `Chunk000`,
+  `AsteroidField007`), Varianten einstellig (`AristocratSkin2`). Schiffsfamilien
+  ausgeschrieben, keine Kürzel wie ACT, FTR oder VGR.
+- **Animationsclips** heißen `Ziel_Zustand` (`GameMenu_Show`, `DeathMenu_Alive`),
+  das ist der einzige erlaubte Unterstrich. Texturen enden auf `Color`
+  (`Asteroid001Color.png`).
+- **Ungenutzte Doppelgänger** einer benutzten Datei tragen `Unused` am Ende
+  (`Asteroid004Unused.mat`), damit sie beim Aufräumen auffallen.
+- **Szene-Objekte nach ihrer Rolle:** `…Button`, `…Text`, `…Icon`, `Title`; die
+  Grafik eines Buttons heißt `Image`. Kopien-Endungen wie `(1)` kommen weg
+  (`Coin`, `Asteroid012`), Namen dürfen unter Geschwistern doppelt vorkommen.
+
+Beim Umbenennen:
+
+- **Dateien nur über Unity verschieben** (`AssetDatabase.MoveAsset`), nie im
+  Explorer: So bleiben GUID und `.meta` erhalten, und keine Referenz bricht. Unity
+  importiert Modelle dabei neu, bei vielen `.blend`-Dateien dauert das Minuten.
+  Die CLI bricht Aufrufe auf dem Main Thread nach 5 s ab, die Arbeit läuft aber
+  weiter. Danach warten, bis `eval` wieder antwortet, und das Ergebnis selbst
+  prüfen.
+- **Nur Groß-/Kleinschreibung ändern** geht unter Windows in Unity nur über einen
+  Zwischennamen und in Git nur per `git mv`. Sonst behält der Index den alten
+  Namen, weil `core.ignorecase` an ist.
+- **Texturen neben `.blend`-Quellen:** Blender verlinkt sie relativ über den
+  Dateinamen. Nach dem Umbenennen die Links per Blender im Hintergrund
+  nachziehen (`blender.exe -b --python …`, Blender liegt über Steam), sonst fehlen
+  sie beim nächsten Öffnen. So in v1.4.5 bei 35 Dateien gemacht.
+- **Objekte, die eine Animation über ihren Pfad ansteuert:** Ein Clip speichert den
+  Pfad und einen Hash davon, ein Umbenennen bricht die Animation still. Mit
+  `AnimationUtility` umhängen, nicht per Text. In der Szene betrifft das nur
+  `UI/GameMenu/CoinIcon` (Clip `GameMenu_Show`), alle anderen Clips animieren ihr
+  eigenes Objekt.
+- **Objekte in Prefabs per Text umbenennen** (`m_Name` der GameObjects, `value:`
+  unter `propertyPath: m_Name`), aus demselben Grund wie unter „Code-Stil“. Ältere
+  Prefabs liegen auf der Platte noch mit CRLF, Git normalisiert das beim Commit.
 
 ## Versionen, PRs & Tags
 
@@ -155,8 +204,12 @@ bei 8.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
-- `Assets/UI/` und `Assets/UI/Images/` enthalten 39 bitgleiche Duplikat-PNGs. Unklar,
-  welche Kopie die Szene referenziert - vor UI-Arbeiten klären.
+- Ungenutzte Bilder, Materialien und Modelle liegen noch im Projekt, etwa die alten
+  Preisschilder oder Doppelgänger mit `Unused` im Namen. Aufräumen gehört zum UI
+  Overhaul (v1.5.1) und zum Remaster (v1.7.0). Die 39 bitgleichen Duplikate in
+  `Assets/UI/` sind seit v1.4.5 gelöscht, alle UI-Bilder liegen in `UI/Images/`.
+  Gleiche Texturen in `Asteroids/` und `Materials/` sind Absicht: die einen gehören
+  zu den `.blend`-Quellen, die anderen zu den Unity-Materialien.
 - **Play Store kommt erst mit v2.0** - als *neuer* Store-Eintrag, nicht als Update des
   alten von 2020 (Entscheidung Oktober 2026). Bis dahin bewusst offen:
   `AndroidTargetSdkVersion: 29` (Google verlangt seit 31.08.2026 API 36),
@@ -176,7 +229,7 @@ bei 8.
   Frame wieder los. Ohne das krachte es beim Revive sofort ins selbe Hindernis
   (zweite Explosion, Spiel-UI weg, Schiff unsichtbar; behoben in v1.4.4).
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
-  `PlayerPrefs`-Werte. Der Pokal-Button im Hauptmenü (`UI/Menu/Leaderboard`) bleibt
+  `PlayerPrefs`-Werte. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
@@ -236,21 +289,23 @@ Familie).
   `m_currentFamily` - die Verwechslung zeigte früher eine falsche, neben dem Schiff
   schwebende Flamme.
 
-**Antriebsflammen** liegen im Prefab `Playership.prefab` (`FlameACT`, `FlameFTR` und
-eine Gruppe mit zwei `FlameVGR`), alle mit eingeschalteter Emission. Der Code schaltet
-nur die GameObjects an und aus. `PlayerMotor.m_engineFlame` zeigt zusätzlich auf
-`FlameACT` und schaltet deren Emission im Run selbst ein. Deshalb **keine
+**Antriebsflammen** liegen im Prefab `Playership.prefab` unter `Ship/FlameContainer`
+(`FlameAristocrat`, `FlameFreeter` und die Gruppe `FlameVagor` mit `FlameLeft` und
+`FlameRight`), alle mit eingeschalteter Emission. Der Code schaltet nur die
+GameObjects an und aus. `PlayerMotor.m_engineFlame` zeigt zusätzlich auf
+`FlameAristocrat` und schaltet deren Emission im Run selbst ein. Deshalb **keine
 Emission-Overrides in der Szene**: Ein versehentlicher Override (September 2026,
 v1.4.0) ließ den FREETER bis v1.4.2 ohne sichtbaren Antrieb fliegen. Beim ARISTOCRAT
 fiel derselbe Override nicht auf, weil `m_engineFlame` die Emission dort ohnehin
 einschaltet.
 
 **Preisschilder sind Bilder, keine Texte.** `m_shipPrices` allein zu ändern reicht
-nicht - der Shop zeigt den Preis aus `Assets/UI/Images/ACT_250.png`, `FTR_750.png`
-und `VGR_1250.png`. Aufbau wie bei den Originalen (`ACT.png`, `FTR.png`, `VGR.png`,
-pixelgleich nachgeprüft): `ButtonBlanco.png` als Platte, `SECHSKANTMUTTER (1).png`
-als Icon, Zahl in `neuropol x rg.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und Zahl
-als Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert
+nicht - der Shop zeigt den Preis aus `Assets/UI/Images/PriceTagAristocrat250.png`,
+`PriceTagFreeter750.png` und `PriceTagVagor1250.png`. Aufbau wie bei den Originalen
+(`PriceTagAristocrat3500.png`, `PriceTagFreeter6000.png`, `PriceTagVagor8000.png`,
+pixelgleich nachgeprüft): `ButtonBlank.png` als Platte, `CoinIcon.png` als Icon,
+Zahl in `UI/Fonts/NeuropolXRegular.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und
+Zahl als Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert
 daneben und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
 entschieden wird beim UI Overhaul (v1.5.1) - bis dahin nicht löschen.
 
@@ -307,9 +362,9 @@ blieb nach „Exit“ aus der Pause auf `true` stehen.
   Pause- oder ins Hauptmenü führt.
 - „Exit“ im Pause-Menü ruft `GameManager.ReturnToMenu`, also einen Szenen-Reload.
   `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
-- Die Musik läuft in der Pause weiter. Ob sie dort auch anhalten soll, ist noch
-  offen (Vorschlag: weiterlaufen lassen, damit man den Lautstärkeregler in den
-  Settings hört). Beim Tod pausiert sie, siehe „Audio-System“.
+- Die Musik läuft in der Pause bewusst weiter (Entscheidung Oktober 2026), so hört
+  man den Lautstärkeregler, wenn man die Settings aus der Pause öffnet. Beim Tod
+  pausiert sie dagegen, siehe „Audio-System“.
 - **Zum Testen das Schiff anhalten.** Ohne Steuerung kracht es nach 2-3 s ins
   erste Hindernis, und der Test landet auf dem Todesbildschirm. Den Run per Code
   starten und `PlayerMotor.m_speed` per Reflection auf 0 setzen: Der Run bleibt
@@ -337,8 +392,8 @@ Bank wechseln. Wichtig für die Erweiterung:
 Vier Fallen, die hier schon einmal Bugs verursacht haben:
 
 - **UI-Referenzen und DontDestroyOnLoad.** Die Bedienelemente liegen unter
-  `UI/Settings` in der Szene (Toggle „Use new Sound", Lautstärkeregler, SFX- und
-  Musik-Button), das AudioSystem überlebt aber den Reload. Deshalb übergibt die
+  `UI/Settings` in der Szene (`NewSoundsToggle` „Use new Sound“, `VolumeSlider`,
+  `SfxButton`, `MusicButton`), das AudioSystem überlebt aber den Reload. Deshalb übergibt die
   Szenenkopie in `Awake()` ihre frischen Referenzen an die überlebende Instanz
   (`AdoptSceneReferencesFrom`), bevor sie sich zerstört. Ohne das sind Mute-Buttons
   und Regler nach dem ersten Reload tot. **Neue UI-Elemente dort mit eintragen**,
@@ -376,13 +431,13 @@ Clips entsprechend importieren, sonst landen sie wieder komplett im RAM.
 
 Das Projekt lief bis September 2026 auf der Built-in Render Pipeline und wurde auf
 **URP 17.6.0** umgestellt. Die Migration ist abgeschlossen: URP Asset liegt unter
-`Assets/New Universal Render Pipeline Asset.asset` und ist in Project Settings >
-Graphics zugewiesen, alle Materialien sind konvertiert.
+`Assets/UniversalRenderPipeline.asset` (Renderer: `UniversalRenderer.asset`) und ist
+in Project Settings > Graphics zugewiesen, alle Materialien sind konvertiert.
 
 Shader-Verteilung: 34 Materialien auf `ANIMO/BendWorld`, 13 auf URP/Lit, 7 auf URP
 Particles (Lit/Unlit), 2 TextMesh Pro, 1 Skybox.
 
-`Assets/Shader/BendWorld.shader` ist der handportierte Curved-World-Shader (vorher
+`Assets/Shaders/BendWorld.shader` ist der handportierte Curved-World-Shader (vorher
 Surface Shader, jetzt URP mit ForwardLit / ShadowCaster / DepthOnly / DepthNormals).
 Wichtig bei Änderungen daran:
 
