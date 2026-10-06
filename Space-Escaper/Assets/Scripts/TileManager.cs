@@ -52,6 +52,13 @@ public class TileManager : MonoBehaviour
 
     public void RespawnTile()
     {
+        // Called by the revive button, right after the ship starts running again.
+        // Destroy only takes effect at the end of the frame, so the ship hit the
+        // obstacle that had just killed it and crashed a second time in the same
+        // frame. Deactivating first takes the colliders out immediately.
+        foreach (GameObject tile in activeTiles)
+            tile.SetActive(false);
+
         Destroy(activeTiles[0]);
         activeTiles.RemoveAt(0);
         Destroy(activeTiles[0]);

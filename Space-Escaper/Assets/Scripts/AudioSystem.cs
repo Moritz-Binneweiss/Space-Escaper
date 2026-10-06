@@ -63,6 +63,10 @@ public class AudioSystem : MonoBehaviour
 
     private Track currentTrack = Track.None;
 
+    /// Set while the death screen is up. The track is paused rather than stopped,
+    /// so a revive picks it up exactly where it was.
+    private bool musicOnHold;
+
     // ------------------------------------------------------------------
     // Lifetime
 
@@ -265,9 +269,32 @@ public class AudioSystem : MonoBehaviour
     // ------------------------------------------------------------------
     // Music
 
-    public void PlayMenuMusic() => PlayTrack(Track.Menu);
+    public void PlayMenuMusic()
+    {
+        musicOnHold = false;
+        PlayTrack(Track.Menu);
+    }
 
-    public void PlayGameMusic() => PlayTrack(Track.Game);
+    public void PlayGameMusic()
+    {
+        musicOnHold = false;
+        PlayTrack(Track.Game);
+    }
+
+    /// Holds the current track, e.g. on death. Unlike StopMusic the position is
+    /// kept, and unmuting does not end the hold - only ResumeMusic or starting
+    /// another track does.
+    public void PauseMusic()
+    {
+        musicOnHold = true;
+        musicSource.Pause();
+    }
+
+    public void ResumeMusic()
+    {
+        musicOnHold = false;
+        PlayTrack(currentTrack);
+    }
 
     /// Stops music entirely. Use PlayMenuMusic / PlayGameMusic to switch tracks -
     /// they handle the swap on their own.
@@ -294,8 +321,9 @@ public class AudioSystem : MonoBehaviour
             musicSource.clip = clip;
         }
 
-        // Stay silent while muted; unmuting resumes through ToggleMusicMuted.
-        if (musicMuted)
+        // Stay silent while muted or on hold; ToggleMusicMuted and ResumeMusic
+        // continue from the paused position.
+        if (musicMuted || musicOnHold)
             return;
 
         if (!musicSource.isPlaying)
