@@ -15,15 +15,12 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
-- `Space-Escaper/Assets/AudioSystem/` - Audio-Clips in `Classic/` (Originale von 2020)
+- `Space-Escaper/Assets/Audio/` - Audio-Clips in `Classic/` (Originale von 2020)
   und `New/`, dazu `ClassicBank.asset`, `NewBank.asset` und `GameAudio.mixer`. Siehe
   Abschnitt „Audio-System“ unten.
-- Übrige eigene Ordner in `Assets/`: `Ships/`, `Asteroids/`, `Items/` (Münze),
-  `Hangar/` und `Spaceports/` mit Modellen und `.blend`-Quellen samt Texturen,
-  dazu `Materials/`, `Prefabs/`, `Animations/`, `UI/Images/`, `UI/Fonts/`,
-  `Shaders/` und `About/` (Logos, App-Icon). `TextMesh Pro/` und
-  `Effects/EffectExamples/` sind Fremd-Pakete. Benennung siehe „Benennung von
-  Dateien und Objekten“.
+- Alle übrigen Ordner in `Assets/` sind nach Asset-Typ sortiert, siehe
+  „Ordnerstruktur“. `TextMesh Pro/` und `Effects/EffectExamples/` sind
+  Fremd-Pakete. Benennung siehe „Benennung von Dateien und Objekten“.
 - `Space-Escaper/ProjectSettings/` - Android-Buildeinstellungen, Tags, Layer.
 
 ## Arbeitsweise
@@ -89,6 +86,42 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   `SerializedObject`.
 - **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
   dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich.
+
+## Ordnerstruktur
+
+Seit v1.4.5 ist `Assets/` nach Asset-Typ sortiert, wie es Unitys Leitfaden zur
+Projektorganisation und die Unity-Templates vorsehen. Im Root von `Assets/` liegen
+nur Ordner.
+
+| Ordner | Inhalt |
+|---|---|
+| `Animations/` | Animator Controller und Clips, nach Gruppe |
+| `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer |
+| `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
+| `Materials/` | Materialien, nach Gruppe |
+| `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
+| `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
+| `Scenes/` | `Game.unity` |
+| `Scripts/` | alle Skripte, flach |
+| `Settings/` | URP-Asset, Renderer, Global Settings, Volume Profile, Build Profiles |
+| `Shaders/` | `BendWorld.shader` |
+| `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
+| `UI/` | `Images/` (Sprites, Shop-Sprites in `Images/Shop/`), `Fonts/`, `Mockups.png` |
+
+- **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
+  `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
+  Schiff gehört, liegt also in `Models/Ships/`, `Materials/Ships/`,
+  `Textures/Ships/`, `Prefabs/Ships/` und `Animations/Ships/`.
+- **Neue Assets** kommen in ihren Typ-Ordner und dort in die passende Gruppe,
+  nicht lose in einen Typ-Ordner und nie in den Root von `Assets/`. Eine neue
+  Gruppe bekommt in jedem Typ-Ordner, den sie braucht, denselben Namen.
+- **Modellordner nur als Ganzes verschieben:** Die `.blend`-Quellen verlinken ihre
+  Texturen relativ im eigenen Ordner (siehe „Benennung von Dateien und
+  Objekten“), deshalb liegen sie in
+  `Models/` beieinander und nicht in `Textures/`.
+- `Scripts/` bleibt flach, solange es so wenige Skripte sind. Unterordner kommen
+  mit dem Aufteilen des GameManagers in v1.5.0.
+- Fremd-Pakete bleiben an ihrem Platz, Asset-Store-Updates erwarten sie dort.
 
 ## Benennung von Dateien und Objekten
 
@@ -206,10 +239,11 @@ bei 8.
 
 - Ungenutzte Bilder, Materialien und Modelle liegen noch im Projekt, etwa die alten
   Preisschilder oder Doppelgänger mit `Unused` im Namen. Aufräumen gehört zum UI
-  Overhaul (v1.5.1) und zum Remaster (v1.7.0). Die 39 bitgleichen Duplikate in
-  `Assets/UI/` sind seit v1.4.5 gelöscht, alle UI-Bilder liegen in `UI/Images/`.
-  Gleiche Texturen in `Asteroids/` und `Materials/` sind Absicht: die einen gehören
-  zu den `.blend`-Quellen, die anderen zu den Unity-Materialien.
+  Overhaul (v1.5.1) und zum Remaster (v1.7.0). Bitgleiche Duplikate sind seit
+  v1.4.5 gelöscht (39 in `Assets/UI/`, 4 beim Sortieren der Ordner), alle
+  UI-Bilder liegen in `UI/Images/`. Gleiche Texturen in `Models/` und `Textures/`
+  sind Absicht: die einen gehören zu den `.blend`-Quellen, die anderen zu den
+  Unity-Materialien.
 - **Play Store kommt erst mit v2.0** - als *neuer* Store-Eintrag, nicht als Update des
   alten von 2020 (Entscheidung Oktober 2026). Bis dahin bewusst offen:
   `AndroidTargetSdkVersion: 29` (Google verlangt seit 31.08.2026 API 36),
@@ -431,8 +465,8 @@ Clips entsprechend importieren, sonst landen sie wieder komplett im RAM.
 
 Das Projekt lief bis September 2026 auf der Built-in Render Pipeline und wurde auf
 **URP 17.6.0** umgestellt. Die Migration ist abgeschlossen: URP Asset liegt unter
-`Assets/UniversalRenderPipeline.asset` (Renderer: `UniversalRenderer.asset`) und ist
-in Project Settings > Graphics zugewiesen, alle Materialien sind konvertiert.
+`Assets/Settings/UniversalRenderPipeline.asset` (Renderer: `UniversalRenderer.asset`)
+und ist in Project Settings > Graphics zugewiesen, alle Materialien sind konvertiert.
 
 Shader-Verteilung: 34 Materialien auf `ANIMO/BendWorld`, 13 auf URP/Lit, 7 auf URP
 Particles (Lit/Unlit), 2 TextMesh Pro, 1 Skybox.
