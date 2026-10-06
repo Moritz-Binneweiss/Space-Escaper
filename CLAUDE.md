@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 13 Skripte, ~1700 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 14 Skripte, ~1700 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
@@ -277,6 +277,20 @@ bei 8.
   Sound“ stand seit v1.4.0 auf Skalierung 2 mit Schriftgröße 10 und war deshalb
   matschig. In v1.4.4 wurde die Skalierung eingebacken: doppelte Maße,
   Schriftgröße 20, Sliced-Rahmen mit `Pixels Per Unit Multiplier` 0,5.
+- **Bildrate: 60 FPS** seit v1.4.5. `FrameRate.cs` setzt
+  `Application.targetFrameRate = 60` einmal beim Start, vor der ersten Szene
+  (`RuntimeInitializeOnLoadMethod`). Ohne Ziel rendert Android fest mit 30 FPS,
+  vSync ignoriert es dort. Passt 60 nicht glatt in die Bildwiederholrate des
+  Displays, rundet Unity: 90 Hz ergibt 45 FPS, 144 Hz 72 FPS. „Optimized Frame
+  Pacing“ ist aus, damit würde Unity immer abrunden. Im Editor gilt das Ziel nur
+  fürs Game-Fenster.
+- **Spiellogik an die Zeit binden, nicht an Frames:** Bewegung mit
+  `Time.deltaTime`, Abläufe mit `Time.time`. Die einzige Ausnahme ist der
+  Spurwechsel in `PlayerMotor.Move()`: Er schließt pro Frame
+  `Geschwindigkeit × Frame-Zeit` der Strecke zur Zielspur und dauert deshalb bei
+  60 FPS etwas länger als bei 30 (bei Startgeschwindigkeit etwa 0,25 statt 0,22 s).
+  Ab `Geschwindigkeit × Frame-Zeit` > 1 schießt er über die Spur hinaus, bei
+  60 FPS also ab Geschwindigkeit 60, bei 30 FPS schon ab 30.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
@@ -296,8 +310,6 @@ bei 8.
   Spielstände müssen deshalb nicht migriert werden. Die Standalone-App-ID nutzt seit
   v1.4.3 ebenfalls `com.ANIMOGames.SpaceEscaper` (vorher das Tutorial-Überbleibsel
   `unity.DefaultCompany.FPS2`) und zieht mit dem neuen Paketnamen mit.
-- Android läuft mit festen **30 fps**: Standard-Qualitätsstufe ist „Fastest" (vSync
-  aus), und kein Skript setzt `Application.targetFrameRate`.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
   ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
   zusätzlich `TileManager.RespawnTiles` auf - diese Verbindung existiert nur in der
