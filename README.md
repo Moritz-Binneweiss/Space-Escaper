@@ -146,12 +146,14 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-#### **v1.4.5** | Pause & 60 FPS _(------- --, 2026)_
+#### **v1.4.5** | Pause, Code Style & 60 FPS _(------- --, 2026)_
 
 <small>
 
 - [x] One shared pause state that only pauses during a run
 - [x] Unused Escape key binding removed from the UI input
+- [x] All scripts follow Unity's C# style guide
+- [ ] Consistent names for scene objects and project files
 - [ ] Auto-pause when the app goes to the background
 - [ ] 60 FPS on Android instead of 30
 

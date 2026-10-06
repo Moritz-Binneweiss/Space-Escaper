@@ -1,26 +1,30 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-public class CameraSwitch : MonoBehaviour
+namespace SpaceEscaper
 {
-    public GameObject maincam;
-    public GameObject shopcam;
-
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// Switches between the main camera and the hangar camera.
+    /// </summary>
+    public class CameraSwitch : MonoBehaviour
     {
-        maincam.SetActive(true);
-        shopcam.SetActive(false);
-    }
+        [SerializeField] private GameObject m_mainCamera;
+        [SerializeField] private GameObject m_shopCamera;
 
-    public void ShopCamera()
-    {
-        maincam.SetActive(false);
-        shopcam.SetActive(true);
-    }
+        private void Start()
+        {
+            SwitchToMainCamera();
+        }
 
-    public void MainCamera()
-    {
-        maincam.SetActive(true);
-        shopcam.SetActive(false);
+        public void SwitchToShopCamera()
+        {
+            m_mainCamera.SetActive(false);
+            m_shopCamera.SetActive(true);
+        }
+
+        public void SwitchToMainCamera()
+        {
+            m_mainCamera.SetActive(true);
+            m_shopCamera.SetActive(false);
+        }
     }
 }

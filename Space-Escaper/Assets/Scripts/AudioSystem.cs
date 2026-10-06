@@ -3,495 +3,550 @@ using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-/// <summary>
-/// Central audio controller. Survives scene reloads via DontDestroyOnLoad and
-/// plays everything through three sources: one-shot SFX, the looping engine,
-/// and music.
-///
-/// Individual clips are not referenced here - they come from an <see cref="AudioBank"/>
-/// per style, so switching between the classic 2020 sounds and the new ones is
-/// simply a matter of reading from the other bank. Adding a sound to the game
-/// means adding one field to AudioBank, not two fields here.
-/// </summary>
-public class AudioSystem : MonoBehaviour
+namespace SpaceEscaper
 {
-    private const string PrefUseNewSounds = "USENEWSOUNDS";
-    private const string PrefMusicMuted = "MUSICMUTED";
-    private const string PrefSfxMuted = "SFXMUTED";
-    private const string PrefMasterVolume = "MASTERVOLUME";
-
-    public static AudioSystem Instance { get; private set; }
-
-    [Header("Sound Banks")]
-    public AudioBank classicBank;
-    public AudioBank newBank;
-
-    [Header("Mixer Routing (optional)")]
-    public AudioMixerGroup musicGroup;
-    public AudioMixerGroup sfxGroup;
-
-    [Header("UI - lives in the scene, re-adopted on every scene load")]
-    public Button sfxButton;
-    public Sprite sfxOn;
-    public Sprite sfxOff;
-    public Button musicButton;
-    public Sprite musicOn;
-    public Sprite musicOff;
-    public Toggle audioToggle;
-    public Slider volumeSlider;
-
-    private AudioSource sfxSource;
-    private AudioSource engineSource;
-    private AudioSource musicSource;
-
-    /// Stand-in used when a bank slot is empty, so clip lookups never need a null check.
-    private AudioBank emptyBank;
-
-    private bool useNewSounds = true;
-    private bool musicMuted;
-    private bool sfxMuted;
-    private float masterVolume = 1f;
-
-    /// Which track the game currently wants to hear. Remembered so a style
-    /// switch or an unmute can restart the right one.
-    private enum Track
+    /// <summary>
+    /// Central audio controller. Survives scene reloads via DontDestroyOnLoad and
+    /// plays everything through three sources: one-shot SFX, the looping engine,
+    /// and music.
+    /// </summary>
+    /// <remarks>
+    /// Individual clips are not referenced here - they come from an
+    /// <see cref="AudioBank"/> per style, so switching between the classic 2020
+    /// sounds and the new ones is simply a matter of reading from the other bank.
+    /// Adding a sound to the game means adding one slot to AudioBank, not two
+    /// fields here.
+    /// </remarks>
+    public class AudioSystem : MonoBehaviour
     {
-        None,
-        Menu,
-        Game,
-    }
-
-    private Track currentTrack = Track.None;
-
-    /// Set while the death screen is up. The track is paused rather than stopped,
-    /// so a revive picks it up exactly where it was.
-    private bool musicOnHold;
-
-    // ------------------------------------------------------------------
-    // Lifetime
-
-    private void Awake()
-    {
-        if (Instance != null && Instance != this)
+        // Which track the game currently wants to hear. Remembered so a style
+        // switch or an unmute can restart the right one.
+        private enum Track
         {
-            // A reloaded scene brings its own copy of this object along. That
-            // copy's inspector references point at the NEW scene's buttons,
-            // while the surviving instance still points at the destroyed ones.
-            // Hand them over before throwing the copy away - otherwise the mute
-            // buttons and the style toggle stop working after the first reload.
-            Instance.AdoptSceneReferencesFrom(this);
-            Destroy(gameObject);
-            return;
+            None,
+            Menu,
+            Game,
         }
 
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
+        private const string k_UseNewSoundsKey = "USENEWSOUNDS";
+        private const string k_MasterVolumeKey = "MASTERVOLUME";
 
-        CreateSources();
-        LoadPreferences();
+        // The two mute keys store 1 = on, 0 = muted.
+        private const string k_MusicMutedKey = "MUSICMUTED";
+        private const string k_SfxMutedKey = "SFXMUTED";
 
-        engineSource.mute = sfxMuted;
-        BindUi();
+        // How much quieter the very bottom of the slider is than the top. 40 dB
+        // means every quarter of the travel roughly halves the perceived loudness.
+        // Raise it for a slider that reaches "almost silent" sooner.
+        private const float k_VolumeRangeDb = 40f;
 
-        SceneManager.sceneLoaded += HandleSceneLoaded;
-    }
+        // Keeps a style switch from seeking to the very end of a shorter track.
+        private const float k_TrackEndMargin = 0.05f;
 
-    private void Start()
-    {
-        PlayMenuMusic();
-    }
+        [Header("Sound Banks")]
+        [SerializeField] private AudioBank m_classicBank;
+        [SerializeField] private AudioBank m_newBank;
 
-    private void OnDestroy()
-    {
-        if (Instance != this)
-            return;
+        [Header("Mixer Routing (optional)")]
+        [SerializeField] private AudioMixerGroup m_musicGroup;
+        [SerializeField] private AudioMixerGroup m_sfxGroup;
 
-        SceneManager.sceneLoaded -= HandleSceneLoaded;
-        Instance = null;
-    }
+        [Header("UI - lives in the scene, re-adopted on every scene load")]
+        [SerializeField] private Button m_sfxButton;
+        [SerializeField] private Sprite m_sfxOnSprite;
+        [SerializeField] private Sprite m_sfxOffSprite;
+        [SerializeField] private Button m_musicButton;
+        [SerializeField] private Sprite m_musicOnSprite;
+        [SerializeField] private Sprite m_musicOffSprite;
+        [SerializeField] private Toggle m_newSoundsToggle;
+        [SerializeField] private Slider m_volumeSlider;
 
-    /// The game only ever reloads back into the main menu, so reset to that state.
-    private void HandleSceneLoaded(Scene scene, LoadSceneMode mode)
-    {
-        StopEngine();
-        PlayMenuMusic();
-    }
+        private AudioSource m_sfxSource;
+        private AudioSource m_engineSource;
+        private AudioSource m_musicSource;
 
-    private void CreateSources()
-    {
-        sfxSource = gameObject.AddComponent<AudioSource>();
-        sfxSource.playOnAwake = false;
-        sfxSource.outputAudioMixerGroup = sfxGroup;
+        // Stand-in used when a bank slot is empty, so clip lookups never need a
+        // null check.
+        private AudioBank m_emptyBank;
 
-        engineSource = gameObject.AddComponent<AudioSource>();
-        engineSource.playOnAwake = false;
-        engineSource.loop = true;
-        engineSource.outputAudioMixerGroup = sfxGroup;
+        private bool m_useNewSounds = true;
+        private bool m_isMusicMuted;
+        private bool m_isSfxMuted;
+        private float m_masterVolume = 1f;
+        private Track m_currentTrack;
 
-        musicSource = gameObject.AddComponent<AudioSource>();
-        musicSource.playOnAwake = false;
-        musicSource.loop = true;
-        musicSource.outputAudioMixerGroup = musicGroup;
-    }
+        // Set while the death screen is up. The track is paused rather than
+        // stopped, so a revive picks it up exactly where it was.
+        private bool m_isMusicOnHold;
 
-    private void LoadPreferences()
-    {
-        useNewSounds = PlayerPrefs.GetInt(PrefUseNewSounds, 1) == 1;
-        musicMuted = PlayerPrefs.GetInt(PrefMusicMuted, 1) == 0; // 1 = on, 0 = muted
-        sfxMuted = PlayerPrefs.GetInt(PrefSfxMuted, 1) == 0;
-        masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(PrefMasterVolume, 1f));
-        AudioListener.volume = SliderToAmplitude(masterVolume);
-    }
+        public static AudioSystem Instance { get; private set; }
 
-    /// Overall volume for everything the game plays, on top of the individual
-    /// mute switches. AudioListener.volume is global, so this covers any source,
-    /// not only the three owned by this class.
-    ///
-    /// The slider position is NOT used as the amplitude directly. Hearing is
-    /// logarithmic, so on a linear scale the bottom few percent swallow most of
-    /// the audible change (0.1 -> 0.2 is 6 dB) while the top third is barely
-    /// distinguishable (0.7 -> 1.0 is only 3 dB). Mapping the travel onto a
-    /// fixed decibel range instead makes every step of the slider sound equally
-    /// big. Note that squaring the value does NOT fix this - a power curve
-    /// stretches the whole dB range evenly and leaves the imbalance intact.
-    public void SetMasterVolume(float sliderPosition)
-    {
-        masterVolume = Mathf.Clamp01(sliderPosition);
-        AudioListener.volume = SliderToAmplitude(masterVolume);
+        private AudioBank EmptyBank
+        {
+            get
+            {
+                if (m_emptyBank == null)
+                {
+                    m_emptyBank = ScriptableObject.CreateInstance<AudioBank>();
+                }
 
-        // Deliberately no PlayerPrefs.Save() here - a slider fires this on every
-        // frame while being dragged. Flushed in OnApplicationPause/Quit instead.
-        // The slider position is stored, not the amplitude, so the handle comes
-        // back where the player left it.
-        PlayerPrefs.SetFloat(PrefMasterVolume, masterVolume);
-    }
+                return m_emptyBank;
+            }
+        }
 
-    /// How much quieter the very bottom of the slider is than the top.
-    /// 40 dB means every quarter of the travel roughly halves the perceived
-    /// loudness. Raise it for a slider that reaches "almost silent" sooner.
-    private const float VolumeRangeDb = 40f;
+        private AudioBank NewSounds => m_newBank != null ? m_newBank : EmptyBank;
 
-    private static float SliderToAmplitude(float sliderPosition)
-    {
-        if (sliderPosition <= 0f)
-            return 0f;
+        private AudioBank ClassicSounds => m_classicBank != null ? m_classicBank : EmptyBank;
 
-        return Mathf.Pow(10f, (sliderPosition - 1f) * VolumeRangeDb / 20f);
-    }
+        private void Awake()
+        {
+            if (Instance != null && Instance != this)
+            {
+                // A reloaded scene brings its own copy of this object along. That
+                // copy's inspector references point at the NEW scene's buttons,
+                // while the surviving instance still points at the destroyed ones.
+                // Hand them over before throwing the copy away - otherwise the mute
+                // buttons and the style toggle stop working after the first reload.
+                Instance.AdoptSceneReferencesFrom(this);
+                Destroy(gameObject);
+                return;
+            }
 
-    private void OnApplicationPause(bool paused)
-    {
-        if (paused)
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+
+            CreateSources();
+            LoadPreferences();
+
+            m_engineSource.mute = m_isSfxMuted;
+            BindUi();
+
+            SceneManager.sceneLoaded += SceneManager_SceneLoaded;
+        }
+
+        private void Start()
+        {
+            PlayMenuMusic();
+        }
+
+        private void OnDestroy()
+        {
+            if (Instance != this)
+            {
+                return;
+            }
+
+            SceneManager.sceneLoaded -= SceneManager_SceneLoaded;
+            Instance = null;
+        }
+
+        private void OnApplicationPause(bool isPaused)
+        {
+            if (isPaused)
+            {
+                PlayerPrefs.Save();
+            }
+        }
+
+        private void OnApplicationQuit()
+        {
             PlayerPrefs.Save();
-    }
-
-    private void OnApplicationQuit()
-    {
-        PlayerPrefs.Save();
-    }
-
-    // ------------------------------------------------------------------
-    // Clip lookup
-
-    private AudioBank Empty
-    {
-        get
-        {
-            if (emptyBank == null)
-                emptyBank = ScriptableObject.CreateInstance<AudioBank>();
-            return emptyBank;
-        }
-    }
-
-    private AudioBank NewSounds => newBank != null ? newBank : Empty;
-    private AudioBank ClassicSounds => classicBank != null ? classicBank : Empty;
-
-    /// Prefers the active style, but falls back to the other bank so a sound
-    /// that exists in only one style is still heard rather than silently missing.
-    private AudioClip Pick(AudioClip fromNew, AudioClip fromClassic)
-    {
-        if (useNewSounds)
-            return fromNew != null ? fromNew : fromClassic;
-        return fromClassic != null ? fromClassic : fromNew;
-    }
-
-    // ------------------------------------------------------------------
-    // Sound effects
-
-    private void PlaySfx(AudioClip clip)
-    {
-        // Muted SFX are not played at all - cheaper than playing them at zero volume.
-        if (sfxMuted || clip == null)
-            return;
-
-        sfxSource.PlayOneShot(clip);
-    }
-
-    public void PlayButton() => PlaySfx(Pick(NewSounds.button, ClassicSounds.button));
-
-    public void PlayCoin() => PlaySfx(Pick(NewSounds.coin, ClassicSounds.coin));
-
-    public void PlayExplosion() => PlaySfx(Pick(NewSounds.explosion, ClassicSounds.explosion));
-
-    public void PlaySelectShip() => PlaySfx(Pick(NewSounds.selectShip, ClassicSounds.selectShip));
-
-    public void PlayDeselectShip() =>
-        PlaySfx(Pick(NewSounds.deselectShip, ClassicSounds.deselectShip));
-
-    public void PlayBuyShip() => PlaySfx(Pick(NewSounds.buyShip, ClassicSounds.buyShip));
-
-    // ------------------------------------------------------------------
-    // Engine loop
-
-    public void StartEngine()
-    {
-        AudioClip clip = Pick(NewSounds.engine, ClassicSounds.engine);
-        if (clip == null)
-            return;
-
-        if (engineSource.clip != clip)
-        {
-            engineSource.Stop();
-            engineSource.clip = clip;
         }
 
-        engineSource.mute = sfxMuted;
-        if (!engineSource.isPlaying)
-            engineSource.Play();
-    }
-
-    public void StopEngine()
-    {
-        if (engineSource.isPlaying)
-            engineSource.Stop();
-    }
-
-    // ------------------------------------------------------------------
-    // Music
-
-    public void PlayMenuMusic()
-    {
-        musicOnHold = false;
-        PlayTrack(Track.Menu);
-    }
-
-    public void PlayGameMusic()
-    {
-        musicOnHold = false;
-        PlayTrack(Track.Game);
-    }
-
-    /// Holds the current track, e.g. on death. Unlike StopMusic the position is
-    /// kept, and unmuting does not end the hold - only ResumeMusic or starting
-    /// another track does.
-    public void PauseMusic()
-    {
-        musicOnHold = true;
-        musicSource.Pause();
-    }
-
-    public void ResumeMusic()
-    {
-        musicOnHold = false;
-        PlayTrack(currentTrack);
-    }
-
-    /// Stops music entirely. Use PlayMenuMusic / PlayGameMusic to switch tracks -
-    /// they handle the swap on their own.
-    public void StopMusic()
-    {
-        currentTrack = Track.None;
-        musicSource.Stop();
-    }
-
-    private void PlayTrack(Track track)
-    {
-        currentTrack = track;
-
-        AudioClip clip = ClipFor(track);
-        if (clip == null)
+        /// <summary>
+        /// Overall volume for everything the game plays, on top of the individual
+        /// mute switches.
+        /// </summary>
+        /// <remarks>
+        /// AudioListener.volume is global, so this covers any source, not only the
+        /// three owned by this class.
+        ///
+        /// The slider position is NOT used as the amplitude directly. Hearing is
+        /// logarithmic, so on a linear scale the bottom few percent swallow most of
+        /// the audible change (0.1 -> 0.2 is 6 dB) while the top third is barely
+        /// distinguishable (0.7 -> 1.0 is only 3 dB). Mapping the travel onto a
+        /// fixed decibel range instead makes every step of the slider sound equally
+        /// big. Note that squaring the value does NOT fix this - a power curve
+        /// stretches the whole dB range evenly and leaves the imbalance intact.
+        /// </remarks>
+        public void SetMasterVolume(float sliderPosition)
         {
-            musicSource.Stop();
-            return;
+            m_masterVolume = Mathf.Clamp01(sliderPosition);
+            AudioListener.volume = ConvertSliderToAmplitude(m_masterVolume);
+
+            // Deliberately no PlayerPrefs.Save() here - a slider fires this on every
+            // frame while being dragged. Flushed in OnApplicationPause/Quit instead.
+            // The slider position is stored, not the amplitude, so the handle comes
+            // back where the player left it.
+            PlayerPrefs.SetFloat(k_MasterVolumeKey, m_masterVolume);
         }
 
-        if (musicSource.clip != clip)
+        public void PlayButtonClick() => PlaySfx(PickClip(NewSounds.ButtonClick, ClassicSounds.ButtonClick));
+
+        public void PlayCoinPickup() => PlaySfx(PickClip(NewSounds.CoinPickup, ClassicSounds.CoinPickup));
+
+        public void PlayExplosion() => PlaySfx(PickClip(NewSounds.Explosion, ClassicSounds.Explosion));
+
+        public void PlayShipSelect() => PlaySfx(PickClip(NewSounds.ShipSelect, ClassicSounds.ShipSelect));
+
+        public void PlayShipDeselect() => PlaySfx(PickClip(NewSounds.ShipDeselect, ClassicSounds.ShipDeselect));
+
+        public void PlayShipPurchase() => PlaySfx(PickClip(NewSounds.ShipPurchase, ClassicSounds.ShipPurchase));
+
+        public void StartEngine()
         {
-            musicSource.Stop();
-            musicSource.clip = clip;
+            AudioClip clip = PickClip(NewSounds.Engine, ClassicSounds.Engine);
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (m_engineSource.clip != clip)
+            {
+                m_engineSource.Stop();
+                m_engineSource.clip = clip;
+            }
+
+            m_engineSource.mute = m_isSfxMuted;
+            if (!m_engineSource.isPlaying)
+            {
+                m_engineSource.Play();
+            }
         }
 
-        // Stay silent while muted or on hold; ToggleMusicMuted and ResumeMusic
-        // continue from the paused position.
-        if (musicMuted || musicOnHold)
-            return;
-
-        if (!musicSource.isPlaying)
-            musicSource.Play();
-    }
-
-    private AudioClip ClipFor(Track track)
-    {
-        if (track == Track.Menu)
-            return Pick(NewSounds.menuMusic, ClassicSounds.menuMusic);
-        if (track == Track.Game)
-            return Pick(NewSounds.gameMusic, ClassicSounds.gameMusic);
-        return null;
-    }
-
-    // ------------------------------------------------------------------
-    // Settings
-
-    /// Switches between the classic and the new sound set. Public so the style
-    /// can also be changed from somewhere other than the toggle.
-    public void SetUseNewSounds(bool value)
-    {
-        if (useNewSounds == value)
-            return;
-
-        useNewSounds = value;
-        PlayerPrefs.SetInt(PrefUseNewSounds, value ? 1 : 0);
-        PlayerPrefs.Save();
-
-        SwapRunningMusicToCurrentStyle();
-        SwapRunningEngineToCurrentStyle();
-        RefreshUi();
-    }
-
-    /// Keeps the playback position when the track changes, so switching style
-    /// mid-song is not jarring.
-    private void SwapRunningMusicToCurrentStyle()
-    {
-        AudioClip clip = ClipFor(currentTrack);
-        if (clip == null || musicSource.clip == clip)
-            return;
-
-        float position = musicSource.time;
-        bool wasPlaying = musicSource.isPlaying;
-
-        musicSource.Stop();
-        musicSource.clip = clip;
-        musicSource.time = Mathf.Clamp(position, 0f, Mathf.Max(0f, clip.length - 0.05f));
-
-        if (wasPlaying && !musicMuted)
-            musicSource.Play();
-    }
-
-    private void SwapRunningEngineToCurrentStyle()
-    {
-        if (!engineSource.isPlaying)
-            return;
-
-        AudioClip clip = Pick(NewSounds.engine, ClassicSounds.engine);
-        if (clip == null || engineSource.clip == clip)
-            return;
-
-        engineSource.clip = clip;
-        engineSource.Play();
-    }
-
-    public void ToggleSfxMuted()
-    {
-        sfxMuted = !sfxMuted;
-        PlayerPrefs.SetInt(PrefSfxMuted, sfxMuted ? 0 : 1); // 1 = on, 0 = muted
-        PlayerPrefs.Save();
-
-        engineSource.mute = sfxMuted;
-        RefreshUi();
-    }
-
-    public void ToggleMusicMuted()
-    {
-        musicMuted = !musicMuted;
-        PlayerPrefs.SetInt(PrefMusicMuted, musicMuted ? 0 : 1); // 1 = on, 0 = muted
-        PlayerPrefs.Save();
-
-        // Pausing genuinely stops decoding, unlike volume 0, which keeps
-        // burning CPU and battery on a phone while you hear nothing.
-        if (musicMuted)
-            musicSource.Pause();
-        else
-            PlayTrack(currentTrack);
-
-        RefreshUi();
-    }
-
-    // ------------------------------------------------------------------
-    // UI
-
-    private void BindUi()
-    {
-        if (audioToggle != null)
+        public void StopEngine()
         {
-            audioToggle.onValueChanged.RemoveListener(SetUseNewSounds);
-            audioToggle.SetIsOnWithoutNotify(useNewSounds);
-            audioToggle.onValueChanged.AddListener(SetUseNewSounds);
+            if (m_engineSource.isPlaying)
+            {
+                m_engineSource.Stop();
+            }
         }
 
-        if (sfxButton != null)
+        public void PlayMenuMusic()
         {
-            sfxButton.onClick.RemoveListener(ToggleSfxMuted);
-            sfxButton.onClick.AddListener(ToggleSfxMuted);
+            m_isMusicOnHold = false;
+            PlayTrack(Track.Menu);
         }
 
-        if (musicButton != null)
+        public void PlayGameMusic()
         {
-            musicButton.onClick.RemoveListener(ToggleMusicMuted);
-            musicButton.onClick.AddListener(ToggleMusicMuted);
+            m_isMusicOnHold = false;
+            PlayTrack(Track.Game);
         }
 
-        if (volumeSlider != null)
+        /// <summary>
+        /// Holds the current track, e.g. on death. Unlike <see cref="StopMusic"/> the
+        /// position is kept, and unmuting does not end the hold - only
+        /// <see cref="ResumeMusic"/> or starting another track does.
+        /// </summary>
+        public void PauseMusic()
         {
-            volumeSlider.onValueChanged.RemoveListener(SetMasterVolume);
-            volumeSlider.SetValueWithoutNotify(masterVolume);
-            volumeSlider.onValueChanged.AddListener(SetMasterVolume);
+            m_isMusicOnHold = true;
+            m_musicSource.Pause();
         }
 
-        RefreshUi();
-    }
-
-    /// Called on the surviving instance when a reloaded scene brings a fresh copy.
-    private void AdoptSceneReferencesFrom(AudioSystem sceneCopy)
-    {
-        sfxButton = sceneCopy.sfxButton;
-        sfxOn = sceneCopy.sfxOn;
-        sfxOff = sceneCopy.sfxOff;
-        musicButton = sceneCopy.musicButton;
-        musicOn = sceneCopy.musicOn;
-        musicOff = sceneCopy.musicOff;
-        audioToggle = sceneCopy.audioToggle;
-        volumeSlider = sceneCopy.volumeSlider;
-
-        if (sceneCopy.classicBank != null)
-            classicBank = sceneCopy.classicBank;
-        if (sceneCopy.newBank != null)
-            newBank = sceneCopy.newBank;
-
-        BindUi();
-    }
-
-    /// Only runs when something actually changed - the old version did this
-    /// every frame in Update().
-    private void RefreshUi()
-    {
-        if (sfxButton != null && sfxOn != null && sfxOff != null)
+        public void ResumeMusic()
         {
-            Image image = sfxButton.GetComponent<Image>();
+            m_isMusicOnHold = false;
+            PlayTrack(m_currentTrack);
+        }
+
+        /// <summary>
+        /// Stops music entirely. Use <see cref="PlayMenuMusic"/> or
+        /// <see cref="PlayGameMusic"/> to switch tracks - they handle the swap on
+        /// their own.
+        /// </summary>
+        public void StopMusic()
+        {
+            m_currentTrack = Track.None;
+            m_musicSource.Stop();
+        }
+
+        /// <summary>
+        /// Switches between the classic and the new sound set. Public so the style
+        /// can also be changed from somewhere other than the toggle.
+        /// </summary>
+        public void SetUseNewSounds(bool useNewSounds)
+        {
+            if (m_useNewSounds == useNewSounds)
+            {
+                return;
+            }
+
+            m_useNewSounds = useNewSounds;
+            PlayerPrefs.SetInt(k_UseNewSoundsKey, useNewSounds ? 1 : 0);
+            PlayerPrefs.Save();
+
+            SwapRunningMusicToCurrentStyle();
+            SwapRunningEngineToCurrentStyle();
+            RefreshUi();
+        }
+
+        public void ToggleSfxMuted()
+        {
+            m_isSfxMuted = !m_isSfxMuted;
+            PlayerPrefs.SetInt(k_SfxMutedKey, m_isSfxMuted ? 0 : 1);
+            PlayerPrefs.Save();
+
+            m_engineSource.mute = m_isSfxMuted;
+            RefreshUi();
+        }
+
+        public void ToggleMusicMuted()
+        {
+            m_isMusicMuted = !m_isMusicMuted;
+            PlayerPrefs.SetInt(k_MusicMutedKey, m_isMusicMuted ? 0 : 1);
+            PlayerPrefs.Save();
+
+            // Pausing genuinely stops decoding, unlike volume 0, which keeps
+            // burning CPU and battery on a phone while you hear nothing.
+            if (m_isMusicMuted)
+            {
+                m_musicSource.Pause();
+            }
+            else
+            {
+                PlayTrack(m_currentTrack);
+            }
+
+            RefreshUi();
+        }
+
+        // The game only ever reloads back into the main menu, so reset to that state.
+        private void SceneManager_SceneLoaded(Scene scene, LoadSceneMode mode)
+        {
+            StopEngine();
+            PlayMenuMusic();
+        }
+
+        private void CreateSources()
+        {
+            m_sfxSource = gameObject.AddComponent<AudioSource>();
+            m_sfxSource.playOnAwake = false;
+            m_sfxSource.outputAudioMixerGroup = m_sfxGroup;
+
+            m_engineSource = gameObject.AddComponent<AudioSource>();
+            m_engineSource.playOnAwake = false;
+            m_engineSource.loop = true;
+            m_engineSource.outputAudioMixerGroup = m_sfxGroup;
+
+            m_musicSource = gameObject.AddComponent<AudioSource>();
+            m_musicSource.playOnAwake = false;
+            m_musicSource.loop = true;
+            m_musicSource.outputAudioMixerGroup = m_musicGroup;
+        }
+
+        private void LoadPreferences()
+        {
+            m_useNewSounds = PlayerPrefs.GetInt(k_UseNewSoundsKey, 1) == 1;
+            m_isMusicMuted = PlayerPrefs.GetInt(k_MusicMutedKey, 1) == 0;
+            m_isSfxMuted = PlayerPrefs.GetInt(k_SfxMutedKey, 1) == 0;
+            m_masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(k_MasterVolumeKey, 1f));
+            AudioListener.volume = ConvertSliderToAmplitude(m_masterVolume);
+        }
+
+        // Prefers the active style, but falls back to the other bank so a sound
+        // that exists in only one style is still heard rather than silently missing.
+        private AudioClip PickClip(AudioClip fromNew, AudioClip fromClassic)
+        {
+            if (m_useNewSounds)
+            {
+                return fromNew != null ? fromNew : fromClassic;
+            }
+
+            return fromClassic != null ? fromClassic : fromNew;
+        }
+
+        private void PlaySfx(AudioClip clip)
+        {
+            // Muted SFX are not played at all - cheaper than playing them at zero volume.
+            if (m_isSfxMuted || clip == null)
+            {
+                return;
+            }
+
+            m_sfxSource.PlayOneShot(clip);
+        }
+
+        private void PlayTrack(Track track)
+        {
+            m_currentTrack = track;
+
+            AudioClip clip = GetTrackClip(track);
+            if (clip == null)
+            {
+                m_musicSource.Stop();
+                return;
+            }
+
+            if (m_musicSource.clip != clip)
+            {
+                m_musicSource.Stop();
+                m_musicSource.clip = clip;
+            }
+
+            // Stay silent while muted or on hold; ToggleMusicMuted and ResumeMusic
+            // continue from the paused position.
+            if (m_isMusicMuted || m_isMusicOnHold)
+            {
+                return;
+            }
+
+            if (!m_musicSource.isPlaying)
+            {
+                m_musicSource.Play();
+            }
+        }
+
+        private AudioClip GetTrackClip(Track track)
+        {
+            switch (track)
+            {
+                case Track.Menu:
+                    return PickClip(NewSounds.MenuMusic, ClassicSounds.MenuMusic);
+
+                case Track.Game:
+                    return PickClip(NewSounds.GameMusic, ClassicSounds.GameMusic);
+
+                default:
+                    return null;
+            }
+        }
+
+        // Keeps the playback position when the track changes, so switching style
+        // mid-song is not jarring.
+        private void SwapRunningMusicToCurrentStyle()
+        {
+            AudioClip clip = GetTrackClip(m_currentTrack);
+            if (clip == null || m_musicSource.clip == clip)
+            {
+                return;
+            }
+
+            float position = m_musicSource.time;
+            bool wasPlaying = m_musicSource.isPlaying;
+
+            m_musicSource.Stop();
+            m_musicSource.clip = clip;
+            m_musicSource.time = Mathf.Clamp(position, 0f, Mathf.Max(0f, clip.length - k_TrackEndMargin));
+
+            if (wasPlaying && !m_isMusicMuted)
+            {
+                m_musicSource.Play();
+            }
+        }
+
+        private void SwapRunningEngineToCurrentStyle()
+        {
+            if (!m_engineSource.isPlaying)
+            {
+                return;
+            }
+
+            AudioClip clip = PickClip(NewSounds.Engine, ClassicSounds.Engine);
+            if (clip == null || m_engineSource.clip == clip)
+            {
+                return;
+            }
+
+            m_engineSource.clip = clip;
+            m_engineSource.Play();
+        }
+
+        private void BindUi()
+        {
+            if (m_newSoundsToggle != null)
+            {
+                m_newSoundsToggle.onValueChanged.RemoveListener(SetUseNewSounds);
+                m_newSoundsToggle.SetIsOnWithoutNotify(m_useNewSounds);
+                m_newSoundsToggle.onValueChanged.AddListener(SetUseNewSounds);
+            }
+
+            if (m_sfxButton != null)
+            {
+                m_sfxButton.onClick.RemoveListener(ToggleSfxMuted);
+                m_sfxButton.onClick.AddListener(ToggleSfxMuted);
+            }
+
+            if (m_musicButton != null)
+            {
+                m_musicButton.onClick.RemoveListener(ToggleMusicMuted);
+                m_musicButton.onClick.AddListener(ToggleMusicMuted);
+            }
+
+            if (m_volumeSlider != null)
+            {
+                m_volumeSlider.onValueChanged.RemoveListener(SetMasterVolume);
+                m_volumeSlider.SetValueWithoutNotify(m_masterVolume);
+                m_volumeSlider.onValueChanged.AddListener(SetMasterVolume);
+            }
+
+            RefreshUi();
+        }
+
+        // Called on the surviving instance when a reloaded scene brings a fresh copy.
+        private void AdoptSceneReferencesFrom(AudioSystem sceneCopy)
+        {
+            m_sfxButton = sceneCopy.m_sfxButton;
+            m_sfxOnSprite = sceneCopy.m_sfxOnSprite;
+            m_sfxOffSprite = sceneCopy.m_sfxOffSprite;
+            m_musicButton = sceneCopy.m_musicButton;
+            m_musicOnSprite = sceneCopy.m_musicOnSprite;
+            m_musicOffSprite = sceneCopy.m_musicOffSprite;
+            m_newSoundsToggle = sceneCopy.m_newSoundsToggle;
+            m_volumeSlider = sceneCopy.m_volumeSlider;
+
+            if (sceneCopy.m_classicBank != null)
+            {
+                m_classicBank = sceneCopy.m_classicBank;
+            }
+
+            if (sceneCopy.m_newBank != null)
+            {
+                m_newBank = sceneCopy.m_newBank;
+            }
+
+            BindUi();
+        }
+
+        private void RefreshUi()
+        {
+            ShowMuteState(m_sfxButton, m_sfxOnSprite, m_sfxOffSprite, m_isSfxMuted);
+            ShowMuteState(m_musicButton, m_musicOnSprite, m_musicOffSprite, m_isMusicMuted);
+
+            if (m_newSoundsToggle != null)
+            {
+                m_newSoundsToggle.SetIsOnWithoutNotify(m_useNewSounds);
+            }
+
+            if (m_volumeSlider != null)
+            {
+                m_volumeSlider.SetValueWithoutNotify(m_masterVolume);
+            }
+        }
+
+        private static void ShowMuteState(Button button, Sprite onSprite, Sprite offSprite, bool isMuted)
+        {
+            if (button == null || onSprite == null || offSprite == null)
+            {
+                return;
+            }
+
+            Image image = button.GetComponent<Image>();
             if (image != null)
-                image.sprite = sfxMuted ? sfxOff : sfxOn;
+            {
+                image.sprite = isMuted ? offSprite : onSprite;
+            }
         }
 
-        if (musicButton != null && musicOn != null && musicOff != null)
+        private static float ConvertSliderToAmplitude(float sliderPosition)
         {
-            Image image = musicButton.GetComponent<Image>();
-            if (image != null)
-                image.sprite = musicMuted ? musicOff : musicOn;
+            if (sliderPosition <= 0f)
+            {
+                return 0f;
+            }
+
+            return Mathf.Pow(10f, (sliderPosition - 1f) * k_VolumeRangeDb / 20f);
         }
-
-        if (audioToggle != null)
-            audioToggle.SetIsOnWithoutNotify(useNewSounds);
-
-        if (volumeSlider != null)
-            volumeSlider.SetValueWithoutNotify(masterVolume);
     }
 }

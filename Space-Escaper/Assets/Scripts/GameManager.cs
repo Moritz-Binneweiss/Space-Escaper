@@ -1,409 +1,415 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
-public class GameManager : MonoBehaviour
+namespace SpaceEscaper
 {
-    private const int COIN_SCORE_AMOUNT = 1;
-    private const int STARTER_SHIP = 1;
-
-    public static GameManager Instance { set; get; }
-
-    private bool isGameStarted = false;
-    private PlayerMotor motor;
-
-    /// True while a run is going on and the ship is alive - the only time a pause
-    /// makes sense. False in the menu, in the hangar and on the death screen.
-    public bool IsRunActive => isGameStarted && motor.IsRunning;
-
-    //UI and the UI fields
-    public Animator gameCanvas,
-        menuAnim,
-        coinAnim,
-        shopAnim;
-    public Text scoreText,
-        coinText,
-        hiscoreText,
-        modifierText,
-        menuCoinText;
-    private float score,
-        coinScore,
-        modifierScore;
-    private int lastScore,
-        menuCoinScore;
-
-    // Coins of this run already added to MenuCoins. A revive keeps coinScore
-    // running, so a second death may only bank what was collected since.
-    private int bankedCoins;
-
-    //Shop
-    public List<int> shipPrices;
-    private int unlockedShips;
-    private int currentShip = 0;
-    private int currentShop = 0;
-    public Transform shipContainer;
-    public Transform buttonContainer;
-    public Transform shopShipContainer;
-    public Transform shopSpriteContainer;
-    public Transform skinButtonContainer;
-    public Transform flameContainer;
-    public GameObject spaceport;
-    public GameObject hangar;
-
-    private float reviveScore;
-    public GameObject reviveButton;
-
-    //Deathmenu
-    public Animator deathMenuAnim;
-    public Text deadScoreText,
-        deadCoinText;
-
-    private void Awake()
+    /// <summary>
+    /// Runs the main menu, the hangar shop, the score of a run and the death screen.
+    /// </summary>
+    public class GameManager : MonoBehaviour
     {
-        Time.timeScale = 1f;
-        Instance = this;
-        modifierScore = 1f;
-        motor = GameObject.FindGameObjectWithTag("Player").GetComponent<PlayerMotor>();
+        private const string k_GameSceneName = "Game";
+        private const string k_PlayerTag = "Player";
 
-        modifierText.text = "x" + modifierScore.ToString("0.0");
-        coinText.text = coinScore.ToString("0");
-        scoreText.text = score.ToString("0");
+        private const string k_MenuCoinsKey = "MenuCoins";
+        private const string k_HighscoreKey = "Hiscore";
+        private const string k_CurrentShipKey = "CurrentShip";
+        private const string k_CurrentFamilyKey = "CurrentShop";
+        private const string k_UnlockedShipsKey = "UnlockedShips";
 
-        menuCoinText.text = PlayerPrefs.GetInt("MenuCoins").ToString();
+        private const string k_ShowTrigger = "Show";
+        private const string k_HideTrigger = "Hide";
+        private const string k_CollectTrigger = "Collect";
+        private const string k_DeadTrigger = "Dead";
 
-        hiscoreText.text = PlayerPrefs.GetInt("Hiscore").ToString();
+        // Spelled this way in the death menu's Animator Controller.
+        private const string k_AliveTrigger = "Allive";
 
-        //Shop for Pc
-        menuCoinScore = PlayerPrefs.GetInt("MenuCoins");
-        currentShip = PlayerPrefs.GetInt("CurrentShip", STARTER_SHIP);
-        currentShop = PlayerPrefs.GetInt("CurrentShop");
+        private const float k_ScorePerSecond = 3f;
+        private const int k_ScorePerCoin = 1;
+        private const float k_SpaceportHideDelay = 3f;
 
-        // Child 0 of shipContainer is the flame container, not a ship. A missing
-        // or broken value used to land there: no visible ship, and GetChild(-1)
-        // below threw on every fresh install.
-        if (currentShip < STARTER_SHIP || currentShip >= shipContainer.childCount)
+        // Ships are numbered 1-9, three skins per family: ARISTOCRAT 1-3,
+        // FREETER 4-6, VAGOR 7-9.
+        private const int k_StarterShip = 1;
+        private const int k_FamilyCount = 3;
+        private const int k_SkinsPerFamily = 3;
+
+        // Children of the shop sprite container. The price tag of ship n is
+        // child n + 1.
+        private const int k_SelectSprite = 0;
+        private const int k_SelectedSprite = 1;
+        private const int k_PriceTagOffset = 1;
+
+        [Header("Main Menu")]
+        [SerializeField] private Animator m_mainMenuAnimator;
+        [SerializeField] private Text m_menuCoinText;
+        [SerializeField] private Text m_highscoreText;
+
+        [Header("Run")]
+        [SerializeField] private Animator m_gameMenuAnimator;
+        [SerializeField] private Animator m_coinAnimator;
+        [SerializeField] private Text m_scoreText;
+        [SerializeField] private Text m_coinText;
+        [SerializeField] private Text m_modifierText;
+        [Tooltip("Hidden a few seconds after the run starts.")]
+        [SerializeField] private GameObject m_spaceport;
+
+        [Header("Ship")]
+        [Tooltip("Child 0 is the flame container, children 1-9 are the ships.")]
+        [SerializeField] private Transform m_shipContainer;
+        [Tooltip("Engine flames, one child per family.")]
+        [SerializeField] private Transform m_flameContainer;
+
+        [Header("Hangar Shop")]
+        [SerializeField] private Animator m_shopAnimator;
+        [SerializeField] private GameObject m_hangar;
+        [Tooltip("Price per ship, index = ship - 1.")]
+        [SerializeField] private List<int> m_shipPrices;
+        [Tooltip("Select or buy button per ship, index = ship - 1.")]
+        [SerializeField] private Transform m_buttonContainer;
+        [Tooltip("Hangar model per ship, index = ship - 1.")]
+        [SerializeField] private Transform m_shopShipContainer;
+        [Tooltip("0 = Select, 1 = Selected, ship + 1 = price tag.")]
+        [SerializeField] private Transform m_shopSpriteContainer;
+        [Tooltip("Skin buttons, one child per family.")]
+        [SerializeField] private Transform m_skinButtonContainer;
+
+        [Header("Death Menu")]
+        [SerializeField] private Animator m_deathMenuAnimator;
+        [SerializeField] private Text m_deathScoreText;
+        [SerializeField] private Text m_deathCoinText;
+        [SerializeField] private GameObject m_reviveButton;
+
+        private PlayerMotor m_playerMotor;
+        private bool m_isGameStarted;
+
+        private float m_score;
+        private int m_displayedScore;
+        private float m_scoreModifier;
+        private float m_reviveScore;
+        private int m_runCoins;
+        private int m_menuCoins;
+
+        // Coins of this run already added to the menu coins. A revive keeps the
+        // run's coin count going, so a second death may only bank what was
+        // collected since.
+        private int m_bankedCoins;
+
+        // Bit n is set when ship n is owned.
+        private int m_unlockedShips;
+        private int m_currentShip;
+
+        // The family of the ship being flown. Flames and everything in the run
+        // belong to it, not to the family viewed in the hangar.
+        private int m_currentFamily;
+        private int m_selectedFamily;
+
+        public static GameManager Instance { get; private set; }
+
+        /// <summary>
+        /// True while a run is going on and the ship is alive - the only time a pause
+        /// makes sense. False in the menu, in the hangar and on the death screen.
+        /// </summary>
+        public bool IsRunActive => m_isGameStarted && m_playerMotor.IsRunning;
+
+        private void Awake()
         {
-            currentShip = STARTER_SHIP;
-            currentShop = 0;
+            Time.timeScale = 1f;
+            Instance = this;
+            m_scoreModifier = 1f;
+            m_playerMotor = GameObject.FindGameObjectWithTag(k_PlayerTag).GetComponent<PlayerMotor>();
+
+            m_modifierText.text = FormatModifier(m_scoreModifier);
+            m_coinText.text = m_runCoins.ToString();
+            m_scoreText.text = m_score.ToString("0");
+
+            m_menuCoins = PlayerPrefs.GetInt(k_MenuCoinsKey);
+            m_menuCoinText.text = m_menuCoins.ToString();
+            m_highscoreText.text = PlayerPrefs.GetInt(k_HighscoreKey).ToString();
+
+            LoadShipSelection();
+            ShowShipModel(m_currentShip);
+            ShowOnlyChild(m_buttonContainer, m_currentShip - 1);
+            ShowOnlyChild(m_shopShipContainer, m_currentShip - 1);
+            ShowOnlyChild(m_shopSpriteContainer, k_SelectedSprite);
+            ShowOnlyChild(m_skinButtonContainer, m_currentFamily);
+            HideAllChildren(m_flameContainer);
+
+            m_reviveButton.SetActive(true);
+            m_spaceport.SetActive(true);
+            m_hangar.SetActive(false);
         }
-        selectedShop = currentShop;
 
-        // The starter ship is always owned, and so is the ship being flown. Written
-        // back right away, otherwise switching ships would lock the old one again.
-        unlockedShips = PlayerPrefs.GetInt("UnlockedShips") | 1 << STARTER_SHIP | 1 << currentShip;
-        PlayerPrefs.SetInt("UnlockedShips", unlockedShips);
-
-        foreach (Transform t in shipContainer)
-            t.gameObject.SetActive(false);
-        shipContainer.GetChild(currentShip).gameObject.SetActive(true);
-        shipContainer.GetChild(0).gameObject.SetActive(true);
-
-        foreach (Transform t in buttonContainer)
-            t.gameObject.SetActive(false);
-        buttonContainer.GetChild(currentShip - 1).gameObject.SetActive(true);
-
-        foreach (Transform t in shopShipContainer)
-            t.gameObject.SetActive(false);
-        shopShipContainer.GetChild(currentShip - 1).gameObject.SetActive(true);
-
-        foreach (Transform t in shopSpriteContainer)
-            t.gameObject.SetActive(false);
-        shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
-
-        foreach (Transform t in skinButtonContainer)
-            t.gameObject.SetActive(false);
-        skinButtonContainer.GetChild(currentShop).gameObject.SetActive(true);
-
-        foreach (Transform t in flameContainer)
-            t.gameObject.SetActive(false);
-        //flameContainer.GetChild(currentShop).gameObject.SetActive(true);
-        //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = false;
-
-        reviveButton.SetActive(true);
-        spaceport.SetActive(true);
-        hangar.SetActive(false);
-    }
-
-    private void Update()
-    {
-        if (isGameStarted)
+        private void Update()
         {
-            //Bump the Score up
-            score += (Time.deltaTime * modifierScore * 3);
-            if (lastScore != (int)score)
+            if (!m_isGameStarted)
             {
-                lastScore = (int)score;
-                scoreText.text = lastScore.ToString();
+                return;
+            }
+
+            m_score += Time.deltaTime * m_scoreModifier * k_ScorePerSecond;
+            if (m_displayedScore != (int)m_score)
+            {
+                m_displayedScore = (int)m_score;
+                m_scoreText.text = m_displayedScore.ToString();
             }
         }
 
-        //if (msbeg == true)
-        //{
-        //   menuCoinText.text = PlayerPrefs.GetInt("MenuCoins").ToString();
-        //   hiscoreText.text = PlayerPrefs.GetInt("Hiscore").ToString();
-
-        // }
-    }
-
-    IEnumerator Wait()
-    {
-        yield return new WaitForSeconds(3);
-        spaceport.SetActive(false);
-    }
-
-    public void Play()
-    {
-        isGameStarted = true;
-        AudioSystem.Instance.PlayGameMusic();
-        motor.StartRunning();
-        FindAnyObjectByType<CameraMotor>().IsMoving = true;
-        gameCanvas.SetTrigger("Show");
-        menuAnim.SetTrigger("Hide");
-        //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = true;
-        flameContainer.GetChild(currentShop).gameObject.SetActive(true);
-        StartCoroutine(Wait());
-    }
-
-    public void GetCoin()
-    {
-        coinAnim.SetTrigger("Collect");
-        coinScore++;
-        coinText.text = coinScore.ToString("0");
-        score += COIN_SCORE_AMOUNT;
-        scoreText.text = ((int)score).ToString();
-    }
-
-    public void UpdateModifier(float modifierAmount)
-    {
-        modifierScore = 1.0f + modifierAmount;
-        modifierText.text = "x" + modifierScore.ToString("0.0");
-    }
-
-    public void OnPlayButton()
-    {
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Game");
-    }
-
-    public void OnDeath()
-    {
-        // Shown and saved as the same whole number. The death screen used to
-        // round while the highscore was truncated: 41.7 showed 42 but saved 41.
-        int finalScore = (int)score;
-
-        gameCanvas.SetTrigger("Hide");
-        deadScoreText.text = finalScore.ToString();
-        deadCoinText.text = coinScore.ToString("0");
-        deathMenuAnim.SetTrigger("Dead");
-
-        // Paused, not stopped, so a revive continues the track where it was.
-        // Going back to the menu reloads the scene, which starts the menu music.
-        AudioSystem.Instance.PauseMusic();
-
-        int runCoins = (int)coinScore;
-        menuCoinScore = PlayerPrefs.GetInt("MenuCoins") + runCoins - bankedCoins;
-        bankedCoins = runCoins;
-
-        reviveScore = score;
-
-        PlayerPrefs.SetInt("MenuCoins", menuCoinScore);
-
-        shipContainer.GetChild(currentShip).gameObject.GetComponent<Renderer>().enabled = false;
-
-        //flameContainer.GetChild(currentShop).gameObject.GetComponent<ParticleSystem>().enableEmission = false;
-        flameContainer.GetChild(currentShop).gameObject.SetActive(false);
-
-        //Check if this is a Highscore
-        if (finalScore > PlayerPrefs.GetInt("Hiscore"))
-            PlayerPrefs.SetInt("Hiscore", finalScore);
-    }
-
-    public void RequestRevive()
-    {
-        reviveButton.SetActive(false);
-        Revive();
-    }
-
-    public void Revive()
-    {
-        deathMenuAnim.SetTrigger("Allive");
-        gameCanvas.SetTrigger("Show");
-        score = reviveScore;
-        shipContainer.GetChild(currentShip).gameObject.GetComponent<Renderer>().enabled = true;
-        flameContainer.GetChild(currentShop).gameObject.SetActive(true);
-        motor.StartRunning();
-        AudioSystem.Instance.ResumeMusic();
-    }
-
-    public void ShopOn()
-    {
-        menuAnim.SetTrigger("Hide");
-        shopAnim.SetTrigger("Show");
-        hangar.SetActive(true);
-    }
-
-    public void ShopOff()
-    {
-        menuAnim.SetTrigger("Show");
-        shopAnim.SetTrigger("Hide");
-        hangar.SetActive(false);
-    }
-
-    private int selectedShop = 0;
-
-    public void ShopLeft()
-    {
-        if (selectedShop <= 0)
+        /// <summary>
+        /// Starts a run from the main menu.
+        /// </summary>
+        public void Play()
         {
-            selectedShop = 2;
-        }
-        else
-        {
-            selectedShop -= 1;
-        }
-        SelectShipModel();
-    }
-
-    public void ShopRight()
-    {
-        if (selectedShop >= 2)
-        {
-            selectedShop = 0;
-        }
-        else
-        {
-            selectedShop += 1;
-        }
-        SelectShipModel();
-    }
-
-    void SelectShipModel()
-    {
-        int i = 0;
-        foreach (Transform t in skinButtonContainer)
-        {
-            if (i == selectedShop)
-                t.gameObject.SetActive(true);
-            else
-                t.gameObject.SetActive(false);
-            i++;
+            m_isGameStarted = true;
+            AudioSystem.Instance.PlayGameMusic();
+            m_playerMotor.StartRunning();
+            FindAnyObjectByType<CameraMotor>().IsMoving = true;
+            m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
+            m_mainMenuAnimator.SetTrigger(k_HideTrigger);
+            m_flameContainer.GetChild(m_currentFamily).gameObject.SetActive(true);
+            StartCoroutine(HideSpaceportAfterDelay());
         }
 
-        int[] shops = new int[3];
-        shops[0] = 1;
-        shops[1] = 4;
-        shops[2] = 7;
-
-        SetShopMenu(shops[selectedShop]);
-    }
-
-    public void SetShopMenu(int ind)
-    {
-        foreach (Transform t in buttonContainer)
-            t.gameObject.SetActive(false);
-
-        buttonContainer.GetChild(ind - 1).gameObject.SetActive(true);
-
-        foreach (Transform t in shopShipContainer)
-            t.gameObject.SetActive(false);
-
-        shopShipContainer.GetChild(ind - 1).gameObject.SetActive(true);
-
-        foreach (Transform t in shopSpriteContainer)
-            t.gameObject.SetActive(false);
-        //if unlocked already
-        if ((unlockedShips & 1 << ind) == 1 << ind)
+        public void CollectCoin()
         {
-            if (ind == currentShip)
+            m_coinAnimator.SetTrigger(k_CollectTrigger);
+            m_runCoins++;
+            m_coinText.text = m_runCoins.ToString();
+            m_score += k_ScorePerCoin;
+            m_scoreText.text = ((int)m_score).ToString();
+        }
+
+        public void UpdateModifier(float modifierAmount)
+        {
+            m_scoreModifier = 1f + modifierAmount;
+            m_modifierText.text = FormatModifier(m_scoreModifier);
+        }
+
+        /// <summary>
+        /// Reloads the scene, which brings the game back to the main menu.
+        /// </summary>
+        public void ReturnToMenu()
+        {
+            SceneManager.LoadScene(k_GameSceneName);
+        }
+
+        /// <summary>
+        /// Shows the death screen, banks the coins of the run and saves a new
+        /// highscore.
+        /// </summary>
+        public void HandleDeath()
+        {
+            // Shown and saved as the same whole number, so the death screen and the
+            // highscore cannot disagree (rounding 41.7 shows 42, truncating saves 41).
+            int finalScore = (int)m_score;
+
+            m_gameMenuAnimator.SetTrigger(k_HideTrigger);
+            m_deathScoreText.text = finalScore.ToString();
+            m_deathCoinText.text = m_runCoins.ToString();
+            m_deathMenuAnimator.SetTrigger(k_DeadTrigger);
+
+            // Paused, not stopped, so a revive continues the track where it was.
+            // Going back to the menu reloads the scene, which starts the menu music.
+            AudioSystem.Instance.PauseMusic();
+
+            m_menuCoins = PlayerPrefs.GetInt(k_MenuCoinsKey) + m_runCoins - m_bankedCoins;
+            m_bankedCoins = m_runCoins;
+            PlayerPrefs.SetInt(k_MenuCoinsKey, m_menuCoins);
+
+            m_reviveScore = m_score;
+
+            m_shipContainer.GetChild(m_currentShip).GetComponent<Renderer>().enabled = false;
+            m_flameContainer.GetChild(m_currentFamily).gameObject.SetActive(false);
+
+            if (finalScore > PlayerPrefs.GetInt(k_HighscoreKey))
             {
-                shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
-            }
-            else
-            {
-                shopSpriteContainer.GetChild(0).gameObject.SetActive(true);
+                PlayerPrefs.SetInt(k_HighscoreKey, finalScore);
             }
         }
-        else
+
+        /// <summary>
+        /// Revives the ship. There is no cost and no ad behind it at the moment.
+        /// </summary>
+        public void RequestRevive()
         {
-            shopSpriteContainer.GetChild(ind + 1).gameObject.SetActive(true);
+            m_reviveButton.SetActive(false);
+            Revive();
         }
-    }
 
-    public void TryBuyingShip(int index)
-    {
-        //if unlocked already
-        if ((unlockedShips & 1 << index) == 1 << index)
+        public void OpenShop()
         {
-            AudioSystem.Instance.PlaySelectShip();
-
-            //Physical change
-            foreach (Transform t in shipContainer)
-                t.gameObject.SetActive(false);
-
-            shipContainer.GetChild(index).gameObject.SetActive(true);
-            shipContainer.GetChild(0).gameObject.SetActive(true);
-
-            currentShip = index;
-
-            PlayerPrefs.SetInt("CurrentShip", currentShip);
-
-            currentShop = selectedShop;
-            PlayerPrefs.SetInt("CurrentShop", currentShop);
-
-            foreach (Transform t in shopSpriteContainer)
-                t.gameObject.SetActive(false);
-            shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
-
-            foreach (Transform t in flameContainer)
-                t.gameObject.SetActive(false);
-            //flameContainer.GetChild(selectedShop).gameObject.SetActive(true);
-            //flameContainer.GetChild(selectedShop).gameObject.GetComponent<ParticleSystem>().enableEmission = false;
+            m_mainMenuAnimator.SetTrigger(k_HideTrigger);
+            m_shopAnimator.SetTrigger(k_ShowTrigger);
+            m_hangar.SetActive(true);
         }
-        else
+
+        public void CloseShop()
         {
-            if (menuCoinScore >= shipPrices[index - 1])
+            m_mainMenuAnimator.SetTrigger(k_ShowTrigger);
+            m_shopAnimator.SetTrigger(k_HideTrigger);
+            m_hangar.SetActive(false);
+        }
+
+        public void ShowPreviousFamily()
+        {
+            m_selectedFamily = (m_selectedFamily + k_FamilyCount - 1) % k_FamilyCount;
+            ShowSelectedFamily();
+        }
+
+        public void ShowNextFamily()
+        {
+            m_selectedFamily = (m_selectedFamily + 1) % k_FamilyCount;
+            ShowSelectedFamily();
+        }
+
+        /// <summary>
+        /// Shows a ship in the hangar: its model, its button, and either its price
+        /// tag or whether it is already the one being flown.
+        /// </summary>
+        public void ShowShip(int ship)
+        {
+            ShowOnlyChild(m_buttonContainer, ship - 1);
+            ShowOnlyChild(m_shopShipContainer, ship - 1);
+            ShowOnlyChild(m_shopSpriteContainer, GetShopSprite(ship));
+        }
+
+        /// <summary>
+        /// Flies an owned ship, or buys one the player can afford and flies it.
+        /// </summary>
+        public void SelectOrBuyShip(int ship)
+        {
+            if (IsShipUnlocked(ship))
             {
-                AudioSystem.Instance.PlayBuyShip();
+                AudioSystem.Instance.PlayShipSelect();
+                SelectShip(ship);
+                return;
+            }
 
-                menuCoinScore -= shipPrices[index - 1];
+            int price = m_shipPrices[ship - 1];
+            if (m_menuCoins < price)
+            {
+                return;
+            }
 
-                menuCoinText.text = menuCoinScore.ToString();
+            AudioSystem.Instance.PlayShipPurchase();
+            m_menuCoins -= price;
+            m_menuCoinText.text = m_menuCoins.ToString();
+            PlayerPrefs.SetInt(k_MenuCoinsKey, m_menuCoins);
 
-                PlayerPrefs.SetInt("MenuCoins", menuCoinScore);
+            m_unlockedShips |= 1 << ship;
+            PlayerPrefs.SetInt(k_UnlockedShipsKey, m_unlockedShips);
+            SelectShip(ship);
 
-                //Unlock in array
-                unlockedShips |= 1 << index;
-                PlayerPrefs.SetInt("UnlockedShips", unlockedShips);
+            // Coins were spent - write to disk now instead of waiting for the app
+            // to be paused or closed.
+            PlayerPrefs.Save();
+        }
 
-                //Physical Change
-                foreach (Transform t in shipContainer)
-                    t.gameObject.SetActive(false);
+        private void LoadShipSelection()
+        {
+            m_currentShip = PlayerPrefs.GetInt(k_CurrentShipKey, k_StarterShip);
+            m_currentFamily = PlayerPrefs.GetInt(k_CurrentFamilyKey);
 
-                //if (index == 0)
-                //return;
+            // A missing or broken value would land on child 0 of the ship container,
+            // which is the flame container, not a ship: no visible ship, and
+            // GetChild(-1) further down throws.
+            if (m_currentShip < k_StarterShip || m_currentShip >= m_shipContainer.childCount)
+            {
+                m_currentShip = k_StarterShip;
+                m_currentFamily = 0;
+            }
 
-                shipContainer.GetChild(index).gameObject.SetActive(true);
-                shipContainer.GetChild(0).gameObject.SetActive(true);
+            m_selectedFamily = m_currentFamily;
 
-                foreach (Transform t in flameContainer)
-                    t.gameObject.SetActive(false);
-                //flameContainer.GetChild(selectedShop).gameObject.SetActive(true);
-                //flameContainer.GetChild(selectedShop).gameObject.GetComponent<ParticleSystem>().enableEmission = false;
+            // The starter ship is always owned, and so is the ship being flown. Written
+            // back right away, otherwise switching ships would lock the old one again.
+            m_unlockedShips = PlayerPrefs.GetInt(k_UnlockedShipsKey) | (1 << k_StarterShip) | (1 << m_currentShip);
+            PlayerPrefs.SetInt(k_UnlockedShipsKey, m_unlockedShips);
+        }
 
-                currentShip = index;
+        private void Revive()
+        {
+            m_deathMenuAnimator.SetTrigger(k_AliveTrigger);
+            m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
+            m_score = m_reviveScore;
+            m_shipContainer.GetChild(m_currentShip).GetComponent<Renderer>().enabled = true;
+            m_flameContainer.GetChild(m_currentFamily).gameObject.SetActive(true);
+            m_playerMotor.StartRunning();
+            AudioSystem.Instance.ResumeMusic();
+        }
 
-                PlayerPrefs.SetInt("CurrentShip", currentShip);
+        private void ShowSelectedFamily()
+        {
+            ShowOnlyChild(m_skinButtonContainer, m_selectedFamily);
+            ShowShip(GetFirstShipOfFamily(m_selectedFamily));
+        }
 
-                currentShop = selectedShop;
-                PlayerPrefs.SetInt("CurrentShop", currentShop);
+        private void SelectShip(int ship)
+        {
+            ShowShipModel(ship);
+            HideAllChildren(m_flameContainer);
 
-                // Coins were spent - write to disk now instead of waiting for
-                // the app to be paused or closed.
-                PlayerPrefs.Save();
+            m_currentShip = ship;
+            PlayerPrefs.SetInt(k_CurrentShipKey, m_currentShip);
+            m_currentFamily = m_selectedFamily;
+            PlayerPrefs.SetInt(k_CurrentFamilyKey, m_currentFamily);
 
-                foreach (Transform t in shopSpriteContainer)
-                    t.gameObject.SetActive(false);
-                shopSpriteContainer.GetChild(1).gameObject.SetActive(true);
+            ShowOnlyChild(m_shopSpriteContainer, k_SelectedSprite);
+        }
+
+        private void ShowShipModel(int ship)
+        {
+            // Child 0 is the flame container, which stays visible with every ship.
+            ShowOnlyChild(m_shipContainer, ship);
+            m_shipContainer.GetChild(0).gameObject.SetActive(true);
+        }
+
+        private int GetShopSprite(int ship)
+        {
+            if (!IsShipUnlocked(ship))
+            {
+                return ship + k_PriceTagOffset;
+            }
+
+            return ship == m_currentShip ? k_SelectedSprite : k_SelectSprite;
+        }
+
+        private bool IsShipUnlocked(int ship)
+        {
+            return (m_unlockedShips & (1 << ship)) != 0;
+        }
+
+        private IEnumerator HideSpaceportAfterDelay()
+        {
+            yield return new WaitForSeconds(k_SpaceportHideDelay);
+            m_spaceport.SetActive(false);
+        }
+
+        private static int GetFirstShipOfFamily(int family)
+        {
+            return family * k_SkinsPerFamily + 1;
+        }
+
+        private static string FormatModifier(float modifier)
+        {
+            return "x" + modifier.ToString("0.0");
+        }
+
+        private static void ShowOnlyChild(Transform container, int index)
+        {
+            HideAllChildren(container);
+            container.GetChild(index).gameObject.SetActive(true);
+        }
+
+        private static void HideAllChildren(Transform container)
+        {
+            foreach (Transform child in container)
+            {
+                child.gameObject.SetActive(false);
             }
         }
     }

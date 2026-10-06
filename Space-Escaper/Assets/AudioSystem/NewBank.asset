@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e3f331c548e0d384ca5afa4ee3e37199, type: 3}
   m_Name: NewBank
   m_EditorClassIdentifier: Assembly-CSharp::AudioBank
-  styleName: New
-  menuMusic: {fileID: 8300000, guid: b5d69617b47c7a548bc8a92a516b8f41, type: 3}
-  gameMusic: {fileID: 8300000, guid: efa6ab5cf74dc9a4685c9ebb2359e848, type: 3}
-  button: {fileID: 0}
-  coin: {fileID: 0}
-  explosion: {fileID: 0}
-  engine: {fileID: 0}
-  selectShip: {fileID: 0}
-  deselectShip: {fileID: 0}
-  buyShip: {fileID: 0}
+  m_styleName: New
+  m_menuMusic: {fileID: 8300000, guid: b5d69617b47c7a548bc8a92a516b8f41, type: 3}
+  m_gameMusic: {fileID: 8300000, guid: efa6ab5cf74dc9a4685c9ebb2359e848, type: 3}
+  m_buttonClick: {fileID: 0}
+  m_coinPickup: {fileID: 0}
+  m_explosion: {fileID: 0}
+  m_engine: {fileID: 0}
+  m_shipSelect: {fileID: 0}
+  m_shipDeselect: {fileID: 0}
+  m_shipPurchase: {fileID: 0}

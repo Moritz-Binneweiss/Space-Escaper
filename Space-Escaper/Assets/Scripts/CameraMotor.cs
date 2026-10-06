@@ -1,38 +1,48 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-public class CameraMotor : MonoBehaviour
+namespace SpaceEscaper
 {
-    public Transform lookAt;
-    public Vector3 offset = new Vector3(0, 0f, 0f);
-    public Vector3 rotation = new Vector3(0, 0, 0);
-
-    private float speed = 0f;
-    private float speedIncreaseLastTick;
-    private float speedIncreaseTime = 5f;
-    private float speedIncreaseAmount = 0.2f;
-
-    public bool IsMoving { set; get; }
-
-    private void LateUpdate()
+    /// <summary>
+    /// Follows the ship during a run.
+    /// </summary>
+    public class CameraMotor : MonoBehaviour
     {
-        if (!IsMoving)
-            return;
+        private const float k_BaseOffsetZ = -3f;
 
-        if (Time.time - speedIncreaseLastTick > speedIncreaseTime)
+        // Mirrors the speed ramp in PlayerMotor.
+        private const float k_SpeedIncreaseInterval = 5f;
+        private const float k_SpeedIncreaseAmount = 0.2f;
+
+        [Tooltip("The transform the camera follows.")]
+        [SerializeField] private Transform m_target;
+        [Tooltip("Offset from the target. Z is overwritten during a run.")]
+        [SerializeField] private Vector3 m_offset;
+        [Tooltip("Euler angles the camera turns towards.")]
+        [SerializeField] private Vector3 m_rotation;
+
+        private float m_speedBonus;
+        private float m_lastSpeedIncreaseTime;
+
+        public bool IsMoving { get; set; }
+
+        private void LateUpdate()
         {
-            speedIncreaseLastTick = Time.time;
-            speed += speedIncreaseAmount;
+            if (!IsMoving)
+            {
+                return;
+            }
+
+            if (Time.time - m_lastSpeedIncreaseTime > k_SpeedIncreaseInterval)
+            {
+                m_lastSpeedIncreaseTime = Time.time;
+                m_speedBonus += k_SpeedIncreaseAmount;
+            }
+
+            m_offset.z = k_BaseOffsetZ + m_speedBonus;
+
+            Vector3 desiredPosition = m_target.position + m_offset;
+            transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime);
+            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.Euler(m_rotation), Time.deltaTime);
         }
-
-        offset.z = -3 + speed;
-
-        Vector3 desiredPosition = lookAt.position + offset;
-        //desiredPosition.x = 0;
-        transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.deltaTime);
-        transform.rotation = Quaternion.Lerp(
-            transform.rotation,
-            Quaternion.Euler(rotation),
-            Time.deltaTime * 1f
-        );
     }
 }

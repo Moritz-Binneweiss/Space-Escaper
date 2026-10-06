@@ -1,37 +1,21 @@
-﻿using UnityEngine;
+using UnityEngine;
 
-public class SkinChange : MonoBehaviour
+namespace SpaceEscaper
 {
-    public GameObject aristocrat;
-    public GameObject aristocrat2;
-    public GameObject aristocrat3;
-
-    // Start is called before the first frame update
-    void Start()
+    /// <summary>
+    /// Shows the first ARISTOCRAT skin and hides the other two when the scene starts.
+    /// </summary>
+    public class SkinChange : MonoBehaviour
     {
-        aristocrat.SetActive(true);
-        aristocrat2.SetActive(false);
-        aristocrat3.SetActive(false);
-    }
+        [SerializeField] private GameObject m_aristocrat;
+        [SerializeField] private GameObject m_aristocratSkin2;
+        [SerializeField] private GameObject m_aristocratSkin3;
 
-    public void ChangeSkin2()
-    {
-        aristocrat.SetActive(false);
-        aristocrat2.SetActive(true);
-        aristocrat3.SetActive(false);
-    }
-
-    public void ChangeSkin1()
-    {
-        aristocrat.SetActive(true);
-        aristocrat2.SetActive(false);
-        aristocrat3.SetActive(false);
-    }
-
-    public void ChangeSkin3()
-    {
-        aristocrat.SetActive(false);
-        aristocrat2.SetActive(false);
-        aristocrat3.SetActive(true);
+        private void Start()
+        {
+            m_aristocrat.SetActive(true);
+            m_aristocratSkin2.SetActive(false);
+            m_aristocratSkin3.SetActive(false);
+        }
     }
 }

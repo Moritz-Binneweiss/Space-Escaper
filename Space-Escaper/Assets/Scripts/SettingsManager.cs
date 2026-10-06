@@ -1,36 +1,47 @@
 using UnityEngine;
 
-public class SettingsManager : MonoBehaviour
+namespace SpaceEscaper
 {
-    public Animator pauseAnim,
-        settingsAnim,
-        menuAniim;
-
-    public void SettingsOn()
+    /// <summary>
+    /// Opens and closes the settings, from the main menu or from the pause menu.
+    /// </summary>
+    public class SettingsManager : MonoBehaviour
     {
-        settingsAnim.SetTrigger("Show");
-        pauseAnim.SetTrigger("Hide");
-    }
+        private const string k_ShowTrigger = "Show";
+        private const string k_HideTrigger = "Hide";
 
-    public void SettingsOff()
-    {
-        // Back leads to where the settings were opened from: the pause menu
-        // during a run, the main menu otherwise.
-        if (PauseMenu.GameIsPaused)
+        [SerializeField] private Animator m_pauseMenuAnimator;
+        [SerializeField] private Animator m_settingsAnimator;
+        [SerializeField] private Animator m_mainMenuAnimator;
+
+        public void OpenFromMainMenu()
         {
-            pauseAnim.SetTrigger("Show");
-            settingsAnim.SetTrigger("Hide");
+            m_settingsAnimator.SetTrigger(k_ShowTrigger);
+            m_mainMenuAnimator.SetTrigger(k_HideTrigger);
         }
-        else
-        {
-            settingsAnim.SetTrigger("Hide");
-            menuAniim.SetTrigger("Show");
-        }
-    }
 
-    public void MenuSettingsOn()
-    {
-        settingsAnim.SetTrigger("Show");
-        menuAniim.SetTrigger("Hide");
+        public void OpenFromPauseMenu()
+        {
+            m_settingsAnimator.SetTrigger(k_ShowTrigger);
+            m_pauseMenuAnimator.SetTrigger(k_HideTrigger);
+        }
+
+        /// <summary>
+        /// Goes back to where the settings were opened from: the pause menu during
+        /// a run, the main menu otherwise.
+        /// </summary>
+        public void Close()
+        {
+            if (PauseMenu.IsPaused)
+            {
+                m_pauseMenuAnimator.SetTrigger(k_ShowTrigger);
+                m_settingsAnimator.SetTrigger(k_HideTrigger);
+            }
+            else
+            {
+                m_settingsAnimator.SetTrigger(k_HideTrigger);
+                m_mainMenuAnimator.SetTrigger(k_ShowTrigger);
+            }
+        }
     }
 }

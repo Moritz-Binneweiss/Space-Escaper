@@ -9,7 +9,8 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 14 Skripte, ~1500 Zeilen. Einstiegspunkte:
+- `Space-Escaper/Assets/Scripts/` - 14 Skripte, ~1800 Zeilen, alle im Namespace
+  `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
@@ -29,6 +30,59 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   vieles hängt über Inspector-Referenzen und Unity-Events zusammen, nicht über Code-Aufrufe.
   Grep findet diese Verbindungen nicht; `Game.unity` und die Prefabs mitdurchsuchen.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
+
+## Code-Stil
+
+Seit v1.4.5 folgen alle Skripte dem Unity-Styleguide „Use a C# style guide for
+clean and scalable game code“ (Unity-6-Ausgabe, 2025, PDF über
+unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hier:
+
+- **Namespace** `SpaceEscaper` für alle Skripte. In `unity command eval` deshalb
+  `SpaceEscaper.GameManager` usw. schreiben.
+- **Namen:** private Felder `m_camelCase`, private statische Felder `s_camelCase`,
+  Konstanten `k_PascalCase`, Typen, Methoden und Properties PascalCase, lokale
+  Variablen und Parameter camelCase. Booleans beginnen mit einem Verb
+  (`m_isRunning`, `HasSwipedLeft`), Methoden auch (`OpenShop` statt `ShopOn`).
+  Keine Abkürzungen außer in Mathe (`k_VolumeRangeDb`).
+- **Keine öffentlichen Felder.** Was im Inspector stehen soll, ist
+  `[SerializeField] private` (Attribut in derselben Zeile), andere Klassen lesen
+  über Properties (`public bool IsRunning => m_isRunning;`).
+- **Strings als Konstanten** oben in der Klasse: Animator-Trigger,
+  PlayerPrefs-Schlüssel, Tags, Szenenname. Die Werte selbst sind Daten und bleiben,
+  wie sie sind (etwa der Trigger `Allive` oder der Schlüssel `Hiscore`), sonst
+  brechen Animator und Spielstände.
+- **Formatierung:** Allman-Klammern, 4 Leerzeichen, Klammern auch um einzelne
+  Anweisungen, eine Deklaration pro Zeile, `private` immer ausgeschrieben, `switch`
+  mit `default`, Zeilen höchstens 120 Zeichen, UTF-8 ohne BOM, LF. Die
+  `.editorconfig` im Repo-Root hält das für die IDE fest.
+- **Reihenfolge in der Klasse:** Konstanten, serialisierte Felder, private Felder,
+  Properties, Unity-Methoden (`Awake`, `Start`, `Update` …), öffentliche Methoden,
+  private Methoden.
+- **Kommentare** erklären das Warum, nicht das Was. `/// <summary>` nur an
+  öffentlichen Membern, wo der Name nicht reicht, `[Tooltip]` statt Kommentar an
+  serialisierten Feldern. Kein auskommentierter Code, keine `#region`, keine
+  Trennlinien und keine Tagebuch-Kommentare („früher war …“), das gehört in die
+  Commits.
+
+**Umbenennen ist hier gefährlich**, weil Szene und Assets über Namen am Code hängen:
+
+- **Serialisierte Felder:** Unity speichert Werte unter dem Feldnamen. Ein
+  umbenanntes Feld verliert seine Inspector-Werte, außer es bekommt vorübergehend
+  `[FormerlySerializedAs("alterName")]`. Danach die Szene speichern, betroffene
+  Assets neu schreiben lassen und das Attribut wieder entfernen. Prefabs dabei
+  lieber per Text anpassen: Unity 6.6 schreibt ältere Prefabs beim Speichern
+  komplett im neuen Format (beim `Playership.prefab` rund 20.000 Zeilen Diff).
+- **Methoden mit OnClick-Aufruf:** Die Szene speichert den Methodennamen als Text,
+  ein umbenannter Button tut sonst einfach nichts. Betroffen sind
+  `GameManager.Play`, `ReturnToMenu`, `RequestRevive`, `OpenShop`, `CloseShop`,
+  `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(int)` und `SelectOrBuyShip(int)`,
+  `PauseMenu.Pause` und `Continue`, `SettingsManager.OpenFromMainMenu`,
+  `OpenFromPauseMenu` und `Close`, `CameraSwitch.SwitchToMainCamera` und
+  `SwitchToShopCamera` sowie `TileManager.RespawnTiles`. Beim Umbenennen
+  `m_MethodName` in `Game.unity` mitziehen, am besten im Editor per
+  `SerializedObject`.
+- **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
+  dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich.
 
 ## Versionen, PRs & Tags
 
@@ -116,8 +170,8 @@ bei 8.
   aus), und kein Skript setzt `Application.targetFrameRate`.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
   ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
-  zusätzlich `TileManager.RespawnTile` auf - diese Verbindung existiert nur in der
-  Szene, nicht im Code. `RespawnTile` deaktiviert die alten Abschnitte, bevor es sie
+  zusätzlich `TileManager.RespawnTiles` auf - diese Verbindung existiert nur in der
+  Szene, nicht im Code. `RespawnTiles` deaktiviert die alten Abschnitte, bevor es sie
   löscht: `Destroy` greift erst am Frame-Ende, das Schiff fliegt aber im selben
   Frame wieder los. Ohne das krachte es beim Revive sofort ins selbe Hindernis
   (zweite Explosion, Spiel-UI weg, Schiff unsichtbar; behoben in v1.4.4).
@@ -130,8 +184,11 @@ bei 8.
 ## Spielstand (PlayerPrefs)
 
 Schlüssel: `MenuCoins`, `Hiscore`, `CurrentShip`, `CurrentShop`, `UnlockedShips`, dazu
-die Audio-Schlüssel (siehe „Audio-System“). Mit v1.4.1 (Oktober 2026) wurden hier
-mehrere Bugs behoben; die Regeln dahinter:
+die Audio-Schlüssel (siehe „Audio-System“). Im Code stehen sie als
+`k_…Key`-Konstanten oben in `GameManager` und `AudioSystem`. `CurrentShop` speichert
+die Familie des geflogenen Schiffs (im Code `m_currentFamily`); der Schlüssel heißt
+weiter so, sonst wären bestehende Spielstände weg. Mit v1.4.1 (Oktober 2026) wurden
+hier mehrere Bugs behoben; die Regeln dahinter:
 
 - `UnlockedShips` ist eine Bitmaske (Bit n = Schiff n). Bis Januar 2026 lag sie nur
   im Google-Play-Games-Cloud-Save und fiel mit GPG ersatzlos weg - gekaufte Schiffe
@@ -139,14 +196,15 @@ mehrere Bugs behoben; die Regeln dahinter:
   Startschiff und aktuelles Schiff immer als freigeschaltet und werden sofort
   zurückgeschrieben - sonst wäre ein nur implizit besessenes Schiff nach einem
   Wechsel wieder gesperrt.
-- Fehlt `CurrentShip` (Neuinstallation) oder ist der Wert ungültig, fällt `Awake()`
-  aufs Startschiff zurück. Der Default 0 zeigte früher auf `FlameContainer` statt auf
-  ein Schiff und ließ `Awake()` und `OnDeath()` abstürzen. Lokal fiel das nie auf,
-  weil die PlayerPrefs gesetzt waren - **Neuinstallation gezielt testen.**
-- Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)score`), sonst
-  weichen Todesbildschirm und Highscore voneinander ab.
+- Fehlt `CurrentShip` (Neuinstallation) oder ist der Wert ungültig, fällt
+  `GameManager.LoadShipSelection()` aufs Startschiff zurück. Der Default 0 zeigte
+  früher auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start und
+  beim Tod abstürzen. Lokal fiel das nie auf, weil die PlayerPrefs gesetzt waren -
+  **Neuinstallation gezielt testen.**
+- Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)m_score`),
+  sonst weichen Todesbildschirm und Highscore voneinander ab.
 - Münzen werden bei jedem Tod gutgeschrieben, nach einem Revive aber nur die seitdem
-  gesammelten (`bankedCoins`).
+  gesammelten (`m_bankedCoins`).
 - **Schiffspreise** (Oktober 2026 neu balanciert, vorher Testwerte von 1 Münze):
   ARISTOCRAT-Skins **250**, FREETER **750**, VAGOR **1.250** - ein Preis pro Familie
   wie im Original. Grundlage: Ø 5,9 Münzen pro Abschnitt (60 Einheiten), Strecke
@@ -169,23 +227,25 @@ Bis zum geplanten Umbau auf ScriptableObjects hängt der Shop an Kind-Indizes. S
 sind 1-9 nummeriert: ARISTOCRAT 1-3, FREETER 4-6, VAGOR 7-9 (je drei Skins bilden eine
 Familie).
 
-- `shipContainer`: Kind 0 = `FlameContainer`, Kinder 1-9 = Schiffe, Index = Schiff
-- `buttonContainer`, `shopShipContainer`: Index = Schiff − 1
-- `shopSpriteContainer`: 0 = Select, 1 = Selected, Schiff + 1 = Preisschild
-- `flameContainer`, `skinButtonContainer`: Index = Familie (0-2)
-- `currentShop` ist die Familie des *geflogenen* Schiffs, `selectedShop` die gerade im
-  Hangar *angesehene*. Flammen und alles im Spiel gehören an `currentShop` - die
-  Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
+- `m_shipContainer`: Kind 0 = `FlameContainer`, Kinder 1-9 = Schiffe, Index = Schiff
+- `m_buttonContainer`, `m_shopShipContainer`: Index = Schiff − 1
+- `m_shopSpriteContainer`: 0 = Select, 1 = Selected, Schiff + 1 = Preisschild
+- `m_flameContainer`, `m_skinButtonContainer`: Index = Familie (0-2)
+- `m_currentFamily` ist die Familie des *geflogenen* Schiffs, `m_selectedFamily` die
+  gerade im Hangar *angesehene*. Flammen und alles im Spiel gehören an
+  `m_currentFamily` - die Verwechslung zeigte früher eine falsche, neben dem Schiff
+  schwebende Flamme.
 
 **Antriebsflammen** liegen im Prefab `Playership.prefab` (`FlameACT`, `FlameFTR` und
 eine Gruppe mit zwei `FlameVGR`), alle mit eingeschalteter Emission. Der Code schaltet
-nur die GameObjects an und aus. `PlayerMotor.drive` zeigt zusätzlich auf `FlameACT`
-und schaltet deren Emission im Run selbst ein. Deshalb **keine Emission-Overrides in
-der Szene**: Ein versehentlicher Override (September 2026, v1.4.0) ließ den FREETER
-bis v1.4.2 ohne sichtbaren Antrieb fliegen. Beim ARISTOCRAT fiel derselbe Override
-nicht auf, weil `drive` die Emission dort ohnehin einschaltet.
+nur die GameObjects an und aus. `PlayerMotor.m_engineFlame` zeigt zusätzlich auf
+`FlameACT` und schaltet deren Emission im Run selbst ein. Deshalb **keine
+Emission-Overrides in der Szene**: Ein versehentlicher Override (September 2026,
+v1.4.0) ließ den FREETER bis v1.4.2 ohne sichtbaren Antrieb fliegen. Beim ARISTOCRAT
+fiel derselbe Override nicht auf, weil `m_engineFlame` die Emission dort ohnehin
+einschaltet.
 
-**Preisschilder sind Bilder, keine Texte.** `shipPrices` allein zu ändern reicht
+**Preisschilder sind Bilder, keine Texte.** `m_shipPrices` allein zu ändern reicht
 nicht - der Shop zeigt den Preis aus `Assets/UI/Images/ACT_250.png`, `FTR_750.png`
 und `VGR_1250.png`. Aufbau wie bei den Originalen (`ACT.png`, `FTR.png`, `VGR.png`,
 pixelgleich nachgeprüft): `ButtonBlanco.png` als Platte, `SECHSKANTMUTTER (1).png`
@@ -229,7 +289,7 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
 
 ## Pause
 
-Seit v1.4.5 gibt es genau einen Pause-Zustand: `PauseMenu.GameIsPaused`, statisch
+Seit v1.4.5 gibt es genau einen Pause-Zustand: `PauseMenu.IsPaused`, statisch
 und nur von `PauseMenu` gesetzt. `PauseMenu.Awake` setzt ihn zurück, sonst überlebt
 er den Szenen-Reload hinter „Exit“. Bis v1.4.4 gab es zwei Flags, und eines davon
 blieb nach „Exit“ aus der Pause auf `true` stehen.
@@ -243,17 +303,18 @@ blieb nach „Exit“ aus der Pause auf `true` stehen.
   Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Auch die
   Standardaktion „Cancel“ am `InputSystemUIInputModule`, die auf Escape lag, ist
   seit v1.4.5 abgehängt, weil kein UI-Element darauf reagierte.
-- `SettingsManager.SettingsOff()` liest den Zustand, um zu entscheiden, ob „Zurück“
-  ins Pause- oder ins Hauptmenü führt.
-- „Exit“ im Pause-Menü ruft `GameManager.OnPlayButton`, also einen Szenen-Reload.
+- `SettingsManager.Close()` liest den Zustand, um zu entscheiden, ob „Zurück“ ins
+  Pause- oder ins Hauptmenü führt.
+- „Exit“ im Pause-Menü ruft `GameManager.ReturnToMenu`, also einen Szenen-Reload.
   `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
 - Die Musik läuft in der Pause weiter. Ob sie dort auch anhalten soll, ist noch
   offen (Vorschlag: weiterlaufen lassen, damit man den Lautstärkeregler in den
   Settings hört). Beim Tod pausiert sie, siehe „Audio-System“.
 - **Zum Testen das Schiff anhalten.** Ohne Steuerung kracht es nach 2-3 s ins
   erste Hindernis, und der Test landet auf dem Todesbildschirm. Den Run per Code
-  starten und `PlayerMotor.speed` per Reflection auf 0 setzen: Der Run bleibt
-  aktiv, das Schiff bewegt sich aber nicht.
+  starten und `PlayerMotor.m_speed` per Reflection auf 0 setzen: Der Run bleibt
+  aktiv, das Schiff bewegt sich aber nicht. Der Punkte-Multiplikator wird dabei
+  nach 5 s negativ (Geschwindigkeit minus Startgeschwindigkeit), ein Testartefakt.
 
 ## Audio-System
 
@@ -265,8 +326,9 @@ One-Shot-SFX, Motor-Loop, Musik. Alle drei routen in `GameAudio.mixer`
 `ClassicBank.asset` (Originalsounds 2020) und `NewBank.asset`. Umschalten heißt
 Bank wechseln. Wichtig für die Erweiterung:
 
-- **Einen neuen Sound hinzufügen = ein Feld in `AudioBank.cs`.** Beide Banks bieten
-  den Slot dann automatisch an. Nicht zurück zu Einzelfeldern im AudioSystem gehen.
+- **Einen neuen Sound hinzufügen = ein Feld mit Property in `AudioBank.cs`**, dazu
+  eine `Play…`-Methode im AudioSystem. Beide Banks bieten den Slot dann automatisch
+  an. Nicht zurück zu Einzelfeldern im AudioSystem gehen.
 - Ein leerer Slot fällt automatisch auf die andere Bank zurück. `NewBank` enthält
   aktuell nur die zwei neuen Musikstücke; alle SFX kommen deshalb noch aus Classic.
   Das ist gewollt und kein Fehler. Die neuen SFX sind auf **v1.7.0** verschoben
@@ -291,13 +353,13 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   Spielmusik ab. Musik gehört ausschließlich in `GameManager`.
 - **Mute ist Pause, nicht Lautstärke 0.** Musik wird pausiert (Position bleibt
   erhalten, Dekodierung stoppt wirklich), SFX werden gar nicht erst abgespielt.
-  Seit v1.4.4 hält `GameManager.OnDeath` die Musik beim Tod genauso an
+  Seit v1.4.4 hält `GameManager.HandleDeath` die Musik beim Tod genauso an
   (`PauseMusic`), ein Revive setzt sie an derselben Stelle fort (`ResumeMusic`).
-  Ein eigenes Flag (`musicOnHold`) hält beides auseinander: Entstummen auf dem
+  Ein eigenes Flag (`m_isMusicOnHold`) hält beides auseinander: Entstummen auf dem
   Todesbildschirm startet die Musik nicht, ein Revive startet keine
   stummgeschaltete. Zurück ins Menü hebt `PlayMenuMusic` den Hold auf.
 - **Der Lautstärkeregler ist nicht linear.** `SetMasterVolume` bildet die
-  Reglerposition exponentiell auf einen 40-dB-Bereich ab (`VolumeRangeDb`), sonst
+  Reglerposition exponentiell auf einen 40-dB-Bereich ab (`k_VolumeRangeDb`), sonst
   passiert die gesamte hörbare Änderung in den unteren 20 % des Wegs. Wichtig:
   Den Wert zu quadrieren hilft **nicht** - eine Potenzkurve streckt den dB-Bereich
   gleichmäßig und lässt das Ungleichgewicht bestehen. In den PlayerPrefs steht die

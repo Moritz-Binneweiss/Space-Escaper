@@ -14451,10 +14451,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 172c52e0e115f5a4f91b36ff85c28f89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  explosionVFX: {fileID: 1121192042590650, guid: e1b08032bec16ba4eb1ae23cbd572664,
+  m_explosionVfx: {fileID: 1121192042590650, guid: e1b08032bec16ba4eb1ae23cbd572664,
     type: 3}
-  drive: {fileID: 6663402070540160263}
-  targetPosition: {x: 0, y: 0, z: 0}
+  m_engineFlame: {fileID: 6663402070540160263}
 --- !u!114 &2342508419539742620
 MonoBehaviour:
   m_ObjectHideFlags: 0
