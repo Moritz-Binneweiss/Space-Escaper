@@ -291,6 +291,13 @@ bei 8.
   60 FPS etwas länger als bei 30 (bei Startgeschwindigkeit etwa 0,25 statt 0,22 s).
   Ab `Geschwindigkeit × Frame-Zeit` > 1 schießt er über die Spur hinaus, bei
   60 FPS also ab Geschwindigkeit 60, bei 30 FPS schon ab 30.
+- **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
+  Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
+  `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus
+  den Player Settings (IL2CPP für ARMv7 und ARM64, Debug-Signatur), ein Build
+  dauert rund 6 Minuten. `Space-Escaper/Builds/` ist von Git ignoriert, der Ordner
+  `…_BackUpThisFolder_ButDontShipItWithYourGame` neben der APK enthält nur
+  Debug-Symbole. Ein Build ändert zwei URP-Assets, siehe „Render Pipeline: URP“.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
@@ -533,6 +540,16 @@ Das Projekt lief bis September 2026 auf der Built-in Render Pipeline und wurde a
 **URP 17.6.0** umgestellt. Die Migration ist abgeschlossen: URP Asset liegt unter
 `Assets/Settings/UniversalRenderPipeline.asset` (Renderer: `UniversalRenderer.asset`)
 und ist in Project Settings > Graphics zugewiesen, alle Materialien sind konvertiert.
+
+**Jeder Player-Build schreibt in zwei URP-Assets:** in `UniversalRenderPipeline.asset`,
+welche Shader-Varianten er weglassen darf (`m_Prefilter…`), und in
+`UniversalRenderPipelineGlobalSettings.asset` die Liste der Einstellungen, die ins
+Spiel mitgehen (`m_RuntimeSettings`). URP schreibt beides bei jedem Build neu, der
+Stand in Git ändert an der APK also nichts. Seit v1.4.5 ist der Stand des
+Android-Builds committet, vorher standen dort nur Standardwerte. Ändert ein späterer
+Build die Dateien erneut, etwa nach Änderungen an Qualitätsstufen oder Renderer, den
+neuen Stand in einem eigenen Commit aufnehmen, nicht vermischt mit inhaltlichen
+Änderungen.
 
 Shader-Verteilung: 34 Materialien auf `ANIMO/BendWorld`, 13 auf URP/Lit, 7 auf URP
 Particles (Lit/Unlit), 2 TextMesh Pro, 1 Skybox.
