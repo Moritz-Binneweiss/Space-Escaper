@@ -151,6 +151,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 <small>
 
 - [x] One shared pause state that only pauses during a run
+- [x] Unused Escape key binding removed from the UI input
 - [ ] Auto-pause when the app goes to the background
 - [ ] 60 FPS on Android instead of 30
 

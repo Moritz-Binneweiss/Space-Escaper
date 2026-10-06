@@ -212,7 +212,8 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   Im Editor kommen Tastatur und Maus nur an, wenn das Game-Fenster den Fokus hat
   (Standardverhalten des Input Systems) - vorher einmal ins Game-Fenster klicken.
 - Das UI läuft über `InputSystemUIInputModule` am EventSystem, mit den
-  Standardaktionen aus dem Paket (`DefaultInputActions`). Das alte
+  Standardaktionen aus dem Paket (`DefaultInputActions`), außer „Cancel“ (Escape):
+  Die ist seit v1.4.5 abgehängt, siehe „Pause“. Das alte
   `StandaloneInputModule` erkennt mit dem neuen Backend keinen Klick mehr - nicht
   zurücktauschen.
 - Eingaben lassen sich im Play Mode per `InputSystem.QueueStateEvent` simulieren
@@ -239,9 +240,9 @@ blieb nach „Exit“ aus der Pause auf `true` stehen.
   nur einmal, `Continue()` nur aus der Pause. Darauf baut die geplante
   Auto-Pause auf.
 - Pausiert wird nur über den Pause-Button. Eine Zurück-Geste auf Android oder
-  Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Die einzige
-  Escape-Belegung ist die Standardaktion „Cancel“ am `InputSystemUIInputModule`,
-  und auf die reagiert kein UI-Element.
+  Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Auch die
+  Standardaktion „Cancel“ am `InputSystemUIInputModule`, die auf Escape lag, ist
+  seit v1.4.5 abgehängt, weil kein UI-Element darauf reagierte.
 - `SettingsManager.SettingsOff()` liest den Zustand, um zu entscheiden, ob „Zurück“
   ins Pause- oder ins Hauptmenü führt.
 - „Exit“ im Pause-Menü ruft `GameManager.OnPlayButton`, also einen Szenen-Reload.
