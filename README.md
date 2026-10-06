@@ -146,6 +146,16 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
+#### **v1.4.5** | Pause & 60 FPS _(------- --, 2026)_
+
+<small>
+
+- [x] One shared pause state that only pauses during a run
+- [ ] Auto-pause when the app goes to the background
+- [ ] 60 FPS on Android instead of 30
+
+</small>
+
 #### **v1.4.4** | Bug Fixes & Music Pause _(October 6, 2026)_
 
 <small>

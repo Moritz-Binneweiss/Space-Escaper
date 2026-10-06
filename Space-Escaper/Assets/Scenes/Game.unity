@@ -8507,7 +8507,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   pauseAnim: {fileID: 1415333061}
   gameMenuAnim: {fileID: 1695910121}
-  sett: {fileID: 1727939687}
 --- !u!114 &1727939687
 MonoBehaviour:
   m_ObjectHideFlags: 0

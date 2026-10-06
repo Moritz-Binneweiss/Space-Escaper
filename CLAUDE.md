@@ -40,7 +40,10 @@ genau eine Tag-Stelle. Ablauf:
 1. Auf `develop` fertig machen: README-Abschnitt, Versionszeile und `bundleVersion`
    hochziehen, dann der Versions-Commit (z. B. `fix: v1.4.3 …`). Eine Version darf
    auch aus mehreren Commits bestehen, einer pro README-Punkt (so bei v1.4.3).
-   README-Abschnitt, Versionszeile und `bundleVersion` kommen dann in den letzten.
+   Ab v1.4.5 steht die Version dann schon während der Arbeit in der README, mit
+   Checkboxen und ohne Datum, und jeder Commit hakt seinen Punkt ab. Der letzte
+   macht daraus den fertigen Abschnitt mit Datum und Emoji-Punkten und zieht
+   Versionszeile und `bundleVersion` hoch.
 2. PR `develop` → `main` mit Titel `v1.4.3 | <Titel aus der README>`, Beschreibung =
    README-Abschnitt plus „Tagged as `v1.4.3` on the merge commit of this PR.“
    Labels: `release` plus die passenden Typen (`bug`, `enhancement`, `refactoring`,
@@ -51,7 +54,12 @@ genau eine Tag-Stelle. Ablauf:
    Tag-Datum (`GIT_COMMITTER_DATE`) und den README-Punkten als Beschreibung. Dann den
    Tag pushen, Tags gehen nicht automatisch mit.
 5. GitHub-Release zum Tag anlegen: Titel wie der PR, Text = Datum · PR-Nummer und die
-   README-Punkte, als „Latest“ markieren.
+   README-Punkte, als „Latest“ markieren. Erst, wenn der annotierte Tag remote liegt
+   (`git ls-remote origin 'refs/tags/vX.Y.Z^{}'`): Fehlt er, legt GitHub beim Release
+   selbst einen einfachen Tag auf `main` an. So passiert bei v1.4.3, als der Tag-Push
+   an einem „Internal Server Error“ von GitHub scheiterte; der Tag wurde danach per
+   `--force-with-lease` durch den annotierten ersetzt. Solche 500er beim Push
+   verschwinden meist, wenn man die Refs einzeln erneut pusht.
 6. `develop` und `test` per Fast-Forward auf `main` ziehen und pushen, damit alle
    Branches auf demselben Stand sind.
 
@@ -118,15 +126,6 @@ bei 8.
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
-- **Zwei Pause-Flags** (Zusammenführen geplant für v1.4.5):
-  `SettingsManager.GameIsPaused` entscheidet in `SettingsOff()`, ob „Zurück“ ins
-  Pause- oder ins Hauptmenü führt, und wird in `Start()` zurückgesetzt.
-  `PauseMenu.GameIsPaused` wird nur geschrieben, nie gelesen, und bleibt nach „Exit“
-  aus der Pause auf `true` stehen. `PauseMenu` holt sich den `SettingsManager` per
-  `GetComponent` vom eigenen GameObject (`GameManager`) - beide müssen dort
-  zusammen hängen bleiben. Ein zweiter, unverdrahteter `SettingsManager` auf
-  `UI/Settings` ist seit v1.4.3 entfernt. Der Exit-Button im Pause-Menü ruft
-  `GameManager.OnPlayButton` auf, `PauseMenu.Quit()` ist nicht verdrahtet.
 
 ## Spielstand (PlayerPrefs)
 
@@ -226,6 +225,34 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   echter Klick läuft im EventSystem vor den `Update()`-Methoden der Spielskripte,
   im selben Frame. Der Revive-Bug (v1.4.4) trat nur so auf - per
   `onClick.Invoke()` aus dem Editor sah alles gut aus.
+
+## Pause
+
+Seit v1.4.5 gibt es genau einen Pause-Zustand: `PauseMenu.GameIsPaused`, statisch
+und nur von `PauseMenu` gesetzt. `PauseMenu.Awake` setzt ihn zurück, sonst überlebt
+er den Szenen-Reload hinter „Exit“. Bis v1.4.4 gab es zwei Flags, und eines davon
+blieb nach „Exit“ aus der Pause auf `true` stehen.
+
+- `Pause()` und `Continue()` sind von überall gefahrlos aufrufbar, nicht nur von
+  den Buttons. `Pause()` greift nur bei `GameManager.IsRunActive` (Run gestartet
+  und Schiff lebt, also nicht im Menü, im Hangar oder auf dem Todesbildschirm) und
+  nur einmal, `Continue()` nur aus der Pause. Darauf baut die geplante
+  Auto-Pause auf.
+- Pausiert wird nur über den Pause-Button. Eine Zurück-Geste auf Android oder
+  Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Die einzige
+  Escape-Belegung ist die Standardaktion „Cancel“ am `InputSystemUIInputModule`,
+  und auf die reagiert kein UI-Element.
+- `SettingsManager.SettingsOff()` liest den Zustand, um zu entscheiden, ob „Zurück“
+  ins Pause- oder ins Hauptmenü führt.
+- „Exit“ im Pause-Menü ruft `GameManager.OnPlayButton`, also einen Szenen-Reload.
+  `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
+- Die Musik läuft in der Pause weiter. Ob sie dort auch anhalten soll, ist noch
+  offen (Vorschlag: weiterlaufen lassen, damit man den Lautstärkeregler in den
+  Settings hört). Beim Tod pausiert sie, siehe „Audio-System“.
+- **Zum Testen das Schiff anhalten.** Ohne Steuerung kracht es nach 2-3 s ins
+  erste Hindernis, und der Test landet auf dem Todesbildschirm. Den Run per Code
+  starten und `PlayerMotor.speed` per Reflection auf 0 setzen: Der Run bleibt
+  aktiv, das Schiff bewegt sich aber nicht.
 
 ## Audio-System
 

@@ -13,6 +13,10 @@ public class GameManager : MonoBehaviour
     private bool isGameStarted = false;
     private PlayerMotor motor;
 
+    /// True while a run is going on and the ship is alive - the only time a pause
+    /// makes sense. False in the menu, in the hangar and on the death screen.
+    public bool IsRunActive => isGameStarted && motor.IsRunning;
+
     //UI and the UI fields
     public Animator gameCanvas,
         menuAnim,

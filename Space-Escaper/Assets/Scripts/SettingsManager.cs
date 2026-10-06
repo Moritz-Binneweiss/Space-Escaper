@@ -1,18 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class SettingsManager : MonoBehaviour
 {
     public Animator pauseAnim,
         settingsAnim,
         menuAniim;
-
-    public static bool GameIsPaused = false;
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        GameIsPaused = false;
-    }
 
     public void SettingsOn()
     {
@@ -22,7 +14,9 @@ public class SettingsManager : MonoBehaviour
 
     public void SettingsOff()
     {
-        if (GameIsPaused == true)
+        // Back leads to where the settings were opened from: the pause menu
+        // during a run, the main menu otherwise.
+        if (PauseMenu.GameIsPaused)
         {
             pauseAnim.SetTrigger("Show");
             settingsAnim.SetTrigger("Hide");
@@ -38,15 +32,5 @@ public class SettingsManager : MonoBehaviour
     {
         settingsAnim.SetTrigger("Show");
         menuAniim.SetTrigger("Hide");
-    }
-
-    public void Paused()
-    {
-        GameIsPaused = true;
-    }
-
-    public void Continued()
-    {
-        GameIsPaused = false;
     }
 }

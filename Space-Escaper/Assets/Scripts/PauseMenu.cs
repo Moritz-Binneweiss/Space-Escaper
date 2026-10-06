@@ -1,46 +1,50 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 public class PauseMenu : MonoBehaviour
 {
     public Animator pauseAnim,
         gameMenuAnim;
 
-    public static bool GameIsPaused = false;
+    /// The one pause state of the game. SettingsManager reads it to decide where
+    /// "Back" leads. Static, so it would survive the scene reload behind "Exit"
+    /// and stay stuck on true - hence the reset in Awake.
+    public static bool GameIsPaused { get; private set; }
 
     private AudioSystem engine;
 
-    public SettingsManager sett;
+    private void Awake()
+    {
+        GameIsPaused = false;
+    }
 
-    // Update is called once per frame
-    void Start()
+    private void Start()
     {
         engine = AudioSystem.Instance;
-        sett = GetComponent<SettingsManager>();
     }
 
     public void Continue()
     {
-        sett.Continued();
+        if (!GameIsPaused)
+            return;
+
+        GameIsPaused = false;
         engine.StartEngine();
         gameMenuAnim.SetTrigger("Show");
         pauseAnim.SetTrigger("Hide");
         Time.timeScale = 1f;
-        GameIsPaused = false;
     }
 
+    /// Safe to call from anywhere, not only from the pause button: it only pauses
+    /// a run that is going on with the ship alive, and only once.
     public void Pause()
     {
-        sett.Paused();
+        if (GameIsPaused || !GameManager.Instance.IsRunActive)
+            return;
+
+        GameIsPaused = true;
         engine.StopEngine();
         gameMenuAnim.SetTrigger("Hide");
         pauseAnim.SetTrigger("Show");
         Time.timeScale = 0f;
-        GameIsPaused = true;
-    }
-
-    public void Quit()
-    {
-        Time.timeScale = 1f;
-        UnityEngine.SceneManagement.SceneManager.LoadScene("Game");
     }
 }

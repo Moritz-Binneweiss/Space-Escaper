@@ -13,6 +13,7 @@ public class PlayerMotor : MonoBehaviour
 
     //
     private bool isRunning = false;
+    public bool IsRunning => isRunning;
 
     //Animation
     private Animator anim;
