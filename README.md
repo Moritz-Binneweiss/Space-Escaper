@@ -155,6 +155,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] All scripts follow Unity's C# style guide
 - [x] Consistent names for scene objects and project files
 - [x] Project folders sorted by asset type
+- [x] Scene hierarchy grouped by role, unused components and tags removed
 - [ ] Auto-pause when the app goes to the background
 - [ ] 60 FPS on Android instead of 30
 

@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 14 Skripte, ~1800 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 13 Skripte, ~1700 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
@@ -122,6 +122,49 @@ nur Ordner.
 - `Scripts/` bleibt flach, solange es so wenige Skripte sind. Unterordner kommen
   mit dem Aufteilen des GameManagers in v1.5.0.
 - Fremd-Pakete bleiben an ihrem Platz, Asset-Store-Updates erwarten sie dort.
+
+## Aufbau der Szene
+
+Seit v1.4.5 ist `Game.unity` nach Rollen gruppiert. Die Gruppen sind leere
+Objekte im Ursprung (Position 0, keine Rotation, Skalierung 1), ihre Kinder
+behalten dadurch ihre Weltposition.
+
+| Root-Objekt | Inhalt |
+|---|---|
+| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `EventSystem` |
+| `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
+| `Playership` | bleibt im Root, weil es sich jeden Frame bewegt |
+| `Cameras` | `MainCamera`, `ShopCamera` |
+| `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
+| `UI` | Canvas mit `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings`, `Shop` |
+
+- **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
+  Ursprung, sonst verschiebt sie alle Kinder mit.
+- **Was sich ständig bewegt, bleibt flach.** Unity aktualisiert Transforms pro
+  Hierarchie, bewegte Kinder in großen Hierarchien kosten mehr. Deshalb liegt
+  `Playership` im Root, und die Streckenabschnitte spawnen dort ebenfalls.
+- **Die Reihenfolge im UI ist die Zeichenreihenfolge:** Spätere Geschwister
+  liegen oben. Sie blieb beim Umbau, wie sie war. Vor einem Umsortieren die
+  Übergänge prüfen, in denen zwei Menüs gleichzeitig sichtbar sind (Tod, Pause,
+  Settings).
+- **Code hängt kaum an der Hierarchie:** Skripte finden einander über
+  Inspector-Referenzen, `FindAnyObjectByType` und den Tag `Player`, nicht über
+  Pfade. Ausnahmen sind die Reihenfolge der Kinder in den Shop-Containern und im
+  `FlameContainer` (siehe „Shop“) und Clips, die über einen Pfad animieren (siehe
+  „Benennung von Dateien und Objekten“).
+- **Tags:** `Player` (Schiff), `Obstacle` (Crash) und `MainCamera` (Unity-Standard)
+  werden gebraucht, `Coin` steht an der Münze, wird aber noch nicht gelesen.
+  `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable` las kein Code, sie sind
+  seit v1.4.5 entfernt, ebenso das deaktivierte `SkinChange` an der
+  `ShopCamera` und ein ungenutzter `CharacterController` am `TileManager`.
+- **Tags nie bei offenem Editor aus der Mitte der Liste löschen.** In Dateien
+  stehen Tags als Text, im Speicher als Nummer nach ihrer Position in der Liste.
+  Als in v1.4.5 `Shootable` vorne wegfiel, rutschten `Coin` und `Obstacle` im
+  laufenden Editor eine Stelle nach vorn: Asteroiden hießen „Undefined“, Münzen
+  „Obstacle“, und im Play Mode tötete kein Asteroid mehr. Auf der Platte blieb
+  alles richtig. Danach also alle Prefabs neu importieren (`ImportAsset` mit
+  `ForceUpdate`) oder Unity neu starten, und vorher nichts speichern.
+  Auch im Spieltest prüfen, ob das Schiff noch crasht.
 
 ## Benennung von Dateien und Objekten
 
