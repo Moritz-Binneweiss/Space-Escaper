@@ -192,6 +192,10 @@ public class GameManager : MonoBehaviour
         deadCoinText.text = coinScore.ToString("0");
         deathMenuAnim.SetTrigger("Dead");
 
+        // Paused, not stopped, so a revive continues the track where it was.
+        // Going back to the menu reloads the scene, which starts the menu music.
+        AudioSystem.Instance.PauseMusic();
+
         int runCoins = (int)coinScore;
         menuCoinScore = PlayerPrefs.GetInt("MenuCoins") + runCoins - bankedCoins;
         bankedCoins = runCoins;
@@ -224,6 +228,7 @@ public class GameManager : MonoBehaviour
         shipContainer.GetChild(currentShip).gameObject.GetComponent<Renderer>().enabled = true;
         flameContainer.GetChild(currentShop).gameObject.SetActive(true);
         motor.StartRunning();
+        AudioSystem.Instance.ResumeMusic();
     }
 
     public void ShopOn()

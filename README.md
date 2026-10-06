@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.3 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.4 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -145,6 +145,16 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 ### **v1.5.0** | Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
+
+#### **v1.4.4** | Bug Fixes & Music Pause _(October 6, 2026)_
+
+<small>
+
+- 🐛 Fixed revive crashing the ship again right away
+- 🐛 Fixed the blurry "Use new Sound" label in the settings
+- 🎵 In-game music now pauses on death and continues after a revive
+
+</small>
 
 #### **v1.4.3** | Project Cleanup _(October 6, 2026)_
 

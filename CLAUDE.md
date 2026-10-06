@@ -84,6 +84,12 @@ bei 8.
   Upgrade-Commit, nicht vermischt mit inhaltlichen Änderungen.
 - Assets, die nicht in einer Szene oder einem Prefab referenziert sind, landen nicht im
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
+- **UI-Texte nicht über die Skalierung vergrößern.** Legacy-`Text` wird in seiner
+  Schriftgröße gerastert und dann hochgezogen, das wird unscharf. Größer heißt:
+  Schriftgröße und Rect-Größe erhöhen, Skalierung 1 lassen. Der Toggle „Use new
+  Sound“ stand seit v1.4.0 auf Skalierung 2 mit Schriftgröße 10 und war deshalb
+  matschig. In v1.4.4 wurde die Skalierung eingebacken: doppelte Maße,
+  Schriftgröße 20, Sliced-Rahmen mit `Pixels Per Unit Multiplier` 0,5.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
@@ -103,13 +109,16 @@ bei 8.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
   ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
   zusätzlich `TileManager.RespawnTile` auf - diese Verbindung existiert nur in der
-  Szene, nicht im Code.
+  Szene, nicht im Code. `RespawnTile` deaktiviert die alten Abschnitte, bevor es sie
+  löscht: `Destroy` greift erst am Frame-Ende, das Schiff fliegt aber im selben
+  Frame wieder los. Ohne das krachte es beim Revive sofort ins selbe Hindernis
+  (zweite Explosion, Spiel-UI weg, Schiff unsichtbar; behoben in v1.4.4).
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
   `PlayerPrefs`-Werte. Der Pokal-Button im Hauptmenü (`UI/Menu/Leaderboard`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
-- **Zwei Pause-Flags** (Zusammenführen geplant für v1.4.4):
+- **Zwei Pause-Flags** (Zusammenführen geplant für v1.4.5):
   `SettingsManager.GameIsPaused` entscheidet in `SettingsOff()`, ob „Zurück“ ins
   Pause- oder ins Hauptmenü führt, und wird in `Start()` zurückgesetzt.
   `PauseMenu.GameIsPaused` wird nur geschrieben, nie gelesen, und bleibt nach „Exit“
@@ -213,6 +222,10 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   umstellen (`editorInputBehaviorInPlayMode = AllDeviceInputAlwaysGoesToGameView`,
   `backgroundBehavior = IgnoreFocus`) und danach zurücksetzen. Die Settings sind
   kein Asset, sie leben nur im Speicher.
+- **Klicks für Tests so simulieren, nicht per `onClick.Invoke()` von außen.** Ein
+  echter Klick läuft im EventSystem vor den `Update()`-Methoden der Spielskripte,
+  im selben Frame. Der Revive-Bug (v1.4.4) trat nur so auf - per
+  `onClick.Invoke()` aus dem Editor sah alles gut aus.
 
 ## Audio-System
 
@@ -250,6 +263,11 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   Spielmusik ab. Musik gehört ausschließlich in `GameManager`.
 - **Mute ist Pause, nicht Lautstärke 0.** Musik wird pausiert (Position bleibt
   erhalten, Dekodierung stoppt wirklich), SFX werden gar nicht erst abgespielt.
+  Seit v1.4.4 hält `GameManager.OnDeath` die Musik beim Tod genauso an
+  (`PauseMusic`), ein Revive setzt sie an derselben Stelle fort (`ResumeMusic`).
+  Ein eigenes Flag (`musicOnHold`) hält beides auseinander: Entstummen auf dem
+  Todesbildschirm startet die Musik nicht, ein Revive startet keine
+  stummgeschaltete. Zurück ins Menü hebt `PlayMenuMusic` den Hold auf.
 - **Der Lautstärkeregler ist nicht linear.** `SetMasterVolume` bildet die
   Reglerposition exponentiell auf einen 40-dB-Bereich ab (`VolumeRangeDb`), sonst
   passiert die gesamte hörbare Änderung in den unteren 20 % des Wegs. Wichtig:
