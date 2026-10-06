@@ -3,7 +3,8 @@ using UnityEngine;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// Pauses and continues a run.
+    /// Pauses and continues a run. Also pauses on its own when the app loses focus
+    /// or goes to the background.
     /// </summary>
     public class PauseMenu : MonoBehaviour
     {
@@ -24,6 +25,26 @@ namespace SpaceEscaper
             // Static, so it would otherwise survive the scene reload behind "Exit"
             // and stay stuck on true.
             IsPaused = false;
+        }
+
+        // A run must not go on while the player is away from the app, and must not
+        // start again by itself when they come back. Android reports a pulled-down
+        // notification shade only as lost focus, leaving the app as both. In the
+        // Editor, clicking any window other than the Game view counts as lost focus.
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+            {
+                Pause();
+            }
+        }
+
+        private void OnApplicationPause(bool isPaused)
+        {
+            if (isPaused)
+            {
+                Pause();
+            }
         }
 
         /// <summary>

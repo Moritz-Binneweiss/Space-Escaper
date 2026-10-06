@@ -429,9 +429,20 @@ blieb nach „Exit“ aus der Pause auf `true` stehen.
 - `Pause()` und `Continue()` sind von überall gefahrlos aufrufbar, nicht nur von
   den Buttons. `Pause()` greift nur bei `GameManager.IsRunActive` (Run gestartet
   und Schiff lebt, also nicht im Menü, im Hangar oder auf dem Todesbildschirm) und
-  nur einmal, `Continue()` nur aus der Pause. Darauf baut die geplante
-  Auto-Pause auf.
-- Pausiert wird nur über den Pause-Button. Eine Zurück-Geste auf Android oder
+  nur einmal, `Continue()` nur aus der Pause. Darauf baut die Auto-Pause auf.
+- **Auto-Pause** (seit v1.4.5): `PauseMenu` pausiert von selbst, sobald die App
+  den Fokus verliert (`OnApplicationFocus(false)`) oder in den Hintergrund geht
+  (`OnApplicationPause(true)`). Beim Verlassen der App meldet Android beides, eine
+  heruntergezogene Benachrichtigungsleiste nur den Fokusverlust, und ohne Pause
+  flöge das Schiff dabei weiter. Weiter geht es nur über „Continue“, nie von
+  selbst. Im Editor zählt schon ein Klick außerhalb des Game-Fensters als
+  Fokusverlust und pausiert den Run.
+- **Auto-Pause testen:** Im Editor die beiden Methoden per Reflection aufrufen,
+  in jedem Zustand (Menü, Run, Pause, Settings, Tod, nach Revive). Ein anderes
+  Editor-Fenster per `EditorWindow.FocusWindowIfItsOpen` zu fokussieren, löst
+  zwar echt aus, aber verzögert, solange Unity selbst nicht im Vordergrund ist.
+  Den echten App-Wechsel gibt es nur auf dem Handy.
+- Von Hand pausiert nur der Pause-Button. Eine Zurück-Geste auf Android oder
   Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Auch die
   Standardaktion „Cancel“ am `InputSystemUIInputModule`, die auf Escape lag, ist
   seit v1.4.5 abgehängt, weil kein UI-Element darauf reagierte.
