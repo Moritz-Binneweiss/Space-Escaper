@@ -33,6 +33,9 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   vieles hängt über Inspector-Referenzen und Unity-Events zusammen, nicht über Code-Aufrufe.
   Grep findet diese Verbindungen nicht; `Game.unity` und die Prefabs mitdurchsuchen.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
+- **Tests auf dem Handy** ausführlich erst kurz vor v2.0 (Entscheidung Oktober 2026).
+  Bis dahin reichen Tests im Editor und kurze Stichproben auf dem Handy. Test-APKs
+  nur bauen, wenn danach gefragt wird.
 
 ## Code-Stil
 
@@ -298,6 +301,16 @@ bei 8.
   dauert rund 6 Minuten. `Space-Escaper/Builds/` ist von Git ignoriert, der Ordner
   `…_BackUpThisFolder_ButDontShipItWithYourGame` neben der APK enthält nur
   Debug-Symbole. Ein Build ändert zwei URP-Assets, siehe „Render Pipeline: URP“.
+- **App-Icon auf Android:** Unity 6 nimmt dafür nur die Android-Icons der Player
+  Settings, nicht das Default Icon. Fehlen sie, steckt das Unity-Logo in der APK, so
+  vom Wechsel auf Unity 6 bis v1.4.4. Bei `minSdkVersion` 26 gibt es nur noch adaptive
+  Icons, die das Handy rund oder abgerundet eckig zuschneidet. Sichtbar ist nur die
+  Mitte, 72 von 108 dp. `Branding/AppIconAdaptive.png` ist deshalb `AppIcon.png` mit
+  dunklem Rand (768 statt 512 px) und steckt in beiden Ebenen, so bleibt das ganze
+  Schiff sichtbar. Beide Bilder sind unkomprimiert importiert, `AppIcon` dient weiter
+  als Default Icon und TV-Banner. Das graue Unity-Icon (96 px), das daneben noch in der
+  APK liegt, ist nur der Ersatz für Android vor 8 und wird nie angezeigt. Ein echtes
+  adaptives Icon mit getrennten Ebenen kommt mit dem Icon-Remaster (v1.7.0).
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
@@ -311,9 +324,12 @@ bei 8.
 - **Play Store kommt erst mit v2.0** - als *neuer* Store-Eintrag, nicht als Update des
   alten von 2020 (Entscheidung Oktober 2026). Bis dahin bewusst offen:
   `AndroidTargetSdkVersion: 29` (Google verlangt seit 31.08.2026 API 36),
-  Debug-Signatur (`androidUseCustomKeystore: 0`), App Bundle. Der alte Paketname
-  `com.ANIMOGames.SpaceEscaper` bleibt bei Google Play dem alten Eintrag zugeordnet
-  und ist nicht wiederverwendbar - der neue Eintrag braucht einen neuen. Alte
+  Debug-Signatur (`androidUseCustomKeystore: 0`), App Bundle. Wegen API 29 sperrt
+  Google Play Protect eine Test-APK beim Installieren erst („Unsafe app blocked“,
+  „built for an older version of Android“), über „Install anyway“ geht es trotzdem.
+  Der alte Paketname `com.ANIMOGames.SpaceEscaper` bleibt bei Google Play dem alten
+  Eintrag zugeordnet und ist nicht wiederverwendbar - der neue Eintrag braucht einen
+  neuen. Alte
   Spielstände müssen deshalb nicht migriert werden. Die Standalone-App-ID nutzt seit
   v1.4.3 ebenfalls `com.ANIMOGames.SpaceEscaper` (vorher das Tutorial-Überbleibsel
   `unity.DefaultCompany.FPS2`) und zieht mit dem neuen Paketnamen mit.
@@ -369,6 +385,14 @@ hier mehrere Bugs behoben; die Regeln dahinter:
   betrifft das nur den Spieler selbst. Kommt eins davon (z. B. ein Leaderboard über
   Play Games in v2.0), neu bewerten: Verschlüsselung in der App hält nur
   Gelegenheits-Schummler ab, weil der Schlüssel mit ausgeliefert wird.
+- **Wo die PlayerPrefs liegen:** Auf Android hängen sie am Paketnamen, im Editor an
+  Firma und App-Name (`productName`), in der Registry unter
+  `HKCU\Software\Unity\UnityEditor\ANIMO Games\Space Escaper`. Ein neuer App-Name
+  lässt die Spielstände im Editor deshalb verschwinden. Beim Wechsel von
+  „Space-Escaper“ auf „Space Escaper“ (v1.4.5) wurden sie per `reg copy <alt> <neu>
+  /s` in den neuen Schlüssel kopiert, der alte liegt noch daneben. `reg copy` und
+  nicht `New-ItemProperty`, weil Unity Floats wie `MASTERVOLUME` als 8 Byte großes
+  DWORD ablegt.
 
 ## Shop
 

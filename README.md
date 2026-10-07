@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.4 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.5 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -146,18 +146,20 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-#### **v1.4.5** | Pause, Code Style & 60 FPS _(------- --, 2026)_
+#### **v1.4.5** | Pause, Code Style & 60 FPS _(October 7, 2026)_
 
 <small>
 
-- [x] One shared pause state that only pauses during a run
-- [x] Unused Escape key binding removed from the UI input
-- [x] All scripts follow Unity's C# style guide
-- [x] Consistent names for scene objects and project files
-- [x] Project folders sorted by asset type
-- [x] Scene hierarchy grouped by role, unused components and tags removed
-- [x] Auto-pause when the app goes to the background
-- [x] 60 FPS on Android instead of 30
+- ⏸️ One shared pause state that only pauses during a run
+- ⌨️ Removed the unused Escape key binding from the UI input
+- 🔧 All scripts follow Unity's C# style guide
+- 🏷️ Consistent names for scene objects and project files
+- 📁 Project folders sorted by asset type
+- 🗂️ Scene hierarchy grouped by role, unused components and tags removed
+- 📱 Auto-pause when the app goes to the background
+- ⚡ 60 FPS on Android instead of 30
+- 🐛 Fixed the Unity logo showing as the app icon on Android
+- 🏷️ App name is now "Space Escaper"
 
 </small>
 

@@ -13,7 +13,7 @@ PlayerSettings:
   useOnDemandResources: 0
   accelerometerFrequency: 60
   companyName: ANIMO Games
-  productName: Space-Escaper
+  productName: Space Escaper
   defaultCursor: {fileID: 0}
   cursorHotspot: {x: 0, y: 0}
   m_SplashScreenBackgroundColor: {r: 0.13725491, g: 0.12156863, b: 0.1254902, a: 1}
@@ -155,7 +155,7 @@ PlayerSettings:
   loadStoreDebugModeEnabled: 0
   visionOSBundleVersion: 1.0
   tvOSBundleVersion: 1.0
-  bundleVersion: 1.4.4
+  bundleVersion: 1.4.5
   preloadedAssets: []
   metroInputSource: 0
   wsaTransparentSwapchain: 0
@@ -319,32 +319,44 @@ PlayerSettings:
   m_BuildTargetPlatformIcons:
   - m_BuildTarget: Android
     m_Icons:
-    - m_Textures: []
+    - m_Textures:
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
       m_Width: 432
       m_Height: 432
       m_Kind: 2
       m_SubKind: 
-    - m_Textures: []
+    - m_Textures:
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
       m_Width: 324
       m_Height: 324
       m_Kind: 2
       m_SubKind: 
-    - m_Textures: []
+    - m_Textures:
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
       m_Width: 216
       m_Height: 216
       m_Kind: 2
       m_SubKind: 
-    - m_Textures: []
+    - m_Textures:
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
       m_Width: 162
       m_Height: 162
       m_Kind: 2
       m_SubKind: 
-    - m_Textures: []
+    - m_Textures:
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
       m_Width: 108
       m_Height: 108
       m_Kind: 2
       m_SubKind: 
-    - m_Textures: []
+    - m_Textures:
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
+      - {fileID: 2800000, guid: bc6262a123037bb47ae466d659ac3814, type: 3}
       m_Width: 81
       m_Height: 81
       m_Kind: 2
