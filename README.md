@@ -154,7 +154,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Lane changes take the same time at any frame rate
 - [x] Removed the unused ship animator and its tilt clips
 - [ ] Swipe distance in millimeters, the same on every screen
-- [ ] Only mostly sideways swipes change lanes
+- [x] Only mostly sideways swipes change lanes
 - [ ] Input prepared for double taps and vertical swipes
 
 </small>

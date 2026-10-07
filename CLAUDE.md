@@ -461,9 +461,11 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   `Input.GetKey` …). Das kompiliert weiterhin, wirft zur Laufzeit aber eine
   `InvalidOperationException`. Neuer Code liest Geräte über `UnityEngine.InputSystem`.
 - `MobileInput` liest Touch und Maus über **einen** Codepfad: `Pointer.current` ist
-  auf dem Handy der Touchscreen (erster Finger), im Editor die Maus. Die Wisch-Logik
-  ist dieselbe wie vorher: 100 px Deadzone, ein Wischer pro Berührung, ausgelöst
-  schon während des Ziehens.
+  auf dem Handy der Touchscreen (erster Finger), im Editor die Maus. Die Wisch-Logik:
+  100 px Deadzone, ein Wischer pro Berührung, ausgelöst schon während des Ziehens.
+  Die Richtung entscheidet die längere Achse, nur ein überwiegend waagrechter
+  Wischer wechselt also die Spur. Bis v1.4.5 zählte allein das Vorzeichen von x,
+  da reichte ein Wisch nach oben mit etwas Seitendrift.
 - **Pfeiltasten ←/→** wechseln die Spur wie ein Wischer, zum Testen im Play Mode.
   Im Editor kommen Tastatur und Maus nur an, wenn das Game-Fenster den Fokus hat
   (Standardverhalten des Input Systems) - vorher einmal ins Game-Fenster klicken.

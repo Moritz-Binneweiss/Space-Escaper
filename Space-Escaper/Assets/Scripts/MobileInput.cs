@@ -70,7 +70,8 @@ namespace SpaceEscaper
         }
 
         // A drag counts as a swipe as soon as it leaves the deadzone, and only
-        // once per drag.
+        // once per drag. The longer axis decides the direction, so a swipe
+        // upwards with a bit of sideways drift does not change lanes.
         private void DetectSwipe()
         {
             if (m_swipeDelta.magnitude <= k_DeadzoneInPixels)
@@ -78,13 +79,16 @@ namespace SpaceEscaper
                 return;
             }
 
-            if (m_swipeDelta.x < 0)
+            if (Mathf.Abs(m_swipeDelta.x) > Mathf.Abs(m_swipeDelta.y))
             {
-                m_hasSwipedLeft = true;
-            }
-            else
-            {
-                m_hasSwipedRight = true;
+                if (m_swipeDelta.x < 0)
+                {
+                    m_hasSwipedLeft = true;
+                }
+                else
+                {
+                    m_hasSwipedRight = true;
+                }
             }
 
             m_isDragging = false;
