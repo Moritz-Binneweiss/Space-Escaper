@@ -9,10 +9,12 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 14 Skripte, ~1700 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 17 Skripte, ~2000 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
-  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning).
+  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning),
+  `SaveSystem.cs` / `SaveData.cs` (Spielstand).
+- `Space-Escaper/Assets/Tests/EditMode/` - EditMode-Tests, siehe „Tests“.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
 - `Space-Escaper/Assets/Audio/` - Audio-Clips in `Classic/` (Originale von 2020)
@@ -53,10 +55,10 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 - **Keine öffentlichen Felder.** Was im Inspector stehen soll, ist
   `[SerializeField] private` (Attribut in derselben Zeile), andere Klassen lesen
   über Properties (`public bool IsRunning => m_isRunning;`).
-- **Strings als Konstanten** oben in der Klasse: Animator-Trigger,
-  PlayerPrefs-Schlüssel, Tags, Szenenname. Die Werte selbst sind Daten und bleiben,
-  wie sie sind (etwa der Trigger `Allive` oder der Schlüssel `Hiscore`), sonst
-  brechen Animator und Spielstände.
+- **Strings als Konstanten** oben in der Klasse: Animator-Trigger, Tags,
+  Szenenname, Dateiname des Spielstands. Die Werte selbst sind Daten und bleiben,
+  wie sie sind (etwa der Trigger `Allive` oder `SaveData.json`), sonst brechen
+  Animator und Spielstände.
 - **Formatierung:** Allman-Klammern, 4 Leerzeichen, Klammern auch um einzelne
   Anweisungen, eine Deklaration pro Zeile, `private` immer ausgeschrieben, `switch`
   mit `default`, Zeilen höchstens 120 Zeichen, UTF-8 ohne BOM, LF. Die
@@ -87,8 +89,32 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   `SwitchToShopCamera` sowie `TileManager.RespawnTiles`. Beim Umbenennen
   `m_MethodName` in `Game.unity` mitziehen, am besten im Editor per
   `SerializedObject`.
+- **Felder in `SaveData`:** Ihre Namen sind die Schlüssel in der Spielstand-Datei,
+  siehe „Spielstand“.
 - **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
   dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich.
+
+## Tests
+
+Seit v1.4.7 gibt es EditMode-Tests mit dem Unity Test Framework (1.8.0, im
+Manifest als direkte Abhängigkeit). Sie liegen in `Assets/Tests/EditMode/` und
+prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, ungültiges Schiff,
+Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen und Versionsnummer.
+
+- **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
+  oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
+  also vor jedem Commit, der `SaveData`, `SaveSystem` oder `RunCoins` ändert. Die
+  CLI legt dabei eine `TestResults.xml` neben den Spielstand, die darf weg.
+- **Testbar ist, was keine Szene braucht.** Regeln gehören deshalb in einfache
+  Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours. Was nur mit der
+  Szene geht (dass `GameManager` nach einem Kauf sofort speichert, Eingaben,
+  Auto-Pause), bleibt beim Test im Play Mode, siehe „Bewegung testen“ und „Eingabe“.
+- **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
+  einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
+  Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
+  scheiterten alle vier ungültigen Schiffe.
+- Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
+  „Unity-Besonderheiten“.
 
 ## Ordnerstruktur
 
@@ -105,9 +131,10 @@ nur Ordner.
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
 | `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
 | `Scenes/` | `Game.unity` |
-| `Scripts/` | alle Skripte, flach |
+| `Scripts/` | alle Skripte, flach, dazu `SpaceEscaper.asmdef` |
 | `Settings/` | URP-Asset, Renderer, Global Settings, Volume Profile, Build Profiles |
 | `Shaders/` | `BendWorld.shader` |
+| `Tests/` | `EditMode/` mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
 | `UI/` | `Images/` (Sprites, Shop-Sprites in `Images/Shop/`), `Fonts/`, `Mockups.png` |
 
@@ -274,6 +301,16 @@ bei 8.
   Upgrade-Commit, nicht vermischt mit inhaltlichen Änderungen.
 - Assets, die nicht in einer Szene oder einem Prefab referenziert sind, landen nicht im
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
+- **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
+  `SpaceEscaper` (`Scripts/SpaceEscaper.asmdef`) statt in `Assembly-CSharp`, die
+  Tests in `SpaceEscaper.Tests.EditMode`. Test-Assemblies kommen an
+  `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
+  `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
+  v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
+  findet der Compiler es nicht. Derzeit stehen dort `Unity.InputSystem` und
+  `UnityEngine.UI`. Szene und Prefabs finden ihre Skripte über deren GUID, der Umzug
+  hat nichts gebrochen (geprüft: kein fehlendes Skript, alle 34 OnClick-Aufrufe
+  finden ihre Methode).
 - **UI-Texte nicht über die Skalierung vergrößern.** Legacy-`Text` wird in seiner
   Schriftgröße gerastert und dann hochgezogen, das wird unscharf. Größer heißt:
   Schriftgröße und Rect-Größe erhöhen, Skalierung 1 lassen. Der Toggle „Use new
@@ -361,36 +398,68 @@ bei 8.
   löscht: `Destroy` greift erst am Frame-Ende, das Schiff fliegt aber im selben
   Frame wieder los. Ohne das krachte es beim Revive sofort ins selbe Hindernis
   (zweite Explosion, Spiel-UI weg, Schiff unsichtbar; behoben in v1.4.4).
-- Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch lokale
-  `PlayerPrefs`-Werte. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
+- Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch den lokalen
+  Highscore im Spielstand. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
 
-## Spielstand (PlayerPrefs)
+## Spielstand (SaveData)
 
-Schlüssel: `MenuCoins`, `Hiscore`, `CurrentShip`, `CurrentShop`, `UnlockedShips`, dazu
-die Audio-Schlüssel (siehe „Audio-System“). Im Code stehen sie als
-`k_…Key`-Konstanten oben in `GameManager` und `AudioSystem`. `CurrentShop` speichert
-die Familie des geflogenen Schiffs (im Code `m_currentFamily`); der Schlüssel heißt
-weiter so, sonst wären bestehende Spielstände weg. Mit v1.4.1 (Oktober 2026) wurden
-hier mehrere Bugs behoben; die Regeln dahinter:
+Seit v1.4.7 steht der ganze Spielstand in einer Klasse, `SaveData`: Münzen,
+Highscore, geflogenes Schiff, gekaufte Schiffe und die Audio-Einstellungen
+(Entscheidung Oktober 2026). `SaveSystem` lädt ihn einmal beim Start, vor der ersten
+Szene, und schreibt ihn als `SaveData.json` nach `Application.persistentDataPath`.
+Alle Skripte lesen und ändern ihn über `SaveSystem.Data`, PlayerPrefs nutzt das
+Spiel nicht mehr.
 
-- `UnlockedShips` ist eine Bitmaske (Bit n = Schiff n). Bis Januar 2026 lag sie nur
-  im Google-Play-Games-Cloud-Save und fiel mit GPG ersatzlos weg - gekaufte Schiffe
+- **Gespeichert wird sofort** bei Tod, Kauf, Schiffswahl und den Audio-Schaltern,
+  dazu beim Pausieren und Beenden der App, für den Lautstärkeregler (siehe
+  „Audio-System“). Bis dahin stehen Änderungen nur im Speicher.
+- **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 1. Ändert eine spätere
+  Version die Bedeutung von Feldern, erkennt sie alte Stände daran und wandelt sie
+  beim Laden um. Fehlt ein Feld in der Datei, behält es beim Laden seinen
+  Standardwert, ein neues Feld braucht also keine neue Version.
+- **Feldnamen sind die Schlüssel in der Datei** (`m_coins`, `m_currentShip` …). Ein
+  umbenanntes Feld verliert seinen Wert in bestehenden Spielständen, außer es
+  bekommt `[FormerlySerializedAs]`.
+- **Kein halber Spielstand:** `SaveSystem.Save` schreibt erst `SaveData.json.tmp`,
+  löscht dann die alte Datei und benennt die neue um. Wird die App mitten im
+  Schreiben beendet, bleibt der alte Stand ganz, und liegt beim Start nur die
+  `.tmp`-Datei da, lädt das Spiel sie. Eine unlesbare Datei ergibt eine Warnung in
+  der Konsole und einen neuen Spielstand, der sie beim nächsten Speichern
+  überschreibt.
+- **Die Familie wird nicht gespeichert,** `GameManager` leitet sie aus dem Schiff ab
+  (`GetFamilyOfShip`). Bis v1.4.6 lag sie unter einem eigenen Schlüssel und konnte
+  vom Schiff abweichen.
+- **Alte Spielstände** aus den PlayerPrefs (bis v1.4.6) übernimmt das Spiel nicht,
+  es gab nur Test-Spielstände (Entscheidung Oktober 2026). Die alten Schlüssel
+  liegen ungenutzt weiter in der Registry und auf den Testhandys.
+
+Mit v1.4.1 (Oktober 2026) wurden im Spielstand mehrere Bugs behoben. Seit v1.4.7
+stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` und
+`RunCoins`, wo Tests sie ohne Szene prüfen können:
+
+- Gekaufte Schiffe stehen als Liste von Schiffsnummern in `m_unlockedShips` (bis
+  v1.4.6 eine Bitmaske). Bis Januar 2026 lagen sie nur im
+  Google-Play-Games-Cloud-Save und fielen mit GPG ersatzlos weg - gekaufte Schiffe
   waren danach nach jedem Szenen-Reload wieder gesperrt. Beim Laden gelten
-  Startschiff und aktuelles Schiff immer als freigeschaltet und werden sofort
-  zurückgeschrieben - sonst wäre ein nur implizit besessenes Schiff nach einem
-  Wechsel wieder gesperrt.
-- Fehlt `CurrentShip` (Neuinstallation) oder ist der Wert ungültig, fällt
-  `GameManager.LoadShipSelection()` aufs Startschiff zurück. Der Default 0 zeigte
-  früher auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start und
-  beim Tod abstürzen. Lokal fiel das nie auf, weil die PlayerPrefs gesetzt waren -
-  **Neuinstallation gezielt testen.**
+  Startschiff und aktuelles Schiff immer als freigeschaltet und kommen sofort in die
+  Liste (`SaveData.RepairShips`) - sonst wäre ein nur implizit besessenes Schiff nach
+  einem Wechsel wieder gesperrt.
+- Ein neuer Spielstand beginnt mit dem Startschiff. Ist das gespeicherte Schiff
+  ungültig, fällt `SaveData.RepairShips` aufs Startschiff zurück. Die Zahl der
+  Schiffe übergibt `GameManager.LoadShipSelection` aus der Szene (Kinder des
+  `m_shipContainer` ohne `FlameContainer`). Bis v1.4.0 war der Default 0, das zeigte
+  auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start und beim
+  Tod abstürzen. Lokal fiel das nie auf, weil der Spielstand gesetzt war -
+  **Neuinstallation gezielt testen** (siehe unten).
+- Ein Kauf (`SaveData.TryBuyShip`) zieht die Münzen ab und schaltet das Schiff frei,
+  beides oder nichts. Danach speichert `GameManager` sofort.
 - Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)m_score`),
   sonst weichen Todesbildschirm und Highscore voneinander ab.
 - Münzen werden bei jedem Tod gutgeschrieben, nach einem Revive aber nur die seitdem
-  gesammelten (`m_bankedCoins`).
+  gesammelten (`RunCoins.BankInto`).
 - **Schiffspreise** (Oktober 2026 neu balanciert, vorher Testwerte von 1 Münze):
   ARISTOCRAT-Skins **250**, FREETER **750**, VAGOR **1.250** - ein Preis pro Familie
   wie im Original. Grundlage: Ø 5,9 Münzen pro Abschnitt (60 Einheiten), Strecke
@@ -401,19 +470,23 @@ hier mehrere Bugs behoben; die Regeln dahinter:
   Revive hebt das Einkommen pro Run grob um 50-70 % - nach dessen Umbau (v1.9.2)
   die Preise gegenprüfen.
 - **Merkposten: Der Spielstand ist unverschlüsselt** (früher ein TODO im
-  `GameManager`, in v1.4.3 hierher verschoben). PlayerPrefs lassen sich auf
-  gerooteten Geräten lesen und ändern. Ohne Echtgeld-Käufe und ohne Online-Rangliste
-  betrifft das nur den Spieler selbst. Kommt eins davon (z. B. ein Leaderboard über
-  Play Games in v2.0), neu bewerten: Verschlüsselung in der App hält nur
-  Gelegenheits-Schummler ab, weil der Schlüssel mit ausgeliefert wird.
-- **Wo die PlayerPrefs liegen:** Auf Android hängen sie am Paketnamen, im Editor an
-  Firma und App-Name (`productName`), in der Registry unter
-  `HKCU\Software\Unity\UnityEditor\ANIMO Games\Space Escaper`. Ein neuer App-Name
-  lässt die Spielstände im Editor deshalb verschwinden. Beim Wechsel von
-  „Space-Escaper“ auf „Space Escaper“ (v1.4.5) wurden sie per `reg copy <alt> <neu>
-  /s` in den neuen Schlüssel kopiert, der alte liegt noch daneben. `reg copy` und
-  nicht `New-ItemProperty`, weil Unity Floats wie `MASTERVOLUME` als 8 Byte großes
-  DWORD ablegt.
+  `GameManager`, in v1.4.3 hierher verschoben). Die Datei ist lesbares JSON und
+  lässt sich mit Zugriff auf den Datenordner der App ändern. Ohne Echtgeld-Käufe und
+  ohne Online-Rangliste betrifft das nur den Spieler selbst. Kommt eins davon (z. B.
+  ein Leaderboard über Play Games in v2.0), neu bewerten: Verschlüsselung in der App
+  hält nur Gelegenheits-Schummler ab, weil der Schlüssel mit ausgeliefert wird.
+- **Wo der Spielstand liegt:** auf Android im Datenordner der App, „Speicher
+  löschen“ in den App-Einstellungen setzt ihn zurück. Im Editor unter
+  `%USERPROFILE%\AppData\LocalLow\ANIMO Games\Space Escaper\SaveData.json`. Der Pfad
+  hängt an Firma und App-Name (`productName`), ein neuer App-Name lässt den
+  Spielstand im Editor deshalb verschwinden.
+- **Neuinstallation im Editor testen:** Play Mode beenden und `SaveData.json` samt
+  einer eventuellen `SaveData.json.tmp` wegschieben. Der nächste Start beginnt mit 0
+  Münzen, Highscore 0, dem Startschiff, den neuen Sounds, Musik und SFX an und voller
+  Lautstärke.
+- **Die alten PlayerPrefs** liegen in der Registry unter
+  `HKCU\Software\Unity\UnityEditor\ANIMO Games\Space Escaper`, daneben noch der
+  Schlüssel des App-Namens bis v1.4.4, `Space-Escaper`.
 
 ## Shop
 
@@ -600,10 +673,10 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   Reglerposition exponentiell auf einen 40-dB-Bereich ab (`k_VolumeRangeDb`), sonst
   passiert die gesamte hörbare Änderung in den unteren 20 % des Wegs. Wichtig:
   Den Wert zu quadrieren hilft **nicht** - eine Potenzkurve streckt den dB-Bereich
-  gleichmäßig und lässt das Ungleichgewicht bestehen. In den PlayerPrefs steht die
-  Reglerposition, nicht die Amplitude. Beim Ziehen wird bewusst kein
-  `PlayerPrefs.Save()` aufgerufen (60×/Sekunde Schreibzugriff); der Wert wird in
-  `OnApplicationPause`/`OnApplicationQuit` weggeschrieben.
+  gleichmäßig und lässt das Ungleichgewicht bestehen. Im Spielstand steht die
+  Reglerposition, nicht die Amplitude. Beim Ziehen wird bewusst nicht gespeichert
+  (60×/Sekunde Schreibzugriff): Der Wert steht nur in `SaveSystem.Data` und kommt in
+  `OnApplicationPause`/`OnApplicationQuit` des `AudioSystem` auf die Platte.
 
 **Import-Einstellungen** (September 2026 nach Unity-Empfehlung gesetzt): Musik auf
 *Streaming* + Load In Background, SFX auf *Decompress on Load* mit 22050 Hz und

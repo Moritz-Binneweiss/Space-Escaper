@@ -28,13 +28,6 @@ namespace SpaceEscaper
             Game,
         }
 
-        private const string k_UseNewSoundsKey = "USENEWSOUNDS";
-        private const string k_MasterVolumeKey = "MASTERVOLUME";
-
-        // The two mute keys store 1 = on, 0 = muted.
-        private const string k_MusicMutedKey = "MUSICMUTED";
-        private const string k_SfxMutedKey = "SFXMUTED";
-
         // How much quieter the very bottom of the slider is than the top. 40 dB
         // means every quarter of the travel roughly halves the perceived loudness.
         // Raise it for a slider that reaches "almost silent" sooner.
@@ -144,13 +137,13 @@ namespace SpaceEscaper
         {
             if (isPaused)
             {
-                PlayerPrefs.Save();
+                SaveSystem.Save();
             }
         }
 
         private void OnApplicationQuit()
         {
-            PlayerPrefs.Save();
+            SaveSystem.Save();
         }
 
         /// <summary>
@@ -174,11 +167,9 @@ namespace SpaceEscaper
             m_masterVolume = Mathf.Clamp01(sliderPosition);
             AudioListener.volume = ConvertSliderToAmplitude(m_masterVolume);
 
-            // Deliberately no PlayerPrefs.Save() here - a slider fires this on every
-            // frame while being dragged. Flushed in OnApplicationPause/Quit instead.
-            // The slider position is stored, not the amplitude, so the handle comes
-            // back where the player left it.
-            PlayerPrefs.SetFloat(k_MasterVolumeKey, m_masterVolume);
+            // Deliberately no SaveSystem.Save() here - a slider fires this on every
+            // frame while being dragged. Saved in OnApplicationPause/Quit instead.
+            SaveSystem.Data.MasterVolume = m_masterVolume;
         }
 
         public void PlayButtonClick() => PlaySfx(PickClip(NewSounds.ButtonClick, ClassicSounds.ButtonClick));
@@ -274,8 +265,8 @@ namespace SpaceEscaper
             }
 
             m_useNewSounds = useNewSounds;
-            PlayerPrefs.SetInt(k_UseNewSoundsKey, useNewSounds ? 1 : 0);
-            PlayerPrefs.Save();
+            SaveSystem.Data.UseNewSounds = useNewSounds;
+            SaveSystem.Save();
 
             SwapRunningMusicToCurrentStyle();
             SwapRunningEngineToCurrentStyle();
@@ -285,8 +276,8 @@ namespace SpaceEscaper
         public void ToggleSfxMuted()
         {
             m_isSfxMuted = !m_isSfxMuted;
-            PlayerPrefs.SetInt(k_SfxMutedKey, m_isSfxMuted ? 0 : 1);
-            PlayerPrefs.Save();
+            SaveSystem.Data.IsSfxMuted = m_isSfxMuted;
+            SaveSystem.Save();
 
             m_engineSource.mute = m_isSfxMuted;
             RefreshUi();
@@ -295,8 +286,8 @@ namespace SpaceEscaper
         public void ToggleMusicMuted()
         {
             m_isMusicMuted = !m_isMusicMuted;
-            PlayerPrefs.SetInt(k_MusicMutedKey, m_isMusicMuted ? 0 : 1);
-            PlayerPrefs.Save();
+            SaveSystem.Data.IsMusicMuted = m_isMusicMuted;
+            SaveSystem.Save();
 
             // Pausing genuinely stops decoding, unlike volume 0, which keeps
             // burning CPU and battery on a phone while you hear nothing.
@@ -338,10 +329,11 @@ namespace SpaceEscaper
 
         private void LoadPreferences()
         {
-            m_useNewSounds = PlayerPrefs.GetInt(k_UseNewSoundsKey, 1) == 1;
-            m_isMusicMuted = PlayerPrefs.GetInt(k_MusicMutedKey, 1) == 0;
-            m_isSfxMuted = PlayerPrefs.GetInt(k_SfxMutedKey, 1) == 0;
-            m_masterVolume = Mathf.Clamp01(PlayerPrefs.GetFloat(k_MasterVolumeKey, 1f));
+            SaveData saveData = SaveSystem.Data;
+            m_useNewSounds = saveData.UseNewSounds;
+            m_isMusicMuted = saveData.IsMusicMuted;
+            m_isSfxMuted = saveData.IsSfxMuted;
+            m_masterVolume = Mathf.Clamp01(saveData.MasterVolume);
             AudioListener.volume = ConvertSliderToAmplitude(m_masterVolume);
         }
 
