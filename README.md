@@ -147,6 +147,17 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
+#### **v1.4.8** | Ship Data _(------- --, 2026)_
+
+<small>
+
+- [x] One data asset per ship with family, price and price tag, read by the hangar
+- [ ] Ship models in the ship data instead of in the scene
+- [ ] Engine flames in the ship data, switched the same way for every ship
+- [ ] Save stores ships by ID, older saves start over
+
+</small>
+
 #### **v1.4.7** | Save System _(October 8, 2026)_
 
 <small>

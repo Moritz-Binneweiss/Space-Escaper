@@ -9,11 +9,12 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 17 Skripte, ~2000 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 20 Skripte, ~2100 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning),
-  `SaveSystem.cs` / `SaveData.cs` (Spielstand).
+  `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
+  (Schiffe).
 - `Space-Escaper/Assets/Tests/EditMode/` - EditMode-Tests, siehe „Tests“.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
@@ -83,7 +84,7 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 - **Methoden mit OnClick-Aufruf:** Die Szene speichert den Methodennamen als Text,
   ein umbenannter Button tut sonst einfach nichts. Betroffen sind
   `GameManager.Play`, `ReturnToMenu`, `RequestRevive`, `OpenShop`, `CloseShop`,
-  `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(int)` und `SelectOrBuyShip(int)`,
+  `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(ShipData)` und `SelectOrBuyShownShip`,
   `PauseMenu.Pause` und `Continue`, `SettingsManager.OpenFromMainMenu`,
   `OpenFromPauseMenu` und `Close`, `CameraSwitch.SwitchToMainCamera` und
   `SwitchToShopCamera` sowie `TileManager.RespawnTiles`. Beim Umbenennen
@@ -100,6 +101,9 @@ Seit v1.4.7 gibt es EditMode-Tests mit dem Unity Test Framework (1.8.0, im
 Manifest als direkte Abhängigkeit). Sie liegen in `Assets/Tests/EditMode/` und
 prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, ungültiges Schiff,
 Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen und Versionsnummer.
+Seit v1.4.8 prüfen sie auch die Schiffsdaten (`ShipCatalogTests`): jedes `ShipData`
+genau einmal im Katalog, das Startschiff vorn und gratis, alle anderen mit Preis und
+Preisschild, jede Familie mit Schiffen.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
@@ -127,6 +131,7 @@ nur Ordner.
 | `Animations/` | Animator Controller und Clips, nach Gruppe |
 | `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
+| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`) |
 | `Materials/` | Materialien, nach Gruppe |
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
 | `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
@@ -429,9 +434,8 @@ Spiel nicht mehr.
   `.tmp`-Datei da, lädt das Spiel sie. Eine unlesbare Datei ergibt eine Warnung in
   der Konsole und einen neuen Spielstand, der sie beim nächsten Speichern
   überschreibt.
-- **Die Familie wird nicht gespeichert,** `GameManager` leitet sie aus dem Schiff ab
-  (`GetFamilyOfShip`). Bis v1.4.6 lag sie unter einem eigenen Schlüssel und konnte
-  vom Schiff abweichen.
+- **Die Familie wird nicht gespeichert,** sie steht im `ShipData` des Schiffs. Bis
+  v1.4.6 lag sie unter einem eigenen Schlüssel und konnte vom Schiff abweichen.
 - **Alte Spielstände** aus den PlayerPrefs (bis v1.4.6) übernimmt das Spiel nicht,
   es gab nur Test-Spielstände (Entscheidung Oktober 2026). Die alten Schlüssel
   liegen ungenutzt weiter in der Registry und auf den Testhandys.
@@ -449,10 +453,10 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
   einem Wechsel wieder gesperrt.
 - Ein neuer Spielstand beginnt mit dem Startschiff. Ist das gespeicherte Schiff
   ungültig, fällt `SaveData.RepairShips` aufs Startschiff zurück. Die Zahl der
-  Schiffe übergibt `GameManager.LoadShipSelection` aus der Szene (Kinder des
-  `m_shipContainer` ohne `FlameContainer`). Bis v1.4.0 war der Default 0, das zeigte
-  auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start und beim
-  Tod abstürzen. Lokal fiel das nie auf, weil der Spielstand gesetzt war -
+  Schiffe übergibt `GameManager.LoadShipSelection` aus dem `ShipCatalog`, ein Schiff
+  ist im Spielstand seine Stelle im Katalog (ab 1). Bis v1.4.0 war der Default 0,
+  das zeigte auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start
+  und beim Tod abstürzen. Lokal fiel das nie auf, weil der Spielstand gesetzt war -
   **Neuinstallation gezielt testen** (siehe unten).
 - Ein Kauf (`SaveData.TryBuyShip`) zieht die Münzen ab und schaltet das Schiff frei,
   beides oder nichts. Danach speichert `GameManager` sofort.
@@ -490,18 +494,27 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
 
 ## Shop
 
-Bis zum geplanten Umbau auf ScriptableObjects hängt der Shop an Kind-Indizes. Schiffe
-sind 1-9 nummeriert: ARISTOCRAT 1-3, FREETER 4-6, VAGOR 7-9 (je drei Skins bilden eine
-Familie).
+Seit v1.4.8 beschreibt ein `ShipData`-Asset pro Schiff, was der Shop wissen muss:
+Familie, Preis und Preisschild. Die Assets liegen in `Data/Ships/`, der `ShipCatalog`
+daneben listet alle Schiffe in der Reihenfolge des Hangars: ARISTOCRAT, FREETER und
+VAGOR (`ShipFamily`) mit je drei Skins, das Startschiff vorn. Bis v1.4.7 hing der
+Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11 Bildern und einer Preisliste im
+`GameManager`.
 
-- `m_shipContainer`: Kind 0 = `FlameContainer`, Kinder 1-9 = Schiffe, Index = Schiff
-- `m_buttonContainer`, `m_shopShipContainer`: Index = Schiff − 1
-- `m_shopSpriteContainer`: 0 = Select, 1 = Selected, Schiff + 1 = Preisschild
-- `m_flameContainer`, `m_skinButtonContainer`: Index = Familie (0-2)
-- `m_currentFamily` ist die Familie des *geflogenen* Schiffs, `m_selectedFamily` die
-  gerade im Hangar *angesehene*. Flammen und alles im Spiel gehören an
-  `m_currentFamily` - die Verwechslung zeigte früher eine falsche, neben dem Schiff
-  schwebende Flamme.
+- **Der Hangar liest die Daten:** Die Skin-Buttons übergeben per OnClick ihr
+  `ShipData` an `GameManager.ShowShip`, die Pfeile zeigen das erste Schiff der
+  Familie davor oder danach (`ShipCatalog.GetFirstShipOfFamily`). Ein einziger
+  unsichtbarer Button, `UI/Shop/SelectOrBuyButton`, kauft oder wählt das gezeigte
+  Schiff (`SelectOrBuyShownShip`). Sein Kind `Image` zeigt Select, Selected oder das
+  Preisschild aus dem `ShipData` und lässt Klicks zum Button durch.
+- **Noch nach Stelle im Katalog verbunden:** die Modelle unter `m_shipContainer`
+  (nach dem `FlameContainer`) und `m_shopShipContainer` sowie der Spielstand. Das
+  Startschiff muss deshalb vorn bleiben, und die Reihenfolge darf sich nicht ändern.
+- `m_flameContainer` und `m_skinButtonContainer` haben ein Kind pro Familie, in der
+  Reihenfolge von `ShipFamily`.
+- `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar
+  *angesehene*. Flammen und alles im Spiel gehören an `m_currentShip` - die
+  Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
 
 **Antriebsflammen** liegen im Prefab `Playership.prefab` unter `Ship/FlameContainer`
 (`FlameAristocrat`, `FlameFreeter` und die Gruppe `FlameVagor` mit `FlameLeft` und
@@ -513,8 +526,8 @@ v1.4.0) ließ den FREETER bis v1.4.2 ohne sichtbaren Antrieb fliegen. Beim ARIST
 fiel derselbe Override nicht auf, weil `m_engineFlame` die Emission dort ohnehin
 einschaltet.
 
-**Preisschilder sind Bilder, keine Texte.** `m_shipPrices` allein zu ändern reicht
-nicht - der Shop zeigt den Preis aus `Assets/UI/Images/PriceTagAristocrat250.png`,
+**Preisschilder sind Bilder, keine Texte.** Den Preis im `ShipData` allein zu ändern
+reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/PriceTagAristocrat250.png`,
 `PriceTagFreeter750.png` und `PriceTagVagor1250.png`. Aufbau wie bei den Originalen
 (`PriceTagAristocrat3500.png`, `PriceTagFreeter6000.png`, `PriceTagVagor8000.png`,
 pixelgleich nachgeprüft): `ButtonBlank.png` als Platte, `CoinIcon.png` als Icon,

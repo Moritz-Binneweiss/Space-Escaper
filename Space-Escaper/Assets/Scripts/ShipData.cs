@@ -1,0 +1,22 @@
+using UnityEngine;
+
+namespace SpaceEscaper
+{
+    /// <summary>
+    /// What the game knows about one ship. One asset per ship, all of them listed
+    /// in the <see cref="ShipCatalog"/>.
+    /// </summary>
+    [CreateAssetMenu(fileName = "ShipData", menuName = "Space Escaper/Ship Data")]
+    public class ShipData : ScriptableObject
+    {
+        [SerializeField] private ShipFamily m_family;
+        [Tooltip("Coins it costs in the hangar. 0 for the starter ship.")]
+        [SerializeField] private int m_price;
+        [Tooltip("Shown in the hangar until the ship is bought. Empty for the starter ship.")]
+        [SerializeField] private Sprite m_priceTag;
+
+        public ShipFamily Family => m_family;
+        public int Price => m_price;
+        public Sprite PriceTag => m_priceTag;
+    }
+}
