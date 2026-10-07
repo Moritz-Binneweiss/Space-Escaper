@@ -466,9 +466,17 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   Die Richtung entscheidet die längere Achse, nur ein überwiegend waagrechter
   Wischer wechselt also die Spur. Bis v1.4.5 zählte allein das Vorzeichen von x,
   da reichte ein Wisch nach oben mit etwas Seitendrift.
-- **Pfeiltasten ←/→** wechseln die Spur wie ein Wischer, zum Testen im Play Mode.
-  Im Editor kommen Tastatur und Maus nur an, wenn das Game-Fenster den Fokus hat
-  (Standardverhalten des Input Systems) - vorher einmal ins Game-Fenster klicken.
+- **Für v1.9.0 vorbereitet:** `MobileInput` meldet auch senkrechte Wischer
+  (`HasSwipedUp`, `HasSwipedDown`) und Doppeltipps (`HasDoubleTapped`), nur liest
+  sie noch nichts im Spiel. Ein Doppeltipp sind zwei Berührungen, die höchstens
+  0,3 s nacheinander aufsetzen, die erste ohne Wischer losgelassen. Er zählt beim
+  Aufsetzen der zweiten, und die startet keinen weiteren (wie bei Android).
+- **Tasten zum Testen im Play Mode:** Die Pfeiltasten wirken wie Wischer, ←/→
+  wechseln also die Spur. Zweimal Leertaste ist ein Doppeltipp, die Leertaste
+  ist kein UI-Submit (das ist nur Enter). Gamepad-Steuerung und A/D gibt es
+  bewusst nicht (Entscheidung Oktober 2026). Im Editor kommen Tastatur und Maus
+  nur an, wenn das Game-Fenster den Fokus hat (Standardverhalten des Input
+  Systems) - vorher einmal ins Game-Fenster klicken.
 - Das UI läuft über `InputSystemUIInputModule` am EventSystem, mit den
   Standardaktionen aus dem Paket (`DefaultInputActions`), außer „Cancel“ (Escape):
   Die ist seit v1.4.5 abgehängt, siehe „Pause“. Das alte

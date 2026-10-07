@@ -155,7 +155,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Removed the unused ship animator and its tilt clips
 - [ ] Swipe distance in millimeters, the same on every screen
 - [x] Only mostly sideways swipes change lanes
-- [ ] Input prepared for double taps and vertical swipes
+- [x] Input prepared for double taps and vertical swipes
 
 </small>
 
