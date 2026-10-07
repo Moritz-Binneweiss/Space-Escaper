@@ -14,6 +14,7 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning),
   `SaveSystem.cs` / `SaveData.cs` (Spielstand).
+- `Space-Escaper/Assets/Tests/EditMode/` - EditMode-Tests, siehe „Tests“.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
 - `Space-Escaper/Assets/Audio/` - Audio-Clips in `Classic/` (Originale von 2020)
@@ -93,6 +94,28 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 - **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
   dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich.
 
+## Tests
+
+Seit v1.4.7 gibt es EditMode-Tests mit dem Unity Test Framework (1.8.0, im
+Manifest als direkte Abhängigkeit). Sie liegen in `Assets/Tests/EditMode/` und
+prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, ungültiges Schiff,
+Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen und Versionsnummer.
+
+- **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
+  oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
+  also vor jedem Commit, der `SaveData`, `SaveSystem` oder `RunCoins` ändert. Die
+  CLI legt dabei eine `TestResults.xml` neben den Spielstand, die darf weg.
+- **Testbar ist, was keine Szene braucht.** Regeln gehören deshalb in einfache
+  Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours. Was nur mit der
+  Szene geht (dass `GameManager` nach einem Kauf sofort speichert, Eingaben,
+  Auto-Pause), bleibt beim Test im Play Mode, siehe „Bewegung testen“ und „Eingabe“.
+- **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
+  einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
+  Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
+  scheiterten alle vier ungültigen Schiffe.
+- Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
+  „Unity-Besonderheiten“.
+
 ## Ordnerstruktur
 
 Seit v1.4.5 ist `Assets/` nach Asset-Typ sortiert, wie es Unitys Leitfaden zur
@@ -108,9 +131,10 @@ nur Ordner.
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
 | `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
 | `Scenes/` | `Game.unity` |
-| `Scripts/` | alle Skripte, flach |
+| `Scripts/` | alle Skripte, flach, dazu `SpaceEscaper.asmdef` |
 | `Settings/` | URP-Asset, Renderer, Global Settings, Volume Profile, Build Profiles |
 | `Shaders/` | `BendWorld.shader` |
+| `Tests/` | `EditMode/` mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
 | `UI/` | `Images/` (Sprites, Shop-Sprites in `Images/Shop/`), `Fonts/`, `Mockups.png` |
 
@@ -277,6 +301,16 @@ bei 8.
   Upgrade-Commit, nicht vermischt mit inhaltlichen Änderungen.
 - Assets, die nicht in einer Szene oder einem Prefab referenziert sind, landen nicht im
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
+- **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
+  `SpaceEscaper` (`Scripts/SpaceEscaper.asmdef`) statt in `Assembly-CSharp`, die
+  Tests in `SpaceEscaper.Tests.EditMode`. Test-Assemblies kommen an
+  `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
+  `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
+  v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
+  findet der Compiler es nicht. Derzeit stehen dort `Unity.InputSystem` und
+  `UnityEngine.UI`. Szene und Prefabs finden ihre Skripte über deren GUID, der Umzug
+  hat nichts gebrochen (geprüft: kein fehlendes Skript, alle 34 OnClick-Aufrufe
+  finden ihre Methode).
 - **UI-Texte nicht über die Skalierung vergrößern.** Legacy-`Text` wird in seiner
   Schriftgröße gerastert und dann hochgezogen, das wird unscharf. Größer heißt:
   Schriftgröße und Rect-Größe erhöhen, Skalierung 1 lassen. Der Toggle „Use new
