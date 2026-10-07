@@ -15,6 +15,10 @@ namespace SpaceEscaper
         private const int k_MiddleLane = 1;
         private const int k_RightLane = 2;
 
+        // How quickly the ship closes in on its lane per unit flown forward. 1.25
+        // gets it 95% of the way within 2.4 units, 0.22 s at start speed.
+        private const float k_LaneChangeSharpness = 1.25f;
+
         private const float k_StartSpeed = 11f;
         private const float k_SpeedIncreaseInterval = 5f;
         private const float k_SpeedIncreaseAmount = 0.2f;
@@ -97,13 +101,16 @@ namespace SpaceEscaper
             m_desiredLane = Mathf.Clamp(m_desiredLane + direction, k_LeftLane, k_RightLane);
         }
 
-        // Forward at full speed, sideways towards the lane at a rate that grows
-        // with the distance to it.
+        // Forward at full speed, sideways towards the lane. The gap to the lane
+        // shrinks by the same factor per unit flown, so a lane change takes the
+        // same stretch of track at any speed and the same time at any frame rate.
         private void Move()
         {
             float laneX = (m_desiredLane - k_MiddleLane) * k_LaneDistance;
-            Vector3 moveVector = new Vector3((laneX - transform.position.x) * m_speed, 0f, m_speed);
-            m_controller.Move(moveVector * Time.deltaTime);
+            float forwardStep = m_speed * Time.deltaTime;
+            float laneBlend = 1f - Mathf.Exp(-k_LaneChangeSharpness * forwardStep);
+            Vector3 moveVector = new Vector3((laneX - transform.position.x) * laneBlend, 0f, forwardStep);
+            m_controller.Move(moveVector);
         }
 
         private void Crash()

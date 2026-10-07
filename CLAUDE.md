@@ -288,12 +288,27 @@ bei 8.
   Pacing“ ist aus, damit würde Unity immer abrunden. Im Editor gilt das Ziel nur
   fürs Game-Fenster.
 - **Spiellogik an die Zeit binden, nicht an Frames:** Bewegung mit
-  `Time.deltaTime`, Abläufe mit `Time.time`. Die einzige Ausnahme ist der
-  Spurwechsel in `PlayerMotor.Move()`: Er schließt pro Frame
-  `Geschwindigkeit × Frame-Zeit` der Strecke zur Zielspur und dauert deshalb bei
-  60 FPS etwas länger als bei 30 (bei Startgeschwindigkeit etwa 0,25 statt 0,22 s).
-  Ab `Geschwindigkeit × Frame-Zeit` > 1 schießt er über die Spur hinaus, bei
-  60 FPS also ab Geschwindigkeit 60, bei 30 FPS schon ab 30.
+  `Time.deltaTime`, Abläufe mit `Time.time`. Vorsicht bei Glättungen, die pro
+  Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
+  trotzdem an der Bildrate, umso stärker, je größer `k` ist, und schießen ab
+  `k × Time.deltaTime` > 1 übers Ziel hinaus. Bildratenfest ist der Anteil
+  `1 - Mathf.Exp(-k * Time.deltaTime)`. `CameraMotor` glättet noch mit `k` = 1,
+  sein Abstand zum Schiff weicht dadurch zwischen 30 und 60 FPS um unter 2 % ab.
+- **Spurwechsel:** `PlayerMotor.Move()` schließt die Lücke zur Zielspur
+  exponentiell mit der geflogenen Strecke (`k_LaneChangeSharpness` = 1,25 pro
+  Einheit). Ein Wechsel braucht damit bei jeder Geschwindigkeit dieselbe Strecke,
+  95 % nach 2,4 Einheiten, und bei jeder Bildrate dieselbe Zeit: 0,22 s bei
+  Startgeschwindigkeit, rund 0,1 s bei Geschwindigkeit 25. Das ist das Tempo des
+  alten Spurwechsels bei 30 FPS auf dem Handy (Entscheidung Oktober 2026). Bis
+  v1.4.5 schloss er pro Frame `Geschwindigkeit × Frame-Zeit` der Lücke, lief
+  deshalb bei 60 FPS langsamer als bei 30 und schoss bei 30 FPS ab
+  Geschwindigkeit 30 über die Spur hinaus.
+- **Bewegung testen:** Im Play Mode das Schiff auf y = 100 heben
+  (`CharacterController` dafür kurz aus), dann trifft es nichts und fliegt normal
+  weiter. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
+  Editor gerade läuft, und ein Handler an `Application.onBeforeRender` schreibt
+  die Position pro Frame mit. So wurde der Spurwechsel in v1.4.6 bei 30, 60 und
+  144 FPS gemessen.
 - **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
   Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
   `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus

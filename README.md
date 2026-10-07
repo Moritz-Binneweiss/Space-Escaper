@@ -146,6 +146,17 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
+#### **v1.4.6** | Swipe Controls _(------- --, 2026)_
+
+<small>
+
+- [x] Lane changes take the same time at any frame rate
+- [ ] Swipe distance in millimeters, the same on every screen
+- [ ] Only mostly sideways swipes change lanes
+- [ ] Input prepared for double taps and vertical swipes
+
+</small>
+
 #### **v1.4.5** | Pause, Code Style & 60 FPS _(October 7, 2026)_
 
 <small>
