@@ -18,11 +18,14 @@ namespace SpaceEscaper
         [SerializeField] private GameObject m_model;
         [Tooltip("Scale of the model on its stand in the hangar.")]
         [SerializeField] private Vector3 m_hangarScale = Vector3.one;
+        [Tooltip("Placed next to the model, burns while the ship flies. Shared by the skins of a family.")]
+        [SerializeField] private GameObject m_engineFlame;
 
         public ShipFamily Family => m_family;
         public int Price => m_price;
         public Sprite PriceTag => m_priceTag;
         public GameObject Model => m_model;
         public Vector3 HangarScale => m_hangarScale;
+        public GameObject EngineFlame => m_engineFlame;
     }
 }

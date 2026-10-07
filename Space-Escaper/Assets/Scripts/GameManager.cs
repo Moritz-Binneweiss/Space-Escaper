@@ -41,10 +41,8 @@ namespace SpaceEscaper
 
         [Header("Ship")]
         [SerializeField] private ShipCatalog m_shipCatalog;
-        [Tooltip("The flown ship. Its model is created here.")]
+        [Tooltip("The flown ship. Its model and engine flame are created here.")]
         [SerializeField] private Transform m_shipContainer;
-        [Tooltip("Engine flames, one child per family.")]
-        [SerializeField] private Transform m_flameContainer;
 
         [Header("Hangar Shop")]
         [SerializeField] private Animator m_shopAnimator;
@@ -78,6 +76,7 @@ namespace SpaceEscaper
         private ShipData m_currentShip;
         private ShipData m_shownShip;
         private GameObject m_shipModel;
+        private GameObject m_engineFlame;
         private GameObject m_hangarModel;
 
         private static readonly int s_familyCount = System.Enum.GetValues(typeof(ShipFamily)).Length;
@@ -109,7 +108,6 @@ namespace SpaceEscaper
             ShowShipModel(m_currentShip);
             ShowOnlyChild(m_skinButtonContainer, (int)m_currentShip.Family);
             ShowShip(m_currentShip);
-            HideAllChildren(m_flameContainer);
 
             m_reviveButton.SetActive(true);
             m_spaceport.SetActive(true);
@@ -142,7 +140,7 @@ namespace SpaceEscaper
             FindAnyObjectByType<CameraMotor>().IsMoving = true;
             m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
             m_mainMenuAnimator.SetTrigger(k_HideTrigger);
-            m_flameContainer.GetChild((int)m_currentShip.Family).gameObject.SetActive(true);
+            m_engineFlame.SetActive(true);
             StartCoroutine(HideSpaceportAfterDelay());
         }
 
@@ -194,7 +192,7 @@ namespace SpaceEscaper
             m_reviveScore = m_score;
 
             m_shipModel.SetActive(false);
-            m_flameContainer.GetChild((int)m_currentShip.Family).gameObject.SetActive(false);
+            m_engineFlame.SetActive(false);
 
             saveData.RecordScore(finalScore);
             SaveSystem.Save();
@@ -282,7 +280,7 @@ namespace SpaceEscaper
             m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
             m_score = m_reviveScore;
             m_shipModel.SetActive(true);
-            m_flameContainer.GetChild((int)m_currentShip.Family).gameObject.SetActive(true);
+            m_engineFlame.SetActive(true);
             m_playerMotor.StartRunning();
             AudioSystem.Instance.ResumeMusic();
         }
@@ -296,7 +294,6 @@ namespace SpaceEscaper
         private void SelectShip(ShipData ship)
         {
             ShowShipModel(ship);
-            HideAllChildren(m_flameContainer);
 
             m_currentShip = ship;
             SaveSystem.Data.SelectShip(GetShipNumber(ship));
@@ -308,14 +305,19 @@ namespace SpaceEscaper
             m_selectOrBuyImage.sprite = m_selectedSprite;
         }
 
+        // The engine flame of every ship is switched the same way: off until a run
+        // starts, on until the crash, and on again after a revive.
         private void ShowShipModel(ShipData ship)
         {
             if (m_shipModel != null)
             {
                 Destroy(m_shipModel);
+                Destroy(m_engineFlame);
             }
 
             m_shipModel = Instantiate(ship.Model, m_shipContainer);
+            m_engineFlame = Instantiate(ship.EngineFlame, m_shipContainer);
+            m_engineFlame.SetActive(false);
         }
 
         private void ShowHangarModel(ShipData ship)

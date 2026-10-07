@@ -80,7 +80,8 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   `[FormerlySerializedAs("alterName")]`. Danach die Szene speichern, betroffene
   Assets neu schreiben lassen und das Attribut wieder entfernen. Prefabs dabei
   lieber per Text anpassen: Unity 6.6 schreibt ältere Prefabs beim Speichern
-  komplett im neuen Format (beim `Playership.prefab` rund 20.000 Zeilen Diff).
+  komplett im neuen Format, das gibt große Diffs ohne inhaltliche Änderung. Aus dem
+  `Playership.prefab` kamen Modelle und Flammen in v1.4.8 deshalb per Text heraus.
 - **Methoden mit OnClick-Aufruf:** Die Szene speichert den Methodennamen als Text,
   ein umbenannter Button tut sonst einfach nichts. Betroffen sind
   `GameManager.Play`, `ReturnToMenu`, `RequestRevive`, `OpenShop`, `CloseShop`,
@@ -103,7 +104,8 @@ prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, ungültiges Schi
 Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen und Versionsnummer.
 Seit v1.4.8 prüfen sie auch die Schiffsdaten (`ShipCatalogTests`): jedes `ShipData`
 genau einmal im Katalog, das Startschiff vorn und gratis, alle anderen mit Preis und
-Preisschild, jedes mit Modell und Hangar-Größe, jede Familie mit Schiffen.
+Preisschild, jedes mit Modell, Hangar-Größe und Antriebsflamme, jede Familie mit
+Schiffen.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
@@ -184,9 +186,9 @@ behalten dadurch ihre Weltposition.
   Settings).
 - **Code hängt kaum an der Hierarchie:** Skripte finden einander über
   Inspector-Referenzen, `FindAnyObjectByType` und den Tag `Player`, nicht über
-  Pfade. Ausnahmen sind die Reihenfolge der Kinder im `SkinButtonContainer` und im
-  `FlameContainer`, je eins pro Familie (siehe „Shop“), und Clips, die über einen
-  Pfad animieren (siehe „Benennung von Dateien und Objekten“).
+  Pfade. Ausnahmen sind die Reihenfolge der Kinder im `SkinButtonContainer`, eins
+  pro Familie (siehe „Shop“), und Clips, die über einen Pfad animieren (siehe
+  „Benennung von Dateien und Objekten“).
 - **Tags:** `Player` (Schiff), `Obstacle` (Crash) und `MainCamera` (Unity-Standard)
   werden gebraucht, `Coin` steht an der Münze, wird aber noch nicht gelesen.
   `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable` las kein Code, sie sind
@@ -495,11 +497,12 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
 ## Shop
 
 Seit v1.4.8 beschreibt ein `ShipData`-Asset pro Schiff, was der Shop wissen muss:
-Familie, Preis, Preisschild und Modell. Die Assets liegen in `Data/Ships/`, der
-`ShipCatalog` daneben listet alle Schiffe in der Reihenfolge des Hangars: ARISTOCRAT,
-FREETER und VAGOR (`ShipFamily`) mit je drei Skins, das Startschiff vorn. Bis v1.4.7
-hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11 Bildern, einer Preisliste im
-`GameManager` und jedem Modell zweimal in Szene und Prefab.
+Familie, Preis, Preisschild, Modell und Antriebsflamme. Die Assets liegen in
+`Data/Ships/`, der `ShipCatalog` daneben listet alle Schiffe in der Reihenfolge des
+Hangars: ARISTOCRAT, FREETER und VAGOR (`ShipFamily`) mit je drei Skins, das
+Startschiff vorn. Bis v1.4.7 hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11
+Bildern, einer Preisliste im `GameManager` und jedem Modell zweimal in Szene und
+Prefab.
 
 - **Der Hangar liest die Daten:** Die Skin-Buttons übergeben per OnClick ihr
   `ShipData` an `GameManager.ShowShip`, die Pfeile zeigen das erste Schiff der
@@ -516,21 +519,24 @@ hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11 Bildern, einer Preisliste 
   3,2 × 3,2, Skin 2 und 3 2,7 × 3 × 3), so übernommen aus dem Stand vor v1.4.8.
 - **Noch nach Stelle im Katalog verbunden:** der Spielstand. Das Startschiff muss
   deshalb vorn bleiben, und die Reihenfolge darf sich nicht ändern.
-- `m_flameContainer` und `m_skinButtonContainer` haben ein Kind pro Familie, in der
-  Reihenfolge von `ShipFamily`.
+- `m_skinButtonContainer` hat ein Kind pro Familie, in der Reihenfolge von
+  `ShipFamily`.
 - `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar
   *angesehene*. Flammen und alles im Spiel gehören an `m_currentShip` - die
   Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
 
-**Antriebsflammen** liegen im Prefab `Playership.prefab` unter `Ship/FlameContainer`
-(`FlameAristocrat`, `FlameFreeter` und die Gruppe `FlameVagor` mit `FlameLeft` und
-`FlameRight`), alle mit eingeschalteter Emission. Der Code schaltet nur die
-GameObjects an und aus. `PlayerMotor.m_engineFlame` zeigt zusätzlich auf
-`FlameAristocrat` und schaltet deren Emission im Run selbst ein. Deshalb **keine
-Emission-Overrides in der Szene**: Ein versehentlicher Override (September 2026,
-v1.4.0) ließ den FREETER bis v1.4.2 ohne sichtbaren Antrieb fliegen. Beim ARISTOCRAT
-fiel derselbe Override nicht auf, weil `m_engineFlame` die Emission dort ohnehin
-einschaltet.
+**Antriebsflammen** sind Prefabs in `Prefabs/Ships/`: `FlameAristocrat`,
+`FlameFreeter` und `FlameVagor` mit den Düsen `FlameLeft` und `FlameRight`. Jedes
+`ShipData` verweist auf die Flamme seiner Familie, die Skins teilen sie sich. Der
+`GameManager` setzt sie neben das Modell unter `Playership/Ship` und schaltet sie
+für jedes Schiff gleich, nur über das GameObject: aus im Menü und im Hangar, an vom
+Start des Runs bis zum Crash und wieder nach einem Revive. Die Emission bleibt
+immer an. Bis v1.4.7 lagen die Flammen im `Playership.prefab`, und
+`PlayerMotor.m_engineFlame` schaltete beim ARISTOCRAT zusätzlich die Emission. Ein
+versehentlicher Emission-Override in der Szene ließ deshalb den FREETER von v1.4.0
+bis v1.4.2 ohne sichtbaren Antrieb fliegen, während er beim ARISTOCRAT nicht
+auffiel. Weil die Flammen jetzt erst zur Laufzeit entstehen, kann die Szene sie
+nicht mehr überschreiben.
 
 **Preisschilder sind Bilder, keine Texte.** Den Preis im `ShipData` allein zu ändern
 reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/PriceTagAristocrat250.png`,

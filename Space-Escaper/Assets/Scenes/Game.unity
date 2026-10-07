@@ -387,11 +387,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 65032483}
   m_CullTransparentMesh: 0
---- !u!4 &134886968 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 9009603211348104160, guid: f750bd685226a95468c9a3dbb0340461, type: 3}
-  m_PrefabInstance: {fileID: 3856785022399948892}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1 &142501462
 GameObject:
   m_ObjectHideFlags: 0
@@ -6645,7 +6640,6 @@ MonoBehaviour:
   m_spaceport: {fileID: 1838102893}
   m_shipCatalog: {fileID: 11400000, guid: fe297234d385c7b439976fd733d7bc02, type: 2}
   m_shipContainer: {fileID: 521938649}
-  m_flameContainer: {fileID: 134886968}
   m_shopAnimator: {fileID: 1359237627}
   m_hangar: {fileID: 963956904}
   m_shopShipContainer: {fileID: 1704399809}

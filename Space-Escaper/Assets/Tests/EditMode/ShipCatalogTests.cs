@@ -59,6 +59,16 @@ namespace SpaceEscaper.Tests
         }
 
         [Test]
+        public void EveryShipHasEngineFlame()
+        {
+            foreach (ShipData ship in m_catalog.Ships)
+            {
+                Assert.That(ship.EngineFlame, Is.Not.Null, ship.name);
+                Assert.That(ship.EngineFlame.GetComponentInChildren<ParticleSystem>(), Is.Not.Null, ship.name);
+            }
+        }
+
+        [Test]
         public void EveryFamilyHasShips()
         {
             foreach (ShipFamily family in System.Enum.GetValues(typeof(ShipFamily)))

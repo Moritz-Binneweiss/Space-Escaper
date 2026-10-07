@@ -17,3 +17,4 @@ MonoBehaviour:
   m_priceTag: {fileID: 21300000, guid: b09bc9f8a346bc04b939e51bd6cbedb0, type: 3}
   m_model: {fileID: 8499378664476764039, guid: 90ee82ab76fed3848ba8b542bfc25994, type: 3}
   m_hangarScale: {x: 0.2, y: 0.22, z: 0.22}
+  m_engineFlame: {fileID: 8651059035613484118, guid: 8111548d1682eb1469bae3df2af11679, type: 3}
