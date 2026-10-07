@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f2f5664d3015ec48af69f3bd8cc0718, type: 3}
   m_Name: VagorSkin3
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipData
+  m_id: VagorSkin3
   m_family: 2
   m_price: 1250
   m_priceTag: {fileID: 21300000, guid: b09bc9f8a346bc04b939e51bd6cbedb0, type: 3}

@@ -22,3 +22,4 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7da15d311d4bb4443b78743a2ff03870, type: 2}
   - {fileID: 11400000, guid: 5183dac5b0a3d674a80121e91c89b34b, type: 2}
   - {fileID: 11400000, guid: 7327900162305d14993caafae5c031ea, type: 2}
+  m_starterShip: {fileID: 11400000, guid: 4e5834b95b5332d46996599120e1e640, type: 2}

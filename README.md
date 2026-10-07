@@ -154,7 +154,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] One data asset per ship with family, price and price tag, read by the hangar
 - [x] Ship models in the ship data instead of in the scene
 - [x] Engine flames in the ship data, switched the same way for every ship
-- [ ] Save stores ships by ID, older saves start over
+- [x] Save stores ships by ID, older saves start over
 
 </small>
 

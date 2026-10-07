@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f2f5664d3015ec48af69f3bd8cc0718, type: 3}
   m_Name: FreeterSkin3
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipData
+  m_id: FreeterSkin3
   m_family: 1
   m_price: 750
   m_priceTag: {fileID: 21300000, guid: f7da0eb2b3e85c04b96be5c78d034c4f, type: 3}

@@ -100,12 +100,12 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 
 Seit v1.4.7 gibt es EditMode-Tests mit dem Unity Test Framework (1.8.0, im
 Manifest als direkte Abhängigkeit). Sie liegen in `Assets/Tests/EditMode/` und
-prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, ungültiges Schiff,
-Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen und Versionsnummer.
-Seit v1.4.8 prüfen sie auch die Schiffsdaten (`ShipCatalogTests`): jedes `ShipData`
-genau einmal im Katalog, das Startschiff vorn und gratis, alle anderen mit Preis und
-Preisschild, jedes mit Modell, Hangar-Größe und Antriebsflamme, jede Familie mit
-Schiffen.
+prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, älterer Spielstand,
+unbekanntes Schiff, Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen
+und Versionsnummer. Seit v1.4.8 prüfen sie auch die Schiffsdaten
+(`ShipCatalogTests`): jedes `ShipData` genau einmal im Katalog, das Startschiff
+darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger ID,
+Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
@@ -423,11 +423,13 @@ Spiel nicht mehr.
 - **Gespeichert wird sofort** bei Tod, Kauf, Schiffswahl und den Audio-Schaltern,
   dazu beim Pausieren und Beenden der App, für den Lautstärkeregler (siehe
   „Audio-System“). Bis dahin stehen Änderungen nur im Speicher.
-- **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 1. Ändert eine spätere
-  Version die Bedeutung von Feldern, erkennt sie alte Stände daran und wandelt sie
-  beim Laden um. Fehlt ein Feld in der Datei, behält es beim Laden seinen
+- **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 2 (seit v1.4.8, Schiffe
+  als ID statt als Nummer). Einen Stand mit anderer Version verwirft
+  `SaveData.FromJson`, das Spiel fängt dann neu an (Entscheidung Oktober 2026, es
+  gibt nur Test-Spielstände). Ab dem Store-Release (v2.0) ältere Stände stattdessen
+  dort umwandeln. Fehlt ein Feld in der Datei, behält es beim Laden seinen
   Standardwert, ein neues Feld braucht also keine neue Version.
-- **Feldnamen sind die Schlüssel in der Datei** (`m_coins`, `m_currentShip` …). Ein
+- **Feldnamen sind die Schlüssel in der Datei** (`m_coins`, `m_currentShipId` …). Ein
   umbenanntes Feld verliert seinen Wert in bestehenden Spielständen, außer es
   bekommt `[FormerlySerializedAs]`.
 - **Kein halber Spielstand:** `SaveSystem.Save` schreibt erst `SaveData.json.tmp`,
@@ -446,20 +448,19 @@ Mit v1.4.1 (Oktober 2026) wurden im Spielstand mehrere Bugs behoben. Seit v1.4.7
 stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` und
 `RunCoins`, wo Tests sie ohne Szene prüfen können:
 
-- Gekaufte Schiffe stehen als Liste von Schiffsnummern in `m_unlockedShips` (bis
-  v1.4.6 eine Bitmaske). Bis Januar 2026 lagen sie nur im
+- Gekaufte Schiffe stehen als Liste von Schiffs-IDs in `m_unlockedShipIds` (bis
+  v1.4.7 Nummern, bis v1.4.6 eine Bitmaske). Bis Januar 2026 lagen sie nur im
   Google-Play-Games-Cloud-Save und fielen mit GPG ersatzlos weg - gekaufte Schiffe
   waren danach nach jedem Szenen-Reload wieder gesperrt. Beim Laden gelten
   Startschiff und aktuelles Schiff immer als freigeschaltet und kommen sofort in die
   Liste (`SaveData.RepairShips`) - sonst wäre ein nur implizit besessenes Schiff nach
   einem Wechsel wieder gesperrt.
-- Ein neuer Spielstand beginnt mit dem Startschiff. Ist das gespeicherte Schiff
-  ungültig, fällt `SaveData.RepairShips` aufs Startschiff zurück. Die Zahl der
-  Schiffe übergibt `GameManager.LoadShipSelection` aus dem `ShipCatalog`, ein Schiff
-  ist im Spielstand seine Stelle im Katalog (ab 1). Bis v1.4.0 war der Default 0,
-  das zeigte auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start
-  und beim Tod abstürzen. Lokal fiel das nie auf, weil der Spielstand gesetzt war -
-  **Neuinstallation gezielt testen** (siehe unten).
+- Ein neuer Spielstand bekommt das Startschiff (`ShipCatalog.StarterShip`). Ist das
+  gespeicherte Schiff unbekannt, fällt `SaveData.RepairShips` darauf zurück, die
+  bekannten IDs übergibt `GameManager.LoadShipSelection` aus dem `ShipCatalog`. Bis
+  v1.4.0 war der Default 0, das zeigte auf `FlameContainer` statt auf ein Schiff und
+  ließ das Spiel beim Start und beim Tod abstürzen. Lokal fiel das nie auf, weil der
+  Spielstand gesetzt war - **Neuinstallation gezielt testen** (siehe unten).
 - Ein Kauf (`SaveData.TryBuyShip`) zieht die Münzen ab und schaltet das Schiff frei,
   beides oder nichts. Danach speichert `GameManager` sofort.
 - Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)m_score`),
@@ -517,8 +518,15 @@ Prefab.
   `ShipData.HangarScale`. Beim Tod schaltet er das Modell aus, beim Revive wieder an.
   Die VAGOR-Skins haben eine etwas andere Skalierung als ihre Familie (Skin 1 2,6 ×
   3,2 × 3,2, Skin 2 und 3 2,7 × 3 × 3), so übernommen aus dem Stand vor v1.4.8.
-- **Noch nach Stelle im Katalog verbunden:** der Spielstand. Das Startschiff muss
-  deshalb vorn bleiben, und die Reihenfolge darf sich nicht ändern.
+- **IDs:** Jedes `ShipData` hat eine ID (`AristocratSkin1` …), unter der der
+  Spielstand das Schiff speichert. Eine geänderte ID verliert das Schiff in
+  bestehenden Spielständen. Das Startschiff legt `ShipCatalog.StarterShip` fest, die
+  Reihenfolge im Katalog ist nur die des Hangars.
+- **Ein neues Schiff:** Modell-Prefab in `Prefabs/Ships/` anlegen, ein `ShipData` in
+  `Data/Ships/` mit ID, Familie, Preis, Preisschild-Bild, Modell, Hangar-Größe und
+  Flamme, das `ShipData` in den `ShipCatalog` eintragen und einen Skin-Button mit
+  OnClick `GameManager.ShowShip` und dem `ShipData` in die Gruppe der Familie legen.
+  Die `ShipCatalogTests` prüfen danach die Daten.
 - `m_skinButtonContainer` hat ein Kind pro Familie, in der Reihenfolge von
   `ShipFamily`.
 - `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar

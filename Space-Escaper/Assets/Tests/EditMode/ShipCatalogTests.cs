@@ -29,20 +29,46 @@ namespace SpaceEscaper.Tests
         }
 
         [Test]
-        public void StarterShipComesFirstAndIsFree()
+        public void StarterShipIsListedAndFree()
         {
-            Assert.That(m_catalog.Ships[0].Price, Is.EqualTo(0));
+            Assert.That(m_catalog.Ships, Has.Member(m_catalog.StarterShip));
+            Assert.That(m_catalog.StarterShip.Price, Is.EqualTo(0));
         }
 
         [Test]
         public void EveryOtherShipHasPriceAndPriceTag()
         {
-            for (int i = 1; i < m_catalog.Ships.Count; i++)
+            foreach (ShipData ship in m_catalog.Ships)
             {
-                ShipData ship = m_catalog.Ships[i];
+                if (ship == m_catalog.StarterShip)
+                {
+                    continue;
+                }
+
                 Assert.That(ship.Price, Is.GreaterThan(0), ship.name);
                 Assert.That(ship.PriceTag, Is.Not.Null, ship.name);
             }
+        }
+
+        // The save stores ships by ID, so an empty or doubled ID loses ships.
+        [Test]
+        public void ShipIdsAreSetAndUnique()
+        {
+            List<string> ids = m_catalog.GetShipIds();
+
+            Assert.That(ids, Has.None.Null.And.None.Empty);
+            Assert.That(ids, Is.Unique);
+        }
+
+        [Test]
+        public void FindShipFindsEveryShipById()
+        {
+            foreach (ShipData ship in m_catalog.Ships)
+            {
+                Assert.That(m_catalog.FindShip(ship.Id), Is.SameAs(ship), ship.name);
+            }
+
+            Assert.That(m_catalog.FindShip("NoSuchShip"), Is.Null);
         }
 
         [Test]

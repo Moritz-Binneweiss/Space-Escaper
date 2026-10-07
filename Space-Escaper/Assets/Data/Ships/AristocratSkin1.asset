@@ -12,6 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f2f5664d3015ec48af69f3bd8cc0718, type: 3}
   m_Name: AristocratSkin1
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipData
+  m_id: AristocratSkin1
   m_family: 0
   m_price: 0
   m_priceTag: {fileID: 0}

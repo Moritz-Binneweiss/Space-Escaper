@@ -15,17 +15,14 @@ namespace SpaceEscaper
     [Serializable]
     public class SaveData
     {
-        public const int k_StarterShip = 1;
-
-        // Written into every save, so a later version that changes the fields can
-        // tell an older save and convert it while loading.
-        private const int k_CurrentVersion = 1;
+        // Written into every save, so the game can tell a save of another version.
+        private const int k_CurrentVersion = 2;
 
         [SerializeField] private int m_version = k_CurrentVersion;
         [SerializeField] private int m_coins;
         [SerializeField] private int m_highscore;
-        [SerializeField] private int m_currentShip = k_StarterShip;
-        [SerializeField] private List<int> m_unlockedShips = new List<int> { k_StarterShip };
+        [SerializeField] private string m_currentShipId = "";
+        [SerializeField] private List<string> m_unlockedShipIds = new List<string>();
         [SerializeField] private bool m_useNewSounds = true;
         [SerializeField] private bool m_isMusicMuted;
         [SerializeField] private bool m_isSfxMuted;
@@ -33,7 +30,7 @@ namespace SpaceEscaper
 
         public int Coins => m_coins;
         public int Highscore => m_highscore;
-        public int CurrentShip => m_currentShip;
+        public string CurrentShipId => m_currentShipId;
 
         public bool UseNewSounds
         {
@@ -65,17 +62,23 @@ namespace SpaceEscaper
 
         /// <summary>
         /// Reads a save from JSON. Fields missing in the JSON keep their defaults, so
-        /// null or an empty string gives the save of a new installation.
+        /// null or an empty string gives the save of a new installation, and so does a
+        /// save of another version.
         /// </summary>
+        /// <remarks>
+        /// Saves of other versions start over instead of being converted, as long as
+        /// there are only test saves. From the store release on, convert them here.
+        /// </remarks>
         public static SaveData FromJson(string json)
         {
             SaveData saveData = new SaveData();
-            if (!string.IsNullOrEmpty(json))
+            if (string.IsNullOrEmpty(json))
             {
-                JsonUtility.FromJsonOverwrite(json, saveData);
+                return saveData;
             }
 
-            return saveData;
+            JsonUtility.FromJsonOverwrite(json, saveData);
+            return saveData.m_version == k_CurrentVersion ? saveData : new SaveData();
         }
 
         public string ToJson()
@@ -96,58 +99,58 @@ namespace SpaceEscaper
             m_highscore = Mathf.Max(m_highscore, score);
         }
 
-        public bool IsShipUnlocked(int ship)
+        public bool IsShipUnlocked(string shipId)
         {
-            return m_unlockedShips.Contains(ship);
+            return m_unlockedShipIds.Contains(shipId);
         }
 
         /// <summary>
         /// Buys a ship that is not owned yet, if the coins are enough. Spends the
         /// coins and unlocks the ship, both or neither.
         /// </summary>
-        public bool TryBuyShip(int ship, int price)
+        public bool TryBuyShip(string shipId, int price)
         {
-            if (IsShipUnlocked(ship) || m_coins < price)
+            if (IsShipUnlocked(shipId) || m_coins < price)
             {
                 return false;
             }
 
             m_coins -= price;
-            UnlockShip(ship);
+            UnlockShip(shipId);
             return true;
         }
 
-        public void SelectShip(int ship)
+        public void SelectShip(string shipId)
         {
-            m_currentShip = ship;
+            m_currentShipId = shipId;
         }
 
         /// <summary>
-        /// Puts the ships of a loaded save in order: an invalid ship falls back to
+        /// Puts the ships of a loaded save in order: an unknown ship falls back to
         /// the starter ship, and the starter ship and the ship being flown always
-        /// count as bought.
+        /// count as bought. A new save gets the starter ship this way.
         /// </summary>
         /// <remarks>
-        /// An invalid ship would show no ship at all and crash the game, and a ship
+        /// An unknown ship would leave the game without a ship to show, and a ship
         /// flown without being in the list would be locked again after switching to
         /// another one.
         /// </remarks>
-        public void RepairShips(int shipCount)
+        public void RepairShips(string starterShipId, ICollection<string> knownShipIds)
         {
-            if (m_currentShip < k_StarterShip || m_currentShip > shipCount)
+            if (!knownShipIds.Contains(m_currentShipId))
             {
-                m_currentShip = k_StarterShip;
+                m_currentShipId = starterShipId;
             }
 
-            UnlockShip(k_StarterShip);
-            UnlockShip(m_currentShip);
+            UnlockShip(starterShipId);
+            UnlockShip(m_currentShipId);
         }
 
-        private void UnlockShip(int ship)
+        private void UnlockShip(string shipId)
         {
-            if (!IsShipUnlocked(ship))
+            if (!IsShipUnlocked(shipId))
             {
-                m_unlockedShips.Add(ship);
+                m_unlockedShipIds.Add(shipId);
             }
         }
     }

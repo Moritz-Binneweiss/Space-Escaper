@@ -249,15 +249,14 @@ namespace SpaceEscaper
         public void SelectOrBuyShownShip()
         {
             SaveData saveData = SaveSystem.Data;
-            int shipNumber = GetShipNumber(m_shownShip);
-            if (saveData.IsShipUnlocked(shipNumber))
+            if (saveData.IsShipUnlocked(m_shownShip.Id))
             {
                 AudioSystem.Instance.PlayShipSelect();
                 SelectShip(m_shownShip);
                 return;
             }
 
-            if (!saveData.TryBuyShip(shipNumber, m_shownShip.Price))
+            if (!saveData.TryBuyShip(m_shownShip.Id, m_shownShip.Price))
             {
                 return;
             }
@@ -270,8 +269,8 @@ namespace SpaceEscaper
         private void LoadShipSelection()
         {
             SaveData saveData = SaveSystem.Data;
-            saveData.RepairShips(m_shipCatalog.Ships.Count);
-            m_currentShip = m_shipCatalog.Ships[saveData.CurrentShip - 1];
+            saveData.RepairShips(m_shipCatalog.StarterShip.Id, m_shipCatalog.GetShipIds());
+            m_currentShip = m_shipCatalog.FindShip(saveData.CurrentShipId);
         }
 
         private void Revive()
@@ -296,7 +295,7 @@ namespace SpaceEscaper
             ShowShipModel(ship);
 
             m_currentShip = ship;
-            SaveSystem.Data.SelectShip(GetShipNumber(ship));
+            SaveSystem.Data.SelectShip(ship.Id);
 
             // Written to disk right away rather than when the app is paused or
             // closed. After a purchase, that also keeps the coins spent.
@@ -336,7 +335,7 @@ namespace SpaceEscaper
 
         private Sprite GetSelectOrBuySprite(ShipData ship)
         {
-            if (!SaveSystem.Data.IsShipUnlocked(GetShipNumber(ship)))
+            if (!SaveSystem.Data.IsShipUnlocked(ship.Id))
             {
                 return ship.PriceTag;
             }
@@ -348,21 +347,6 @@ namespace SpaceEscaper
         private ShipFamily GetAdjacentFamily(int step)
         {
             return (ShipFamily)(((int)m_shownShip.Family + step + s_familyCount) % s_familyCount);
-        }
-
-        // The save still counts the ships by their place in the catalog, starting
-        // at 1.
-        private int GetShipNumber(ShipData ship)
-        {
-            for (int i = 0; i < m_shipCatalog.Ships.Count; i++)
-            {
-                if (m_shipCatalog.Ships[i] == ship)
-                {
-                    return i + 1;
-                }
-            }
-
-            throw new System.ArgumentException($"{ship.name} is not in the ship catalog.");
         }
 
         private IEnumerator HideSpaceportAfterDelay()

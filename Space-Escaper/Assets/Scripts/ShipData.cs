@@ -9,6 +9,8 @@ namespace SpaceEscaper
     [CreateAssetMenu(fileName = "ShipData", menuName = "Space Escaper/Ship Data")]
     public class ShipData : ScriptableObject
     {
+        [Tooltip("The save stores the ship under this ID. Changing it loses the ship in existing saves.")]
+        [SerializeField] private string m_id;
         [SerializeField] private ShipFamily m_family;
         [Tooltip("Coins it costs in the hangar. 0 for the starter ship.")]
         [SerializeField] private int m_price;
@@ -21,6 +23,7 @@ namespace SpaceEscaper
         [Tooltip("Placed next to the model, burns while the ship flies. Shared by the skins of a family.")]
         [SerializeField] private GameObject m_engineFlame;
 
+        public string Id => m_id;
         public ShipFamily Family => m_family;
         public int Price => m_price;
         public Sprite PriceTag => m_priceTag;
