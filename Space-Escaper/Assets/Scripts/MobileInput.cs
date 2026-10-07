@@ -8,7 +8,13 @@ namespace SpaceEscaper
     /// </summary>
     public class MobileInput : MonoBehaviour
     {
-        private const float k_DeadzoneInPixels = 100f;
+        // In millimeters, so a swipe takes the same finger travel on every screen.
+        // 6 mm are about 100 px on a typical phone.
+        private const float k_DeadzoneInMillimeters = 6f;
+        // Screen.dpi is 0 on devices that do not report it. 420 dpi is a typical
+        // phone.
+        private const float k_FallbackDpi = 420f;
+        private const float k_MillimetersPerInch = 25.4f;
         // Longest time from one touch to the next for a double tap, as on Android.
         private const float k_DoubleTapIntervalInSeconds = 0.3f;
 
@@ -21,6 +27,7 @@ namespace SpaceEscaper
         private bool m_isDragging;
         private bool m_isWaitingForSecondTap;
         private bool m_isSecondTap;
+        private float m_deadzoneInPixels;
         private float m_tapStartTime;
         private Vector2 m_swipeDelta;
         private Vector2 m_touchStartPosition;
@@ -42,6 +49,9 @@ namespace SpaceEscaper
         private void Awake()
         {
             Instance = this;
+
+            float dpi = Screen.dpi > 0f ? Screen.dpi : k_FallbackDpi;
+            m_deadzoneInPixels = k_DeadzoneInMillimeters / k_MillimetersPerInch * dpi;
         }
 
         private void Update()
@@ -83,7 +93,7 @@ namespace SpaceEscaper
                 // Let go before the drag became a swipe. A quick flick can still
                 // leave the deadzone in this last frame, and that is no tap.
                 Vector2 finalDelta = pointer.position.ReadValue() - m_touchStartPosition;
-                if (finalDelta.magnitude <= k_DeadzoneInPixels)
+                if (finalDelta.magnitude <= m_deadzoneInPixels)
                 {
                     EndTap();
                 }
@@ -100,7 +110,7 @@ namespace SpaceEscaper
         // upwards with a bit of sideways drift does not change lanes.
         private void DetectSwipe()
         {
-            if (m_swipeDelta.magnitude <= k_DeadzoneInPixels)
+            if (m_swipeDelta.magnitude <= m_deadzoneInPixels)
             {
                 return;
             }

@@ -462,10 +462,16 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   `InvalidOperationException`. Neuer Code liest Geräte über `UnityEngine.InputSystem`.
 - `MobileInput` liest Touch und Maus über **einen** Codepfad: `Pointer.current` ist
   auf dem Handy der Touchscreen (erster Finger), im Editor die Maus. Die Wisch-Logik:
-  100 px Deadzone, ein Wischer pro Berührung, ausgelöst schon während des Ziehens.
+  6 mm Deadzone, ein Wischer pro Berührung, ausgelöst schon während des Ziehens.
   Die Richtung entscheidet die längere Achse, nur ein überwiegend waagrechter
   Wischer wechselt also die Spur. Bis v1.4.5 zählte allein das Vorzeichen von x,
   da reichte ein Wisch nach oben mit etwas Seitendrift.
+- **Deadzone in Millimetern** (seit v1.4.6, vorher feste 100 px, je nach Display
+  etwa 5 bis 9 mm Wischweg): `MobileInput` rechnet die 6 mm in `Awake` über
+  `Screen.dpi` in Pixel um. Meldet ein Gerät keine dpi (`Screen.dpi` ist 0),
+  nimmt es 420 dpi an, ein typisches Handy, das ergibt knapp 100 px. Im Editor
+  gilt die dpi des Monitors, hier 168, also 40 px. Ob sich 6 mm gut anfühlen,
+  vor v2.0 auf dem Handy prüfen.
 - **Für v1.9.0 vorbereitet:** `MobileInput` meldet auch senkrechte Wischer
   (`HasSwipedUp`, `HasSwipedDown`) und Doppeltipps (`HasDoubleTapped`), nur liest
   sie noch nichts im Spiel. Ein Doppeltipp sind zwei Berührungen, die höchstens
@@ -487,7 +493,18 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   Fokus aufs Game-Fenster dafür vorübergehend `InputSystem.settings`
   umstellen (`editorInputBehaviorInPlayMode = AllDeviceInputAlwaysGoesToGameView`,
   `backgroundBehavior = IgnoreFocus`) und danach zurücksetzen. Die Settings sind
-  kein Asset, sie leben nur im Speicher.
+  kein Asset, sie leben nur im Speicher. Solange sie umgestellt sind, landet auch
+  jeder echte Klick im Editor im Spiel. Touch geht über einen virtuellen
+  Touchscreen (`InputSystem.AddDevice<Touchscreen>()`, Ereignisse als
+  `TouchState`), den man danach wieder entfernt. Abläufe über mehrere Frames
+  (Wischer, Doppeltipp) spielt ein Handler an `Application.onBeforeRender` ab,
+  ein Schritt pro Frame.
+- **Vorsicht, Auto-Pause beim Simulieren:** Ein Fokuswechsel im Editor pausiert
+  den Run, und mitten auf dem Bildschirm liegen dann Settings- und
+  Continue-Button. Weitere simulierte Tipps in der Mitte klicken sich durch die
+  Menüs. In v1.4.6 verstellte ein Test so Lautstärke und „Use new Sound“. Im Test
+  bei einer Pause die restlichen Schritte verwerfen und den Spielstand vorher und
+  nachher vergleichen.
 - **Klicks für Tests so simulieren, nicht per `onClick.Invoke()` von außen.** Ein
   echter Klick läuft im EventSystem vor den `Update()`-Methoden der Spielskripte,
   im selben Frame. Der Revive-Bug (v1.4.4) trat nur so auf - per
