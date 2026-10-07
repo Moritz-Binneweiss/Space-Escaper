@@ -1,0 +1,52 @@
+# Editor settings for the C# scripts, following Unity's C# style guide
+# (Unity 6 edition). The full conventions are in CLAUDE.md, section "Code-Stil".
+root = true
+
+[*.cs]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 4
+insert_final_newline = true
+trim_trailing_whitespace = true
+max_line_length = 120
+
+# Allman braces, and braces even around single statements
+csharp_new_line_before_open_brace = all
+csharp_new_line_before_else = true
+csharp_new_line_before_catch = true
+csharp_new_line_before_finally = true
+csharp_prefer_braces = true:suggestion
+
+# switch: indent the case labels and their contents
+csharp_indent_switch_labels = true
+csharp_indent_case_contents = true
+
+# Always write the access modifier, including private
+dotnet_style_require_accessibility_modifiers = always:suggestion
+
+# Naming: k_ for constants, s_ for private static fields, m_ for other private fields
+dotnet_naming_rule.constants_use_k_prefix.symbols = constants
+dotnet_naming_rule.constants_use_k_prefix.style = k_prefix
+dotnet_naming_rule.constants_use_k_prefix.severity = suggestion
+dotnet_naming_symbols.constants.applicable_kinds = field
+dotnet_naming_symbols.constants.required_modifiers = const
+dotnet_naming_style.k_prefix.required_prefix = k_
+dotnet_naming_style.k_prefix.capitalization = pascal_case
+
+dotnet_naming_rule.private_static_fields_use_s_prefix.symbols = private_static_fields
+dotnet_naming_rule.private_static_fields_use_s_prefix.style = s_prefix
+dotnet_naming_rule.private_static_fields_use_s_prefix.severity = suggestion
+dotnet_naming_symbols.private_static_fields.applicable_kinds = field
+dotnet_naming_symbols.private_static_fields.applicable_accessibilities = private
+dotnet_naming_symbols.private_static_fields.required_modifiers = static
+dotnet_naming_style.s_prefix.required_prefix = s_
+dotnet_naming_style.s_prefix.capitalization = camel_case
+
+dotnet_naming_rule.private_fields_use_m_prefix.symbols = private_fields
+dotnet_naming_rule.private_fields_use_m_prefix.style = m_prefix
+dotnet_naming_rule.private_fields_use_m_prefix.severity = suggestion
+dotnet_naming_symbols.private_fields.applicable_kinds = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private
+dotnet_naming_style.m_prefix.required_prefix = m_
+dotnet_naming_style.m_prefix.capitalization = camel_case

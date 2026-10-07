@@ -1,107 +1,131 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class MobileInput : MonoBehaviour
+namespace SpaceEscaper
 {
-    private const float DEADZONE = 100f;
-
-    //Animation
-    private Animator anim;
-
-    public static MobileInput Instance { set; get; }
-
-    private bool tap,
-        swipeLeft,
-        swipeRight,
-        isDragging;
-    private Vector2 swipeDelta,
-        startTouch;
-
-    public bool Tap
+    /// <summary>
+    /// Turns touch, mouse and arrow keys into taps and lane swipes, once per frame.
+    /// </summary>
+    public class MobileInput : MonoBehaviour
     {
-        get { return tap; }
-    }
-    public Vector2 SwipeDelta
-    {
-        get { return swipeDelta; }
-    }
-    public bool SwipeLeft
-    {
-        get { return swipeLeft; }
-    }
-    public bool SwipeRight
-    {
-        get { return swipeRight; }
-    }
+        private const float k_DeadzoneInPixels = 100f;
+        private const string k_LeftTrigger = "Left";
+        private const string k_RightTrigger = "Right";
 
-    private void Start()
-    {
-        anim = GetComponent<Animator>();
-    }
+        private Animator m_animator;
+        private bool m_hasTapped;
+        private bool m_hasSwipedLeft;
+        private bool m_hasSwipedRight;
+        private bool m_isDragging;
+        private Vector2 m_swipeDelta;
+        private Vector2 m_touchStartPosition;
 
-    private void Awake()
-    {
-        Instance = this;
-    }
+        public static MobileInput Instance { get; private set; }
 
-    private void Update()
-    {
-        //Reseting all the booleans
-        tap = swipeLeft = swipeRight = false;
-        swipeDelta = Vector2.zero;
+        public bool HasTapped => m_hasTapped;
+        public Vector2 SwipeDelta => m_swipeDelta;
+        public bool HasSwipedLeft => m_hasSwipedLeft;
+        public bool HasSwipedRight => m_hasSwipedRight;
 
-        #region Touch and Mouse Inputs
+        private void Awake()
+        {
+            Instance = this;
+        }
+
+        private void Start()
+        {
+            m_animator = GetComponent<Animator>();
+        }
+
+        private void Update()
+        {
+            m_hasTapped = false;
+            m_hasSwipedLeft = false;
+            m_hasSwipedRight = false;
+            m_swipeDelta = Vector2.zero;
+
+            ReadPointer();
+            DetectSwipe();
+            ReadKeyboard();
+
+            if (m_hasSwipedLeft)
+            {
+                m_animator.SetTrigger(k_LeftTrigger);
+            }
+
+            if (m_hasSwipedRight)
+            {
+                m_animator.SetTrigger(k_RightTrigger);
+            }
+        }
+
         // Pointer.current is the touchscreen on the phone and the mouse in the
         // Editor, so both share this path. On a touchscreen it follows the first
         // finger.
-        Pointer pointer = Pointer.current;
-        if (pointer != null)
+        private void ReadPointer()
         {
+            Pointer pointer = Pointer.current;
+            if (pointer == null)
+            {
+                return;
+            }
+
             if (pointer.press.wasPressedThisFrame)
             {
-                tap = true;
-                isDragging = true;
-                startTouch = pointer.position.ReadValue();
+                m_hasTapped = true;
+                m_isDragging = true;
+                m_touchStartPosition = pointer.position.ReadValue();
             }
             else if (!pointer.press.isPressed)
             {
-                isDragging = false;
+                m_isDragging = false;
             }
 
-            //Calculate distance
-            if (isDragging)
-                swipeDelta = pointer.position.ReadValue() - startTouch;
+            if (m_isDragging)
+            {
+                m_swipeDelta = pointer.position.ReadValue() - m_touchStartPosition;
+            }
         }
-        #endregion
 
-        //Let's check if we're beyond the deadzone
-        if (swipeDelta.magnitude > DEADZONE)
+        // A drag counts as a swipe as soon as it leaves the deadzone, and only
+        // once per drag.
+        private void DetectSwipe()
         {
-            //This is a confirmed swipe, only one per drag
-            if (swipeDelta.x < 0)
-                swipeLeft = true;
+            if (m_swipeDelta.magnitude <= k_DeadzoneInPixels)
+            {
+                return;
+            }
+
+            if (m_swipeDelta.x < 0)
+            {
+                m_hasSwipedLeft = true;
+            }
             else
-                swipeRight = true;
+            {
+                m_hasSwipedRight = true;
+            }
 
-            isDragging = false;
-            swipeDelta = Vector2.zero;
+            m_isDragging = false;
+            m_swipeDelta = Vector2.zero;
         }
 
-        #region Keyboard Inputs
         // The arrow keys act like a swipe, for testing in Play Mode.
-        Keyboard keyboard = Keyboard.current;
-        if (keyboard != null)
+        private void ReadKeyboard()
         {
-            if (keyboard.leftArrowKey.wasPressedThisFrame)
-                swipeLeft = true;
-            else if (keyboard.rightArrowKey.wasPressedThisFrame)
-                swipeRight = true;
-        }
-        #endregion
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return;
+            }
 
-        if (swipeLeft)
-            anim.SetTrigger("Left");
-        if (swipeRight)
-            anim.SetTrigger("Right");
+            if (keyboard.leftArrowKey.wasPressedThisFrame)
+            {
+                m_hasSwipedLeft = true;
+            }
+            else if (keyboard.rightArrowKey.wasPressedThisFrame)
+            {
+                m_hasSwipedRight = true;
+            }
+        }
     }
 }

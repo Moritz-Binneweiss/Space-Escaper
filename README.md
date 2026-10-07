@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.4 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.5 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -137,7 +137,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] UI overhaul
 - [ ] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
 - [ ] Safe area support for notches and camera cutouts
-- [ ] Clean up duplicate and unused UI images
+- [ ] Clean up unused UI images
 - [ ] Decide what the leaderboard button should do (currently without function)
 
 </small>
@@ -145,6 +145,23 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 ### **v1.5.0** | Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
+
+#### **v1.4.5** | Pause, Code Style & 60 FPS _(October 7, 2026)_
+
+<small>
+
+- ⏸️ One shared pause state that only pauses during a run
+- ⌨️ Removed the unused Escape key binding from the UI input
+- 🔧 All scripts follow Unity's C# style guide
+- 🏷️ Consistent names for scene objects and project files
+- 📁 Project folders sorted by asset type
+- 🗂️ Scene hierarchy grouped by role, unused components and tags removed
+- 📱 Auto-pause when the app goes to the background
+- ⚡ 60 FPS on Android instead of 30
+- 🐛 Fixed the Unity logo showing as the app icon on Android
+- 🏷️ App name is now "Space Escaper"
+
+</small>
 
 #### **v1.4.4** | Bug Fixes & Music Pause _(October 6, 2026)_
 
