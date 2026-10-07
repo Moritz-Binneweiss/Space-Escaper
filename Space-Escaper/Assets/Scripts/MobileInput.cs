@@ -86,22 +86,23 @@ namespace SpaceEscaper
                 m_touchStartPosition = pointer.position.ReadValue();
                 StartTap();
             }
-            else if (!pointer.press.isPressed && m_isDragging)
+
+            if (!m_isDragging)
+            {
+                return;
+            }
+
+            // Also measured in the frame the finger lets go, the touchscreen keeps
+            // its last position. A quick flick may leave the deadzone only with
+            // its last movement and still counts as a swipe.
+            m_swipeDelta = pointer.position.ReadValue() - m_touchStartPosition;
+            if (!pointer.press.isPressed)
             {
                 m_isDragging = false;
-
-                // Let go before the drag became a swipe. A quick flick can still
-                // leave the deadzone in this last frame, and that is no tap.
-                Vector2 finalDelta = pointer.position.ReadValue() - m_touchStartPosition;
-                if (finalDelta.magnitude <= m_deadzoneInPixels)
+                if (m_swipeDelta.magnitude <= m_deadzoneInPixels)
                 {
                     EndTap();
                 }
-            }
-
-            if (m_isDragging)
-            {
-                m_swipeDelta = pointer.position.ReadValue() - m_touchStartPosition;
             }
         }
 

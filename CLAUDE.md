@@ -462,7 +462,11 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   `InvalidOperationException`. Neuer Code liest Geräte über `UnityEngine.InputSystem`.
 - `MobileInput` liest Touch und Maus über **einen** Codepfad: `Pointer.current` ist
   auf dem Handy der Touchscreen (erster Finger), im Editor die Maus. Die Wisch-Logik:
-  6 mm Deadzone, ein Wischer pro Berührung, ausgelöst schon während des Ziehens.
+  6 mm Deadzone, ein Wischer pro Berührung, ausgelöst schon während des Ziehens,
+  spätestens beim Loslassen. Bis v1.4.5 ging ein kurzer, schneller Wischer
+  verloren, der die Deadzone erst mit seiner letzten Bewegung verließ. Das Messen
+  beim Loslassen klappt auch auf dem Handy: Der Touchscreen behält dann die
+  letzte Position, das Input System setzt nur Delta und Tap-Zähler zurück.
   Die Richtung entscheidet die längere Achse, nur ein überwiegend waagrechter
   Wischer wechselt also die Spur. Bis v1.4.5 zählte allein das Vorzeichen von x,
   da reichte ein Wisch nach oben mit etwas Seitendrift.
