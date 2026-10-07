@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 16 Skripte, ~2000 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 17 Skripte, ~2000 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning),
@@ -402,25 +402,30 @@ Spiel nicht mehr.
   es gab nur Test-Spielstände (Entscheidung Oktober 2026). Die alten Schlüssel
   liegen ungenutzt weiter in der Registry und auf den Testhandys.
 
-Mit v1.4.1 (Oktober 2026) wurden im Spielstand mehrere Bugs behoben; die Regeln
-dahinter:
+Mit v1.4.1 (Oktober 2026) wurden im Spielstand mehrere Bugs behoben. Seit v1.4.7
+stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` und
+`RunCoins`, wo Tests sie ohne Szene prüfen können:
 
 - Gekaufte Schiffe stehen als Liste von Schiffsnummern in `m_unlockedShips` (bis
   v1.4.6 eine Bitmaske). Bis Januar 2026 lagen sie nur im
   Google-Play-Games-Cloud-Save und fielen mit GPG ersatzlos weg - gekaufte Schiffe
   waren danach nach jedem Szenen-Reload wieder gesperrt. Beim Laden gelten
   Startschiff und aktuelles Schiff immer als freigeschaltet und kommen sofort in die
-  Liste - sonst wäre ein nur implizit besessenes Schiff nach einem Wechsel wieder
-  gesperrt.
+  Liste (`SaveData.RepairShips`) - sonst wäre ein nur implizit besessenes Schiff nach
+  einem Wechsel wieder gesperrt.
 - Ein neuer Spielstand beginnt mit dem Startschiff. Ist das gespeicherte Schiff
-  ungültig, fällt `GameManager.LoadShipSelection()` aufs Startschiff zurück. Bis
-  v1.4.0 war der Default 0, das zeigte auf `FlameContainer` statt auf ein Schiff und
-  ließ das Spiel beim Start und beim Tod abstürzen. Lokal fiel das nie auf, weil der
-  Spielstand gesetzt war - **Neuinstallation gezielt testen** (siehe unten).
+  ungültig, fällt `SaveData.RepairShips` aufs Startschiff zurück. Die Zahl der
+  Schiffe übergibt `GameManager.LoadShipSelection` aus der Szene (Kinder des
+  `m_shipContainer` ohne `FlameContainer`). Bis v1.4.0 war der Default 0, das zeigte
+  auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start und beim
+  Tod abstürzen. Lokal fiel das nie auf, weil der Spielstand gesetzt war -
+  **Neuinstallation gezielt testen** (siehe unten).
+- Ein Kauf (`SaveData.TryBuyShip`) zieht die Münzen ab und schaltet das Schiff frei,
+  beides oder nichts. Danach speichert `GameManager` sofort.
 - Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)m_score`),
   sonst weichen Todesbildschirm und Highscore voneinander ab.
 - Münzen werden bei jedem Tod gutgeschrieben, nach einem Revive aber nur die seitdem
-  gesammelten (`m_bankedCoins`).
+  gesammelten (`RunCoins.BankInto`).
 - **Schiffspreise** (Oktober 2026 neu balanciert, vorher Testwerte von 1 Münze):
   ARISTOCRAT-Skins **250**, FREETER **750**, VAGOR **1.250** - ein Preis pro Familie
   wie im Original. Grundlage: Ø 5,9 Münzen pro Abschnitt (60 Einheiten), Strecke

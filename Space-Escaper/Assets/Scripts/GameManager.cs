@@ -84,12 +84,7 @@ namespace SpaceEscaper
         private int m_displayedScore;
         private float m_scoreModifier;
         private float m_reviveScore;
-        private int m_runCoins;
-
-        // Coins of this run already added to the saved coins. A revive keeps the
-        // run's coin count going, so a second death may only bank what was
-        // collected since.
-        private int m_bankedCoins;
+        private readonly RunCoins m_runCoins = new RunCoins();
 
         private int m_currentShip;
 
@@ -114,7 +109,7 @@ namespace SpaceEscaper
             m_playerMotor = GameObject.FindGameObjectWithTag(k_PlayerTag).GetComponent<PlayerMotor>();
 
             m_modifierText.text = FormatModifier(m_scoreModifier);
-            m_coinText.text = m_runCoins.ToString();
+            m_coinText.text = m_runCoins.Count.ToString();
             m_scoreText.text = m_score.ToString("0");
 
             SaveData saveData = SaveSystem.Data;
@@ -167,8 +162,8 @@ namespace SpaceEscaper
         public void CollectCoin()
         {
             m_coinAnimator.SetTrigger(k_CollectTrigger);
-            m_runCoins++;
-            m_coinText.text = m_runCoins.ToString();
+            m_runCoins.Collect();
+            m_coinText.text = m_runCoins.Count.ToString();
             m_score += k_ScorePerCoin;
             m_scoreText.text = ((int)m_score).ToString();
         }
@@ -199,7 +194,7 @@ namespace SpaceEscaper
 
             m_gameMenuAnimator.SetTrigger(k_HideTrigger);
             m_deathScoreText.text = finalScore.ToString();
-            m_deathCoinText.text = m_runCoins.ToString();
+            m_deathCoinText.text = m_runCoins.Count.ToString();
             m_deathMenuAnimator.SetTrigger(k_DeadTrigger);
 
             // Paused, not stopped, so a revive continues the track where it was.
@@ -207,8 +202,7 @@ namespace SpaceEscaper
             AudioSystem.Instance.PauseMusic();
 
             SaveData saveData = SaveSystem.Data;
-            saveData.AddCoins(m_runCoins - m_bankedCoins);
-            m_bankedCoins = m_runCoins;
+            m_runCoins.BankInto(saveData);
 
             m_reviveScore = m_score;
 
@@ -278,41 +272,26 @@ namespace SpaceEscaper
                 return;
             }
 
-            int price = m_shipPrices[ship - 1];
-            if (saveData.Coins < price)
+            if (!saveData.TryBuyShip(ship, m_shipPrices[ship - 1]))
             {
                 return;
             }
 
             AudioSystem.Instance.PlayShipPurchase();
-            saveData.SpendCoins(price);
             m_menuCoinText.text = saveData.Coins.ToString();
-
-            saveData.UnlockShip(ship);
             SelectShip(ship);
         }
 
         private void LoadShipSelection()
         {
             SaveData saveData = SaveSystem.Data;
+
+            // Child 0 of the ship container is the flame container, the ships follow.
+            saveData.RepairShips(m_shipContainer.childCount - 1);
+
             m_currentShip = saveData.CurrentShip;
-
-            // A broken value would land on child 0 of the ship container, which is
-            // the flame container, not a ship: no visible ship, and GetChild(-1)
-            // further down throws.
-            if (m_currentShip < SaveData.k_StarterShip || m_currentShip >= m_shipContainer.childCount)
-            {
-                m_currentShip = SaveData.k_StarterShip;
-                saveData.SelectShip(m_currentShip);
-            }
-
             m_currentFamily = GetFamilyOfShip(m_currentShip);
             m_selectedFamily = m_currentFamily;
-
-            // The starter ship is always owned, and so is the ship being flown.
-            // Otherwise switching ships would lock the old one again.
-            saveData.UnlockShip(SaveData.k_StarterShip);
-            saveData.UnlockShip(m_currentShip);
         }
 
         private void Revive()

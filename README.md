@@ -152,7 +152,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 <small>
 
 - [x] Everything saved in one file with a version number, audio settings included
-- [ ] Save rules from v1.4.1 moved out of the GameManager
+- [x] Save rules from v1.4.1 moved out of the GameManager
 - [ ] EditMode tests for new installs, invalid ships, purchases and coins after a revive
 
 </small>

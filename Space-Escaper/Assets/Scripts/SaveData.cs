@@ -88,11 +88,6 @@ namespace SpaceEscaper
             m_coins += coins;
         }
 
-        public void SpendCoins(int coins)
-        {
-            m_coins -= coins;
-        }
-
         /// <summary>
         /// Keeps the score of a run as the new highscore if it beats the old one.
         /// </summary>
@@ -106,17 +101,54 @@ namespace SpaceEscaper
             return m_unlockedShips.Contains(ship);
         }
 
-        public void UnlockShip(int ship)
+        /// <summary>
+        /// Buys a ship that is not owned yet, if the coins are enough. Spends the
+        /// coins and unlocks the ship, both or neither.
+        /// </summary>
+        public bool TryBuyShip(int ship, int price)
         {
-            if (!IsShipUnlocked(ship))
+            if (IsShipUnlocked(ship) || m_coins < price)
             {
-                m_unlockedShips.Add(ship);
+                return false;
             }
+
+            m_coins -= price;
+            UnlockShip(ship);
+            return true;
         }
 
         public void SelectShip(int ship)
         {
             m_currentShip = ship;
+        }
+
+        /// <summary>
+        /// Puts the ships of a loaded save in order: an invalid ship falls back to
+        /// the starter ship, and the starter ship and the ship being flown always
+        /// count as bought.
+        /// </summary>
+        /// <remarks>
+        /// An invalid ship would show no ship at all and crash the game, and a ship
+        /// flown without being in the list would be locked again after switching to
+        /// another one.
+        /// </remarks>
+        public void RepairShips(int shipCount)
+        {
+            if (m_currentShip < k_StarterShip || m_currentShip > shipCount)
+            {
+                m_currentShip = k_StarterShip;
+            }
+
+            UnlockShip(k_StarterShip);
+            UnlockShip(m_currentShip);
+        }
+
+        private void UnlockShip(int ship)
+        {
+            if (!IsShipUnlocked(ship))
+            {
+                m_unlockedShips.Add(ship);
+            }
         }
     }
 }
