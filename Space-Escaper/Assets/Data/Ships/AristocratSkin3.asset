@@ -15,3 +15,5 @@ MonoBehaviour:
   m_family: 0
   m_price: 250
   m_priceTag: {fileID: 21300000, guid: 88dee0a5c7d05e44da1084ed991d5b15, type: 3}
+  m_model: {fileID: 6490562434405623696, guid: a5e0dfd90bbb49d4395b251236c68672, type: 3}
+  m_hangarScale: {x: 0.085, y: 0.085, z: 0.085}

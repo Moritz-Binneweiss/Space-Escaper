@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
+using UnityEngine;
 
 namespace SpaceEscaper.Tests
 {
@@ -41,6 +42,19 @@ namespace SpaceEscaper.Tests
                 ShipData ship = m_catalog.Ships[i];
                 Assert.That(ship.Price, Is.GreaterThan(0), ship.name);
                 Assert.That(ship.PriceTag, Is.Not.Null, ship.name);
+            }
+        }
+
+        [Test]
+        public void EveryShipHasModelAndHangarScale()
+        {
+            foreach (ShipData ship in m_catalog.Ships)
+            {
+                Vector3 hangarScale = ship.HangarScale;
+
+                Assert.That(ship.Model, Is.Not.Null, ship.name);
+                Assert.That(ship.Model.GetComponentInChildren<Renderer>(), Is.Not.Null, ship.name);
+                Assert.That(hangarScale.x * hangarScale.y * hangarScale.z, Is.GreaterThan(0f), ship.name);
             }
         }
 

@@ -14,9 +14,15 @@ namespace SpaceEscaper
         [SerializeField] private int m_price;
         [Tooltip("Shown in the hangar until the ship is bought. Empty for the starter ship.")]
         [SerializeField] private Sprite m_priceTag;
+        [Tooltip("Placed on the flown ship as it is, offset and scale included.")]
+        [SerializeField] private GameObject m_model;
+        [Tooltip("Scale of the model on its stand in the hangar.")]
+        [SerializeField] private Vector3 m_hangarScale = Vector3.one;
 
         public ShipFamily Family => m_family;
         public int Price => m_price;
         public Sprite PriceTag => m_priceTag;
+        public GameObject Model => m_model;
+        public Vector3 HangarScale => m_hangarScale;
     }
 }

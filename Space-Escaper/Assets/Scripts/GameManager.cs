@@ -41,7 +41,7 @@ namespace SpaceEscaper
 
         [Header("Ship")]
         [SerializeField] private ShipCatalog m_shipCatalog;
-        [Tooltip("Child 0 is the flame container, then one child per ship in catalog order.")]
+        [Tooltip("The flown ship. Its model is created here.")]
         [SerializeField] private Transform m_shipContainer;
         [Tooltip("Engine flames, one child per family.")]
         [SerializeField] private Transform m_flameContainer;
@@ -49,7 +49,7 @@ namespace SpaceEscaper
         [Header("Hangar Shop")]
         [SerializeField] private Animator m_shopAnimator;
         [SerializeField] private GameObject m_hangar;
-        [Tooltip("Hangar model per ship, in catalog order.")]
+        [Tooltip("The model of the ship shown in the hangar is created here.")]
         [SerializeField] private Transform m_shopShipContainer;
         [Tooltip("Graphic of the select or buy button: Select, Selected or the price tag of the shown ship.")]
         [SerializeField] private Image m_selectOrBuyImage;
@@ -77,6 +77,8 @@ namespace SpaceEscaper
         // to the ship viewed in the hangar.
         private ShipData m_currentShip;
         private ShipData m_shownShip;
+        private GameObject m_shipModel;
+        private GameObject m_hangarModel;
 
         private static readonly int s_familyCount = System.Enum.GetValues(typeof(ShipFamily)).Length;
 
@@ -191,7 +193,7 @@ namespace SpaceEscaper
 
             m_reviveScore = m_score;
 
-            m_shipContainer.GetChild(GetShipNumber(m_currentShip)).GetComponent<Renderer>().enabled = false;
+            m_shipModel.SetActive(false);
             m_flameContainer.GetChild((int)m_currentShip.Family).gameObject.SetActive(false);
 
             saveData.RecordScore(finalScore);
@@ -238,7 +240,7 @@ namespace SpaceEscaper
         public void ShowShip(ShipData ship)
         {
             m_shownShip = ship;
-            ShowOnlyChild(m_shopShipContainer, GetShipNumber(ship) - 1);
+            ShowHangarModel(ship);
             m_selectOrBuyImage.sprite = GetSelectOrBuySprite(ship);
         }
 
@@ -279,7 +281,7 @@ namespace SpaceEscaper
             m_deathMenuAnimator.SetTrigger(k_AliveTrigger);
             m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
             m_score = m_reviveScore;
-            m_shipContainer.GetChild(GetShipNumber(m_currentShip)).GetComponent<Renderer>().enabled = true;
+            m_shipModel.SetActive(true);
             m_flameContainer.GetChild((int)m_currentShip.Family).gameObject.SetActive(true);
             m_playerMotor.StartRunning();
             AudioSystem.Instance.ResumeMusic();
@@ -308,9 +310,26 @@ namespace SpaceEscaper
 
         private void ShowShipModel(ShipData ship)
         {
-            // Child 0 is the flame container, which stays visible with every ship.
-            ShowOnlyChild(m_shipContainer, GetShipNumber(ship));
-            m_shipContainer.GetChild(0).gameObject.SetActive(true);
+            if (m_shipModel != null)
+            {
+                Destroy(m_shipModel);
+            }
+
+            m_shipModel = Instantiate(ship.Model, m_shipContainer);
+        }
+
+        private void ShowHangarModel(ShipData ship)
+        {
+            if (m_hangarModel != null)
+            {
+                Destroy(m_hangarModel);
+            }
+
+            // The model prefab carries its place on the flown ship. The hangar
+            // shows it on its stand instead, at a size of its own.
+            m_hangarModel = Instantiate(ship.Model, m_shopShipContainer);
+            m_hangarModel.transform.localPosition = Vector3.zero;
+            m_hangarModel.transform.localScale = ship.HangarScale;
         }
 
         private Sprite GetSelectOrBuySprite(ShipData ship)
@@ -329,8 +348,8 @@ namespace SpaceEscaper
             return (ShipFamily)(((int)m_shownShip.Family + step + s_familyCount) % s_familyCount);
         }
 
-        // The save and the model containers still count the ships by their place
-        // in the catalog, starting at 1.
+        // The save still counts the ships by their place in the catalog, starting
+        // at 1.
         private int GetShipNumber(ShipData ship)
         {
             for (int i = 0; i < m_shipCatalog.Ships.Count; i++)

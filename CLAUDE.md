@@ -103,7 +103,7 @@ prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, ungültiges Schi
 Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen und Versionsnummer.
 Seit v1.4.8 prüfen sie auch die Schiffsdaten (`ShipCatalogTests`): jedes `ShipData`
 genau einmal im Katalog, das Startschiff vorn und gratis, alle anderen mit Preis und
-Preisschild, jede Familie mit Schiffen.
+Preisschild, jedes mit Modell und Hangar-Größe, jede Familie mit Schiffen.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
@@ -184,9 +184,9 @@ behalten dadurch ihre Weltposition.
   Settings).
 - **Code hängt kaum an der Hierarchie:** Skripte finden einander über
   Inspector-Referenzen, `FindAnyObjectByType` und den Tag `Player`, nicht über
-  Pfade. Ausnahmen sind die Reihenfolge der Kinder in den Shop-Containern und im
-  `FlameContainer` (siehe „Shop“) und Clips, die über einen Pfad animieren (siehe
-  „Benennung von Dateien und Objekten“).
+  Pfade. Ausnahmen sind die Reihenfolge der Kinder im `SkinButtonContainer` und im
+  `FlameContainer`, je eins pro Familie (siehe „Shop“), und Clips, die über einen
+  Pfad animieren (siehe „Benennung von Dateien und Objekten“).
 - **Tags:** `Player` (Schiff), `Obstacle` (Crash) und `MainCamera` (Unity-Standard)
   werden gebraucht, `Coin` steht an der Münze, wird aber noch nicht gelesen.
   `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable` las kein Code, sie sind
@@ -495,11 +495,11 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
 ## Shop
 
 Seit v1.4.8 beschreibt ein `ShipData`-Asset pro Schiff, was der Shop wissen muss:
-Familie, Preis und Preisschild. Die Assets liegen in `Data/Ships/`, der `ShipCatalog`
-daneben listet alle Schiffe in der Reihenfolge des Hangars: ARISTOCRAT, FREETER und
-VAGOR (`ShipFamily`) mit je drei Skins, das Startschiff vorn. Bis v1.4.7 hing der
-Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11 Bildern und einer Preisliste im
-`GameManager`.
+Familie, Preis, Preisschild und Modell. Die Assets liegen in `Data/Ships/`, der
+`ShipCatalog` daneben listet alle Schiffe in der Reihenfolge des Hangars: ARISTOCRAT,
+FREETER und VAGOR (`ShipFamily`) mit je drei Skins, das Startschiff vorn. Bis v1.4.7
+hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11 Bildern, einer Preisliste im
+`GameManager` und jedem Modell zweimal in Szene und Prefab.
 
 - **Der Hangar liest die Daten:** Die Skin-Buttons übergeben per OnClick ihr
   `ShipData` an `GameManager.ShowShip`, die Pfeile zeigen das erste Schiff der
@@ -507,9 +507,15 @@ Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11 Bildern und einer Preisliste im
   unsichtbarer Button, `UI/Shop/SelectOrBuyButton`, kauft oder wählt das gezeigte
   Schiff (`SelectOrBuyShownShip`). Sein Kind `Image` zeigt Select, Selected oder das
   Preisschild aus dem `ShipData` und lässt Klicks zum Button durch.
-- **Noch nach Stelle im Katalog verbunden:** die Modelle unter `m_shipContainer`
-  (nach dem `FlameContainer`) und `m_shopShipContainer` sowie der Spielstand. Das
-  Startschiff muss deshalb vorn bleiben, und die Reihenfolge darf sich nicht ändern.
+- **Modelle sind Prefabs** in `Prefabs/Ships/` (`AristocratSkin1.prefab` …), mit
+  ihrem Platz auf dem Schiff: Versatz und Skalierung stecken in der Wurzel. Der
+  `GameManager` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein,
+  das des gezeigten unter `Environment/ShopShips`, dort in der Mitte und auf
+  `ShipData.HangarScale`. Beim Tod schaltet er das Modell aus, beim Revive wieder an.
+  Die VAGOR-Skins haben eine etwas andere Skalierung als ihre Familie (Skin 1 2,6 ×
+  3,2 × 3,2, Skin 2 und 3 2,7 × 3 × 3), so übernommen aus dem Stand vor v1.4.8.
+- **Noch nach Stelle im Katalog verbunden:** der Spielstand. Das Startschiff muss
+  deshalb vorn bleiben, und die Reihenfolge darf sich nicht ändern.
 - `m_flameContainer` und `m_skinButtonContainer` haben ein Kind pro Familie, in der
   Reihenfolge von `ShipFamily`.
 - `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar
