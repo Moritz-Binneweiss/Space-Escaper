@@ -14,12 +14,6 @@ namespace SpaceEscaper
         private const string k_GameSceneName = "Game";
         private const string k_PlayerTag = "Player";
 
-        private const string k_MenuCoinsKey = "MenuCoins";
-        private const string k_HighscoreKey = "Hiscore";
-        private const string k_CurrentShipKey = "CurrentShip";
-        private const string k_CurrentFamilyKey = "CurrentShop";
-        private const string k_UnlockedShipsKey = "UnlockedShips";
-
         private const string k_ShowTrigger = "Show";
         private const string k_HideTrigger = "Hide";
         private const string k_CollectTrigger = "Collect";
@@ -34,7 +28,6 @@ namespace SpaceEscaper
 
         // Ships are numbered 1-9, three skins per family: ARISTOCRAT 1-3,
         // FREETER 4-6, VAGOR 7-9.
-        private const int k_StarterShip = 1;
         private const int k_FamilyCount = 3;
         private const int k_SkinsPerFamily = 3;
 
@@ -92,15 +85,12 @@ namespace SpaceEscaper
         private float m_scoreModifier;
         private float m_reviveScore;
         private int m_runCoins;
-        private int m_menuCoins;
 
-        // Coins of this run already added to the menu coins. A revive keeps the
+        // Coins of this run already added to the saved coins. A revive keeps the
         // run's coin count going, so a second death may only bank what was
         // collected since.
         private int m_bankedCoins;
 
-        // Bit n is set when ship n is owned.
-        private int m_unlockedShips;
         private int m_currentShip;
 
         // The family of the ship being flown. Flames and everything in the run
@@ -127,9 +117,9 @@ namespace SpaceEscaper
             m_coinText.text = m_runCoins.ToString();
             m_scoreText.text = m_score.ToString("0");
 
-            m_menuCoins = PlayerPrefs.GetInt(k_MenuCoinsKey);
-            m_menuCoinText.text = m_menuCoins.ToString();
-            m_highscoreText.text = PlayerPrefs.GetInt(k_HighscoreKey).ToString();
+            SaveData saveData = SaveSystem.Data;
+            m_menuCoinText.text = saveData.Coins.ToString();
+            m_highscoreText.text = saveData.Highscore.ToString();
 
             LoadShipSelection();
             ShowShipModel(m_currentShip);
@@ -216,19 +206,17 @@ namespace SpaceEscaper
             // Going back to the menu reloads the scene, which starts the menu music.
             AudioSystem.Instance.PauseMusic();
 
-            m_menuCoins = PlayerPrefs.GetInt(k_MenuCoinsKey) + m_runCoins - m_bankedCoins;
+            SaveData saveData = SaveSystem.Data;
+            saveData.AddCoins(m_runCoins - m_bankedCoins);
             m_bankedCoins = m_runCoins;
-            PlayerPrefs.SetInt(k_MenuCoinsKey, m_menuCoins);
 
             m_reviveScore = m_score;
 
             m_shipContainer.GetChild(m_currentShip).GetComponent<Renderer>().enabled = false;
             m_flameContainer.GetChild(m_currentFamily).gameObject.SetActive(false);
 
-            if (finalScore > PlayerPrefs.GetInt(k_HighscoreKey))
-            {
-                PlayerPrefs.SetInt(k_HighscoreKey, finalScore);
-            }
+            saveData.RecordScore(finalScore);
+            SaveSystem.Save();
         }
 
         /// <summary>
@@ -282,7 +270,8 @@ namespace SpaceEscaper
         /// </summary>
         public void SelectOrBuyShip(int ship)
         {
-            if (IsShipUnlocked(ship))
+            SaveData saveData = SaveSystem.Data;
+            if (saveData.IsShipUnlocked(ship))
             {
                 AudioSystem.Instance.PlayShipSelect();
                 SelectShip(ship);
@@ -290,45 +279,40 @@ namespace SpaceEscaper
             }
 
             int price = m_shipPrices[ship - 1];
-            if (m_menuCoins < price)
+            if (saveData.Coins < price)
             {
                 return;
             }
 
             AudioSystem.Instance.PlayShipPurchase();
-            m_menuCoins -= price;
-            m_menuCoinText.text = m_menuCoins.ToString();
-            PlayerPrefs.SetInt(k_MenuCoinsKey, m_menuCoins);
+            saveData.SpendCoins(price);
+            m_menuCoinText.text = saveData.Coins.ToString();
 
-            m_unlockedShips |= 1 << ship;
-            PlayerPrefs.SetInt(k_UnlockedShipsKey, m_unlockedShips);
+            saveData.UnlockShip(ship);
             SelectShip(ship);
-
-            // Coins were spent - write to disk now instead of waiting for the app
-            // to be paused or closed.
-            PlayerPrefs.Save();
         }
 
         private void LoadShipSelection()
         {
-            m_currentShip = PlayerPrefs.GetInt(k_CurrentShipKey, k_StarterShip);
-            m_currentFamily = PlayerPrefs.GetInt(k_CurrentFamilyKey);
+            SaveData saveData = SaveSystem.Data;
+            m_currentShip = saveData.CurrentShip;
 
-            // A missing or broken value would land on child 0 of the ship container,
-            // which is the flame container, not a ship: no visible ship, and
-            // GetChild(-1) further down throws.
-            if (m_currentShip < k_StarterShip || m_currentShip >= m_shipContainer.childCount)
+            // A broken value would land on child 0 of the ship container, which is
+            // the flame container, not a ship: no visible ship, and GetChild(-1)
+            // further down throws.
+            if (m_currentShip < SaveData.k_StarterShip || m_currentShip >= m_shipContainer.childCount)
             {
-                m_currentShip = k_StarterShip;
-                m_currentFamily = 0;
+                m_currentShip = SaveData.k_StarterShip;
+                saveData.SelectShip(m_currentShip);
             }
 
+            m_currentFamily = GetFamilyOfShip(m_currentShip);
             m_selectedFamily = m_currentFamily;
 
-            // The starter ship is always owned, and so is the ship being flown. Written
-            // back right away, otherwise switching ships would lock the old one again.
-            m_unlockedShips = PlayerPrefs.GetInt(k_UnlockedShipsKey) | (1 << k_StarterShip) | (1 << m_currentShip);
-            PlayerPrefs.SetInt(k_UnlockedShipsKey, m_unlockedShips);
+            // The starter ship is always owned, and so is the ship being flown.
+            // Otherwise switching ships would lock the old one again.
+            saveData.UnlockShip(SaveData.k_StarterShip);
+            saveData.UnlockShip(m_currentShip);
         }
 
         private void Revive()
@@ -354,9 +338,12 @@ namespace SpaceEscaper
             HideAllChildren(m_flameContainer);
 
             m_currentShip = ship;
-            PlayerPrefs.SetInt(k_CurrentShipKey, m_currentShip);
             m_currentFamily = m_selectedFamily;
-            PlayerPrefs.SetInt(k_CurrentFamilyKey, m_currentFamily);
+            SaveSystem.Data.SelectShip(ship);
+
+            // Written to disk right away rather than when the app is paused or
+            // closed. After a purchase, that also keeps the coins spent.
+            SaveSystem.Save();
 
             ShowOnlyChild(m_shopSpriteContainer, k_SelectedSprite);
         }
@@ -370,17 +357,12 @@ namespace SpaceEscaper
 
         private int GetShopSprite(int ship)
         {
-            if (!IsShipUnlocked(ship))
+            if (!SaveSystem.Data.IsShipUnlocked(ship))
             {
                 return ship + k_PriceTagOffset;
             }
 
             return ship == m_currentShip ? k_SelectedSprite : k_SelectSprite;
-        }
-
-        private bool IsShipUnlocked(int ship)
-        {
-            return (m_unlockedShips & (1 << ship)) != 0;
         }
 
         private IEnumerator HideSpaceportAfterDelay()
@@ -392,6 +374,11 @@ namespace SpaceEscaper
         private static int GetFirstShipOfFamily(int family)
         {
             return family * k_SkinsPerFamily + 1;
+        }
+
+        private static int GetFamilyOfShip(int ship)
+        {
+            return (ship - 1) / k_SkinsPerFamily;
         }
 
         private static string FormatModifier(float modifier)
