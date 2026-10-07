@@ -114,7 +114,7 @@ nur Ordner.
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
   Schiff gehört, liegt also in `Models/Ships/`, `Materials/Ships/`,
-  `Textures/Ships/`, `Prefabs/Ships/` und `Animations/Ships/`.
+  `Textures/Ships/` und `Prefabs/Ships/`.
 - **Neue Assets** kommen in ihren Typ-Ordner und dort in die passende Gruppe,
   nicht lose in einen Typ-Ordner und nie in den Root von `Assets/`. Eine neue
   Gruppe bekommt in jedem Typ-Ordner, den sie braucht, denselben Namen.
@@ -288,12 +288,33 @@ bei 8.
   Pacing“ ist aus, damit würde Unity immer abrunden. Im Editor gilt das Ziel nur
   fürs Game-Fenster.
 - **Spiellogik an die Zeit binden, nicht an Frames:** Bewegung mit
-  `Time.deltaTime`, Abläufe mit `Time.time`. Die einzige Ausnahme ist der
-  Spurwechsel in `PlayerMotor.Move()`: Er schließt pro Frame
-  `Geschwindigkeit × Frame-Zeit` der Strecke zur Zielspur und dauert deshalb bei
-  60 FPS etwas länger als bei 30 (bei Startgeschwindigkeit etwa 0,25 statt 0,22 s).
-  Ab `Geschwindigkeit × Frame-Zeit` > 1 schießt er über die Spur hinaus, bei
-  60 FPS also ab Geschwindigkeit 60, bei 30 FPS schon ab 30.
+  `Time.deltaTime`, Abläufe mit `Time.time`. Vorsicht bei Glättungen, die pro
+  Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
+  trotzdem an der Bildrate, umso stärker, je größer `k` ist, und schießen ab
+  `k × Time.deltaTime` > 1 übers Ziel hinaus. Bildratenfest ist der Anteil
+  `1 - Mathf.Exp(-k * Time.deltaTime)`. `CameraMotor` glättet noch mit `k` = 1,
+  sein Abstand zum Schiff weicht dadurch zwischen 30 und 60 FPS um unter 2 % ab.
+- **Spurwechsel:** `PlayerMotor.Move()` schließt die Lücke zur Zielspur
+  exponentiell mit der geflogenen Strecke (`k_LaneChangeSharpness` = 1,25 pro
+  Einheit). Ein Wechsel braucht damit bei jeder Geschwindigkeit dieselbe Strecke,
+  95 % nach 2,4 Einheiten, und bei jeder Bildrate dieselbe Zeit: 0,22 s bei
+  Startgeschwindigkeit, rund 0,1 s bei Geschwindigkeit 25. Das ist das Tempo des
+  alten Spurwechsels bei 30 FPS auf dem Handy (Entscheidung Oktober 2026). Bis
+  v1.4.5 schloss er pro Frame `Geschwindigkeit × Frame-Zeit` der Lücke, lief
+  deshalb bei 60 FPS langsamer als bei 30 und schoss bei 30 FPS ab
+  Geschwindigkeit 30 über die Spur hinaus.
+- **Neigung beim Spurwechsel** gibt es noch nicht. Sie kommt mit dem
+  Schiffs-Remaster in v1.7.0 (Entscheidung Oktober 2026), am besten im Code aus
+  der Seitwärtsbewegung. Die alten Neige-Clips (20° zur Seite und zurück in
+  0,5 s) liefen seit mindestens 2021 nicht, weil der Animator am `Ship` im
+  Prefab `Playership` aus war. Animator, `Player.controller` und Clips sind seit
+  v1.4.6 gelöscht.
+- **Bewegung testen:** Im Play Mode das Schiff auf y = 100 heben
+  (`CharacterController` dafür kurz aus), dann trifft es nichts und fliegt normal
+  weiter. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
+  Editor gerade läuft, und ein Handler an `Application.onBeforeRender` schreibt
+  die Position pro Frame mit. So wurde der Spurwechsel in v1.4.6 bei 30, 60 und
+  144 FPS gemessen.
 - **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
   Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
   `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus
@@ -440,12 +461,32 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   `Input.GetKey` …). Das kompiliert weiterhin, wirft zur Laufzeit aber eine
   `InvalidOperationException`. Neuer Code liest Geräte über `UnityEngine.InputSystem`.
 - `MobileInput` liest Touch und Maus über **einen** Codepfad: `Pointer.current` ist
-  auf dem Handy der Touchscreen (erster Finger), im Editor die Maus. Die Wisch-Logik
-  ist dieselbe wie vorher: 100 px Deadzone, ein Wischer pro Berührung, ausgelöst
-  schon während des Ziehens.
-- **Pfeiltasten ←/→** wechseln die Spur wie ein Wischer, zum Testen im Play Mode.
-  Im Editor kommen Tastatur und Maus nur an, wenn das Game-Fenster den Fokus hat
-  (Standardverhalten des Input Systems) - vorher einmal ins Game-Fenster klicken.
+  auf dem Handy der Touchscreen (erster Finger), im Editor die Maus. Die Wisch-Logik:
+  6 mm Deadzone, ein Wischer pro Berührung, ausgelöst schon während des Ziehens,
+  spätestens beim Loslassen. Bis v1.4.5 ging ein kurzer, schneller Wischer
+  verloren, der die Deadzone erst mit seiner letzten Bewegung verließ. Das Messen
+  beim Loslassen klappt auch auf dem Handy: Der Touchscreen behält dann die
+  letzte Position, das Input System setzt nur Delta und Tap-Zähler zurück.
+  Die Richtung entscheidet die längere Achse, nur ein überwiegend waagrechter
+  Wischer wechselt also die Spur. Bis v1.4.5 zählte allein das Vorzeichen von x,
+  da reichte ein Wisch nach oben mit etwas Seitendrift.
+- **Deadzone in Millimetern** (seit v1.4.6, vorher feste 100 px, je nach Display
+  etwa 5 bis 9 mm Wischweg): `MobileInput` rechnet die 6 mm in `Awake` über
+  `Screen.dpi` in Pixel um. Meldet ein Gerät keine dpi (`Screen.dpi` ist 0),
+  nimmt es 420 dpi an, ein typisches Handy, das ergibt knapp 100 px. Im Editor
+  gilt die dpi des Monitors, hier 168, also 40 px. Ob sich 6 mm gut anfühlen,
+  vor v2.0 auf dem Handy prüfen.
+- **Für v1.9.0 vorbereitet:** `MobileInput` meldet auch senkrechte Wischer
+  (`HasSwipedUp`, `HasSwipedDown`) und Doppeltipps (`HasDoubleTapped`), nur liest
+  sie noch nichts im Spiel. Ein Doppeltipp sind zwei Berührungen, die höchstens
+  0,3 s nacheinander aufsetzen, die erste ohne Wischer losgelassen. Er zählt beim
+  Aufsetzen der zweiten, und die startet keinen weiteren (wie bei Android).
+- **Tasten zum Testen im Play Mode:** Die Pfeiltasten wirken wie Wischer, ←/→
+  wechseln also die Spur. Zweimal Leertaste ist ein Doppeltipp, die Leertaste
+  ist kein UI-Submit (das ist nur Enter). Gamepad-Steuerung und A/D gibt es
+  bewusst nicht (Entscheidung Oktober 2026). Im Editor kommen Tastatur und Maus
+  nur an, wenn das Game-Fenster den Fokus hat (Standardverhalten des Input
+  Systems) - vorher einmal ins Game-Fenster klicken.
 - Das UI läuft über `InputSystemUIInputModule` am EventSystem, mit den
   Standardaktionen aus dem Paket (`DefaultInputActions`), außer „Cancel“ (Escape):
   Die ist seit v1.4.5 abgehängt, siehe „Pause“. Das alte
@@ -456,7 +497,18 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   Fokus aufs Game-Fenster dafür vorübergehend `InputSystem.settings`
   umstellen (`editorInputBehaviorInPlayMode = AllDeviceInputAlwaysGoesToGameView`,
   `backgroundBehavior = IgnoreFocus`) und danach zurücksetzen. Die Settings sind
-  kein Asset, sie leben nur im Speicher.
+  kein Asset, sie leben nur im Speicher. Solange sie umgestellt sind, landet auch
+  jeder echte Klick im Editor im Spiel. Touch geht über einen virtuellen
+  Touchscreen (`InputSystem.AddDevice<Touchscreen>()`, Ereignisse als
+  `TouchState`), den man danach wieder entfernt. Abläufe über mehrere Frames
+  (Wischer, Doppeltipp) spielt ein Handler an `Application.onBeforeRender` ab,
+  ein Schritt pro Frame.
+- **Vorsicht, Auto-Pause beim Simulieren:** Ein Fokuswechsel im Editor pausiert
+  den Run, und mitten auf dem Bildschirm liegen dann Settings- und
+  Continue-Button. Weitere simulierte Tipps in der Mitte klicken sich durch die
+  Menüs. In v1.4.6 verstellte ein Test so Lautstärke und „Use new Sound“. Im Test
+  bei einer Pause die restlichen Schritte verwerfen und den Spielstand vorher und
+  nachher vergleichen.
 - **Klicks für Tests so simulieren, nicht per `onClick.Invoke()` von außen.** Ein
   echter Klick läuft im EventSystem vor den `Update()`-Methoden der Spielskripte,
   im selben Frame. Der Revive-Bug (v1.4.4) trat nur so auf - per

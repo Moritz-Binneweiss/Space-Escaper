@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.5 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.6 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -101,6 +101,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Remaster all game objects
 - [ ] Remaster all spaceships
+- [ ] Ship tilts into lane changes
 - [ ] Remaster obstacles
 - [ ] Remaster collectible coins
 - [ ] Remaster structures
@@ -145,6 +146,19 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 ### **v1.5.0** | Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
+
+#### **v1.4.6** | Swipe Controls _(October 7, 2026)_
+
+<small>
+
+- ⏱️ Lane changes take the same time at any frame rate
+- 🗑️ Removed the unused ship animator and its tilt clips
+- 📏 Swipe distance in millimeters, the same on every screen
+- 🐛 Fixed short, quick swipes getting lost
+- ↔️ Only mostly sideways swipes change lanes
+- 👆 Input prepared for double taps and vertical swipes
+
+</small>
 
 #### **v1.4.5** | Pause, Code Style & 60 FPS _(October 7, 2026)_
 
