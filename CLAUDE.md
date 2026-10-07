@@ -114,7 +114,7 @@ nur Ordner.
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
   Schiff gehört, liegt also in `Models/Ships/`, `Materials/Ships/`,
-  `Textures/Ships/`, `Prefabs/Ships/` und `Animations/Ships/`.
+  `Textures/Ships/` und `Prefabs/Ships/`.
 - **Neue Assets** kommen in ihren Typ-Ordner und dort in die passende Gruppe,
   nicht lose in einen Typ-Ordner und nie in den Root von `Assets/`. Eine neue
   Gruppe bekommt in jedem Typ-Ordner, den sie braucht, denselben Namen.
@@ -303,6 +303,12 @@ bei 8.
   v1.4.5 schloss er pro Frame `Geschwindigkeit × Frame-Zeit` der Lücke, lief
   deshalb bei 60 FPS langsamer als bei 30 und schoss bei 30 FPS ab
   Geschwindigkeit 30 über die Spur hinaus.
+- **Neigung beim Spurwechsel** gibt es noch nicht. Sie kommt mit dem
+  Schiffs-Remaster in v1.7.0 (Entscheidung Oktober 2026), am besten im Code aus
+  der Seitwärtsbewegung. Die alten Neige-Clips (20° zur Seite und zurück in
+  0,5 s) liefen seit mindestens 2021 nicht, weil der Animator am `Ship` im
+  Prefab `Playership` aus war. Animator, `Player.controller` und Clips sind seit
+  v1.4.6 gelöscht.
 - **Bewegung testen:** Im Play Mode das Schiff auf y = 100 heben
   (`CharacterController` dafür kurz aus), dann trifft es nichts und fliegt normal
   weiter. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der

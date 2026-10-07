@@ -8,7 +8,6 @@ namespace SpaceEscaper
     public class PlayerMotor : MonoBehaviour
     {
         private const string k_ObstacleTag = "Obstacle";
-        private const string k_DeathTrigger = "Death";
 
         private const float k_LaneDistance = 3.5f;
         private const int k_LeftLane = 0;
@@ -27,7 +26,6 @@ namespace SpaceEscaper
         [Tooltip("The ARISTOCRAT engine flame. Its emission is on while the ship runs.")]
         [SerializeField] private ParticleSystem m_engineFlame;
 
-        private Animator m_animator;
         private CharacterController m_controller;
         private bool m_isRunning;
         private int m_desiredLane = k_MiddleLane;
@@ -40,7 +38,6 @@ namespace SpaceEscaper
         {
             m_speed = k_StartSpeed;
             m_controller = GetComponent<CharacterController>();
-            m_animator = GetComponent<Animator>();
             SetEngineFlameEmission(false);
         }
 
@@ -115,7 +112,6 @@ namespace SpaceEscaper
 
         private void Crash()
         {
-            m_animator.SetTrigger(k_DeathTrigger);
             m_isRunning = false;
             GameManager.Instance.HandleDeath();
             Instantiate(m_explosionVfx, transform.position, Quaternion.identity);

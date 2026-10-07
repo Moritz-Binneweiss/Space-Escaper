@@ -101,6 +101,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Remaster all game objects
 - [ ] Remaster all spaceships
+- [ ] Ship tilts into lane changes
 - [ ] Remaster obstacles
 - [ ] Remaster collectible coins
 - [ ] Remaster structures
@@ -151,6 +152,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 <small>
 
 - [x] Lane changes take the same time at any frame rate
+- [x] Removed the unused ship animator and its tilt clips
 - [ ] Swipe distance in millimeters, the same on every screen
 - [ ] Only mostly sideways swipes change lanes
 - [ ] Input prepared for double taps and vertical swipes

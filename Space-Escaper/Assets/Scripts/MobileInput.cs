@@ -9,10 +9,7 @@ namespace SpaceEscaper
     public class MobileInput : MonoBehaviour
     {
         private const float k_DeadzoneInPixels = 100f;
-        private const string k_LeftTrigger = "Left";
-        private const string k_RightTrigger = "Right";
 
-        private Animator m_animator;
         private bool m_hasTapped;
         private bool m_hasSwipedLeft;
         private bool m_hasSwipedRight;
@@ -32,11 +29,6 @@ namespace SpaceEscaper
             Instance = this;
         }
 
-        private void Start()
-        {
-            m_animator = GetComponent<Animator>();
-        }
-
         private void Update()
         {
             m_hasTapped = false;
@@ -47,16 +39,6 @@ namespace SpaceEscaper
             ReadPointer();
             DetectSwipe();
             ReadKeyboard();
-
-            if (m_hasSwipedLeft)
-            {
-                m_animator.SetTrigger(k_LeftTrigger);
-            }
-
-            if (m_hasSwipedRight)
-            {
-                m_animator.SetTrigger(k_RightTrigger);
-            }
         }
 
         // Pointer.current is the touchscreen on the phone and the mouse in the
