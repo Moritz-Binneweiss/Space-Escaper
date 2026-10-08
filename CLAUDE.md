@@ -113,7 +113,9 @@ Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen.
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
   also vor jedem Commit, der `SaveData`, `SaveSystem` oder `RunCoins` ändert. Die
-  CLI legt dabei eine `TestResults.xml` neben den Spielstand, die darf weg.
+  CLI legt dabei eine `TestResults.xml` neben den Spielstand, die darf weg. Ist die
+  offene Szene ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie
+  speichern soll. Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
 - **Testbar ist, was keine Szene braucht.** Regeln gehören deshalb in einfache
   Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours. Was nur mit der
   Szene geht (dass `GameManager` nach einem Kauf sofort speichert, Eingaben,
@@ -378,10 +380,14 @@ bei 8.
   (bei 11 rund 14 Einheiten, bei 13 rund 16) und schrumpfte nach einem Revive, weil
   ihre Rampe auch auf dem Todesbildschirm weiterlief. `m_offset` lässt sich im
   Inspector auch im Play Mode verstellen. Beim Start des Runs schwenkt sie in rund
-  3 s aus dem Menü hinter das Schiff. Nach dem Tod zielt sie mit dem letzten Tempo
-  weiter voraus, obwohl das Schiff steht, und kommt über dem Wrack zum Stehen, nach
-  Runs ab etwa 30 s sogar davor. Das Wrack liegt dann schon nach gut 1 s unterhalb
-  des Bilds (Sichtfeld 75°, Neigung 20°).
+  3 s aus dem Menü hinter das Schiff. Nach einem Crash bremst sie bis
+  `m_crashOffset` hinter dem Wrack ab, derzeit 8 Einheiten dahinter und 8 darüber
+  (seit v1.4.9, Entscheidung Oktober 2026). So bleibt die Explosion unter den
+  Buttons des Todesbildschirms im Bild (Sichtfeld 75°, Neigung 20°). Damit sie dabei
+  nicht ruckartig langsamer wird, schließt sie die Lücke mit Tempo geteilt durch den
+  Abstand der beiden Offsets pro Sekunde und fährt so mit ihrem Flugtempo los. Nach
+  2 s steht sie, bei jedem Tempo. Bis v1.4.8 flog sie nach dem Tod weiter auf ihren
+  Platz im Run zu und stand nach langen Runs über oder vor dem Wrack.
 - **Spurwechsel:** `PlayerMotor.Move()` schließt die Lücke zur Zielspur
   exponentiell mit der geflogenen Strecke (`k_LaneChangeSharpness` = 1,25 pro
   Einheit). Ein Wechsel braucht damit bei jeder Geschwindigkeit dieselbe Strecke,
@@ -408,7 +414,10 @@ bei 8.
   144 FPS gemessen. Für einen Vergleich vor und nach einem Umbau `Random.InitState`
   vor einem Szenen-Reload und noch einmal beim Start des Runs setzen, dann spawnen
   die `TileManager` dieselben Abschnitte (so in v1.4.9: alle 62 Ereignisse gleich).
-  Eine Auto-Pause verschiebt dabei nur die Bildnummern.
+  Eine Auto-Pause verschiebt dabei nur die Bildnummern. Ein Run im Test schreibt
+  beim Tod Münzen und Highscore in den Spielstand. Ihn direkt vor jedem Lauf sichern
+  und danach genau diese Sicherung zurücklegen, keine ältere: Dazwischen kann jemand
+  im Editor gespielt haben (so ging in v1.4.9 ein Spielstand verloren).
 - **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
   Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
   `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus
