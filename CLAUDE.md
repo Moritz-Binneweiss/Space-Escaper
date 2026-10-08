@@ -756,8 +756,12 @@ neben den fertigen Sounds (Entscheidung Oktober 2026).
   fest), `Ableton Project Info/` und später `Samples/` mit eigenen Aufnahmen und
   gesammelten Samples. **Nicht im Repo,** jeweils samt `.meta`: `Backup/` mit
   Abletons eigenen Sicherungen (das Repo ersetzt sie), die `.asd`-Analysedateien, die
-  Ableton neben Samples legt, und die `Desktop.ini` für das Ordner-Symbol. Die
-  Regeln stehen am Ende der `.gitignore`.
+  Ableton neben Samples legt, und die `Desktop.ini` für das Ordner-Symbol. Aus
+  `Samples/` kommen nur die Samples selbst ins Repo, keine `.meta`: Live legt die
+  Ordner darin selbst an, oft leer, und Git hält keine leeren Ordner. Ihre `.meta`
+  stünden nach einem Clone ohne Ordner da. Weil nichts im Spiel auf das Live-Projekt
+  zeigt, schadet es nicht, dass Unity sie nach einem Clone neu anlegt (seit v1.4.9).
+  Die Regeln stehen am Ende der `.gitignore`.
 - **Zum Öffnen nach einem Clone** braucht es Ableton Live 11 mit Core Library
   (gespeichert mit 11.3 Standard) und das Plugin Unison Zen Master (VST3). Alle
   Samples des Sets stammen aus der Core Library, das Set verweist nur auf sie (Stand

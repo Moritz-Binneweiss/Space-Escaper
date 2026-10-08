@@ -504,3 +504,10 @@
 **/*.asd.meta
 **/[Dd]esktop.ini
 **/[Dd]esktop.ini.meta
+
+# Live creates the folders in Samples on its own (Recorded and others), often
+# empty. Git keeps no empty folders, so their .meta files would be left without
+# a folder after a clone. Nothing in the game points to files in a Live project,
+# so the samples stay in Git, but no .meta file from Samples does.
+**/* Project/Samples.meta
+**/* Project/Samples/**/*.meta
