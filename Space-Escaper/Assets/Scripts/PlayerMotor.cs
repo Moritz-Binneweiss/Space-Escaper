@@ -28,7 +28,7 @@ namespace SpaceEscaper
         private bool m_isRunning;
         private int m_desiredLane = k_MiddleLane;
         private float m_speed;
-        private float m_lastSpeedIncreaseTime;
+        private float m_timeSinceSpeedIncrease;
 
         public bool IsRunning => m_isRunning;
 
@@ -77,14 +77,17 @@ namespace SpaceEscaper
             // music here would cut it off a frame later.
         }
 
+        // Counts flying time only, so the menu before a run, the death screen before
+        // a revive and the pause do not bring the next speed-up closer.
         private void IncreaseSpeedOverTime()
         {
-            if (Time.time - m_lastSpeedIncreaseTime <= k_SpeedIncreaseInterval)
+            m_timeSinceSpeedIncrease += Time.deltaTime;
+            if (m_timeSinceSpeedIncrease < k_SpeedIncreaseInterval)
             {
                 return;
             }
 
-            m_lastSpeedIncreaseTime = Time.time;
+            m_timeSinceSpeedIncrease -= k_SpeedIncreaseInterval;
             m_speed += k_SpeedIncreaseAmount;
             GameManager.Instance.UpdateModifier(m_speed - k_StartSpeed);
         }

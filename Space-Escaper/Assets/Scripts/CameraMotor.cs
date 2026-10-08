@@ -21,7 +21,7 @@ namespace SpaceEscaper
         [SerializeField] private Vector3 m_rotation;
 
         private float m_speedBonus;
-        private float m_lastSpeedIncreaseTime;
+        private float m_timeSinceSpeedIncrease;
 
         public bool IsMoving { get; set; }
 
@@ -32,9 +32,10 @@ namespace SpaceEscaper
                 return;
             }
 
-            if (Time.time - m_lastSpeedIncreaseTime > k_SpeedIncreaseInterval)
+            m_timeSinceSpeedIncrease += Time.deltaTime;
+            if (m_timeSinceSpeedIncrease >= k_SpeedIncreaseInterval)
             {
-                m_lastSpeedIncreaseTime = Time.time;
+                m_timeSinceSpeedIncrease -= k_SpeedIncreaseInterval;
                 m_speedBonus += k_SpeedIncreaseAmount;
             }
 
