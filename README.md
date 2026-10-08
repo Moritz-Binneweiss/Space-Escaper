@@ -153,6 +153,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [x] One spawner for the track and the asteroid fields instead of two near copies
 - [x] Fixed the first speed-up of a run coming too early
+- [x] Faster start speed (13 instead of 11)
 - [ ] Camera takes the ship's speed instead of computing its own
 
 </small>

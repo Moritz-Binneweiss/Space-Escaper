@@ -15,10 +15,10 @@ namespace SpaceEscaper
         private const int k_RightLane = 2;
 
         // How quickly the ship closes in on its lane per unit flown forward. 1.25
-        // gets it 95% of the way within 2.4 units, 0.22 s at start speed.
+        // gets it 95% of the way within 2.4 units, 0.18 s at start speed.
         private const float k_LaneChangeSharpness = 1.25f;
 
-        private const float k_StartSpeed = 11f;
+        private const float k_StartSpeed = 13f;
         private const float k_SpeedIncreaseInterval = 5f;
         private const float k_SpeedIncreaseAmount = 0.2f;
 

@@ -362,19 +362,20 @@ bei 8.
   `k × Time.deltaTime` > 1 übers Ziel hinaus. Bildratenfest ist der Anteil
   `1 - Mathf.Exp(-k * Time.deltaTime)`. `CameraMotor` glättet noch mit `k` = 1,
   sein Abstand zum Schiff weicht dadurch zwischen 30 und 60 FPS um unter 2 % ab.
-- **Tempo:** Das Schiff startet mit 11 Einheiten pro Sekunde und wird alle 5 s
-  um 0,2 schneller, ohne Obergrenze. Seit v1.4.9 zählt `PlayerMotor` dafür nur die
+- **Tempo:** Das Schiff startet mit 13 Einheiten pro Sekunde (bis v1.4.8 mit 11)
+  und wird alle 5 s um 0,2 schneller, ohne Obergrenze. Seit v1.4.9 zählt `PlayerMotor` dafür nur die
   Zeit im Flug: Menü, Pause und Todesbildschirm bringen den nächsten Schritt nicht
   näher. Bis v1.4.8 maß er an `Time.time` ab App-Start, wer länger als 5 s im Menü
   blieb, bekam den ersten Schritt schon im ersten Frame des Runs. `CameraMotor`
   rechnet die Rampe nach, weil ihre Glättung sie um etwa eine Sekunde Flug hinter
   ihrem Ziel herlaufen lässt. Ihr Versatz wächst mit dem Tempo um genau so viel, so
   bleibt der Abstand zum Schiff gleich: 3 Einheiten Versatz plus eine Sekunde Flug
-  beim Starttempo, rund 14 Einheiten.
+  beim Starttempo, rund 16 Einheiten. Ein höheres Starttempo rückt die Kamera also
+  weiter zurück, bei 11 waren es 14.
 - **Spurwechsel:** `PlayerMotor.Move()` schließt die Lücke zur Zielspur
   exponentiell mit der geflogenen Strecke (`k_LaneChangeSharpness` = 1,25 pro
   Einheit). Ein Wechsel braucht damit bei jeder Geschwindigkeit dieselbe Strecke,
-  95 % nach 2,4 Einheiten, und bei jeder Bildrate dieselbe Zeit: 0,22 s bei
+  95 % nach 2,4 Einheiten, und bei jeder Bildrate dieselbe Zeit: 0,18 s bei
   Startgeschwindigkeit, rund 0,1 s bei Geschwindigkeit 25. Das ist das Tempo des
   alten Spurwechsels bei 30 FPS auf dem Handy (Entscheidung Oktober 2026). Bis
   v1.4.5 schloss er pro Frame `Geschwindigkeit × Frame-Zeit` der Lücke, lief
@@ -512,7 +513,9 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
   ~45 min, erster VAGOR nach ~2 h, alles nach ~3,3 h. Die Originalpreise von 2021
   (3.500 / 6.000 / 8.000) hätten über 20 h gebraucht. Der derzeit kostenlose
   Revive hebt das Einkommen pro Run grob um 50-70 % - nach dessen Umbau (v1.9.2)
-  die Preise gegenprüfen.
+  die Preise gegenprüfen. Seit v1.4.9 startet das Schiff mit 13 statt 11: Ein
+  gleich langer Run fliegt rund 15 % weiter und bringt entsprechend mehr Münzen,
+  60 s also ~50 statt ~40. Ob Runs dadurch kürzer werden, zeigt das Spielen.
 - **Merkposten: Der Spielstand ist unverschlüsselt** (früher ein TODO im
   `GameManager`, in v1.4.3 hierher verschoben). Die Datei ist lesbares JSON und
   lässt sich mit Zugriff auf den Datenordner der App ändern. Ohne Echtgeld-Käufe und
