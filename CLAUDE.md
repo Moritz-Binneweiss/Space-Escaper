@@ -192,6 +192,13 @@ behalten dadurch ihre Weltposition.
   lang, 8 auf einmal). Wann ein passierter Abschnitt nach vorn wandert, legt
   `m_recycleDistance` fest: 55 bei der Strecke, 50 bei den Feldern. Nur die Strecke
   setzt der Revive-Button neu, siehe „Bekannte Altlasten“.
+- **Effekte** (Staub beim Einsammeln einer Münze, Explosion beim Crash) entstehen
+  zur Laufzeit im Root und löschen sich selbst, der Staub nach 2 s, die Explosion
+  nach 4 s (`k_DustLifetime` in `Coin`, `k_ExplosionLifetime` in `PlayerMotor`). Das
+  ist die Laufzeit ihrer Partikelsysteme plus die längste Lebensdauer eines
+  Teilchens, leer sind sie schon nach 1 und gut 2 s. Bis v1.4.8 blieben sie bis zum
+  nächsten Szenen-Reload liegen, jede eingesammelte Münze hinterließ ein Objekt. Wer
+  einen Effekt austauscht, etwa im Remaster (v1.7.0), passt die Zeit mit an.
 - **Die Reihenfolge im UI ist die Zeichenreihenfolge:** Spätere Geschwister
   liegen oben. Sie blieb beim Umbau, wie sie war. Vor einem Umsortieren die
   Übergänge prüfen, in denen zwei Menüs gleichzeitig sichtbar sind (Tod, Pause,
@@ -408,7 +415,9 @@ bei 8.
   weiter. Der erste zufällige Streckenabschnitt beginnt bei z = 60, seine
   Hindernisse reichen teils bis 57 zurück. Beim Starttempo ist das Schiff nach gut
   4 s dort, bis dahin also heben oder die Collider der Hindernisse davor
-  ausschalten. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
+  ausschalten. Soll es Münzen einsammeln, bleibt es unten, und alle festen Collider
+  der Abschnitte (`Chunk…` im Root, ohne Trigger) gehen jeden Frame aus.
+  `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
   Editor gerade läuft, und ein Handler an `Application.onBeforeRender` schreibt
   die Position pro Frame mit. So wurde der Spurwechsel in v1.4.6 bei 30, 60 und
   144 FPS gemessen. Für einen Vergleich vor und nach einem Umbau `Random.InitState`

@@ -156,6 +156,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Faster start speed (13 instead of 11)
 - [x] Camera takes the ship's speed instead of computing its own, the same at any frame rate
 - [x] Camera stops behind the wreck after a crash, so the explosion stays in view
+- [x] Fixed coin dust and crash explosions staying in the scene after they have played
 
 </small>
 

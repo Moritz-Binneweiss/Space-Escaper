@@ -22,6 +22,9 @@ namespace SpaceEscaper
         private const float k_SpeedIncreaseInterval = 5f;
         private const float k_SpeedIncreaseAmount = 0.2f;
 
+        // The explosion emits for at most 2 s, and its embers and smoke live up to 2 s.
+        private const float k_ExplosionLifetime = 4f;
+
         [SerializeField] private GameObject m_explosionVfx;
 
         private CharacterController m_controller;
@@ -119,7 +122,8 @@ namespace SpaceEscaper
         {
             m_isRunning = false;
             GameManager.Instance.HandleDeath();
-            Instantiate(m_explosionVfx, transform.position, Quaternion.identity);
+            GameObject explosion = Instantiate(m_explosionVfx, transform.position, Quaternion.identity);
+            Destroy(explosion, k_ExplosionLifetime);
             AudioSystem.Instance.PlayExplosion();
             AudioSystem.Instance.StopEngine();
         }
