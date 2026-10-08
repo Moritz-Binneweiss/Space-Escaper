@@ -360,18 +360,28 @@ bei 8.
   Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
   trotzdem an der Bildrate, umso stärker, je größer `k` ist, und schießen ab
   `k × Time.deltaTime` > 1 übers Ziel hinaus. Bildratenfest ist der Anteil
-  `1 - Mathf.Exp(-k * Time.deltaTime)`. `CameraMotor` glättet noch mit `k` = 1,
-  sein Abstand zum Schiff weicht dadurch zwischen 30 und 60 FPS um unter 2 % ab.
+  `1 - Mathf.Exp(-k * Time.deltaTime)`. So glättet seit v1.4.9 `CameraMotor`,
+  bis dahin wich der Abstand der Kamera zum Schiff zwischen 30 und 60 FPS um
+  1,4 % ab.
 - **Tempo:** Das Schiff startet mit 13 Einheiten pro Sekunde (bis v1.4.8 mit 11)
   und wird alle 5 s um 0,2 schneller, ohne Obergrenze. Seit v1.4.9 zählt `PlayerMotor` dafür nur die
   Zeit im Flug: Menü, Pause und Todesbildschirm bringen den nächsten Schritt nicht
   näher. Bis v1.4.8 maß er an `Time.time` ab App-Start, wer länger als 5 s im Menü
-  blieb, bekam den ersten Schritt schon im ersten Frame des Runs. `CameraMotor`
-  rechnet die Rampe nach, weil ihre Glättung sie um etwa eine Sekunde Flug hinter
-  ihrem Ziel herlaufen lässt. Ihr Versatz wächst mit dem Tempo um genau so viel, so
-  bleibt der Abstand zum Schiff gleich: 3 Einheiten Versatz plus eine Sekunde Flug
-  beim Starttempo, rund 16 Einheiten. Ein höheres Starttempo rückt die Kamera also
-  weiter zurück, bei 11 waren es 14.
+  blieb, bekam den ersten Schritt schon im ersten Frame des Runs.
+- **Kamera:** `CameraMotor` hält im Run den Abstand `m_offset` zum Schiff, derzeit
+  14 Einheiten dahinter und 8 darüber wie bis v1.4.8 (Entscheidung Oktober 2026),
+  bei jedem Tempo und jeder Bildrate gleich (gemessen bei 30 und 60 FPS: 14,00).
+  Ihre Glättung (`k_FollowSharpness` = 1 pro Sekunde) ließe sie rund eine Sekunde
+  Flug hinter diesem Platz herlaufen. Deshalb liest sie das Tempo bei
+  `PlayerMotor.Speed` und zielt genau um diesen Nachlauf voraus. Bis v1.4.8 rechnete
+  sie die Tempo-Rampe mit eigener Uhr nach. Ihr Abstand hing deshalb am Starttempo
+  (bei 11 rund 14 Einheiten, bei 13 rund 16) und schrumpfte nach einem Revive, weil
+  ihre Rampe auch auf dem Todesbildschirm weiterlief. `m_offset` lässt sich im
+  Inspector auch im Play Mode verstellen. Beim Start des Runs schwenkt sie in rund
+  3 s aus dem Menü hinter das Schiff. Nach dem Tod zielt sie mit dem letzten Tempo
+  weiter voraus, obwohl das Schiff steht, und kommt über dem Wrack zum Stehen, nach
+  Runs ab etwa 30 s sogar davor. Das Wrack liegt dann schon nach gut 1 s unterhalb
+  des Bilds (Sichtfeld 75°, Neigung 20°).
 - **Spurwechsel:** `PlayerMotor.Move()` schließt die Lücke zur Zielspur
   exponentiell mit der geflogenen Strecke (`k_LaneChangeSharpness` = 1,25 pro
   Einheit). Ein Wechsel braucht damit bei jeder Geschwindigkeit dieselbe Strecke,
@@ -389,7 +399,10 @@ bei 8.
   v1.4.6 gelöscht.
 - **Bewegung testen:** Im Play Mode das Schiff auf y = 100 heben
   (`CharacterController` dafür kurz aus), dann trifft es nichts und fliegt normal
-  weiter. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
+  weiter. Der erste zufällige Streckenabschnitt beginnt bei z = 60, seine
+  Hindernisse reichen teils bis 57 zurück. Beim Starttempo ist das Schiff nach gut
+  4 s dort, bis dahin also heben oder die Collider der Hindernisse davor
+  ausschalten. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
   Editor gerade läuft, und ein Handler an `Application.onBeforeRender` schreibt
   die Position pro Frame mit. So wurde der Spurwechsel in v1.4.6 bei 30, 60 und
   144 FPS gemessen. Für einen Vergleich vor und nach einem Umbau `Random.InitState`

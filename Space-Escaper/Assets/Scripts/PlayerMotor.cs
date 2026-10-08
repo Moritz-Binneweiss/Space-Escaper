@@ -32,6 +32,12 @@ namespace SpaceEscaper
 
         public bool IsRunning => m_isRunning;
 
+        /// <summary>
+        /// Forward speed in units per second. Keeps its value through a crash, so a
+        /// revive flies on at the same speed.
+        /// </summary>
+        public float Speed => m_speed;
+
         private void Start()
         {
             m_speed = k_StartSpeed;
