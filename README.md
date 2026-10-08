@@ -147,6 +147,15 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
+#### **v1.4.9** | Spawning & Camera _(------- --, 2026)_
+
+<small>
+
+- [x] One spawner for the track and the asteroid fields instead of two near copies
+- [ ] Camera takes the ship's speed instead of computing its own
+
+</small>
+
 #### **v1.4.8** | Ship Data _(October 8, 2026)_
 
 <small>

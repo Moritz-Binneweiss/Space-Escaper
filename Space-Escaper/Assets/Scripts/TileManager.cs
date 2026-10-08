@@ -4,14 +4,12 @@ using UnityEngine;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// Spawns the track tiles ahead of the ship and recycles the ones it has passed.
+    /// Spawns tiles ahead of the ship and recycles the ones it has passed. The scene
+    /// uses it twice: for the track sections and for the asteroid fields in the
+    /// background.
     /// </summary>
     public class TileManager : MonoBehaviour
     {
-        // How far the ship has to be past the start of the oldest tile before that
-        // tile is recycled into a new one ahead.
-        private const float k_RecycleDistance = 55f;
-
         // How far the spawn point moves back on a revive. The fresh tiles then
         // start a short distance ahead of the ship.
         private const float k_RespawnSetback = 150f;
@@ -22,6 +20,8 @@ namespace SpaceEscaper
         [SerializeField] private float m_nextSpawnZ = 100f;
         [SerializeField] private float m_tileLength = 60f;
         [SerializeField] private int m_numberOfTiles = 4;
+        [Tooltip("How far the ship flies past the start of the oldest tile before that tile is recycled ahead.")]
+        [SerializeField] private float m_recycleDistance = 55f;
         [SerializeField] private Transform m_player;
 
         private readonly List<GameObject> m_activeTiles = new List<GameObject>();
@@ -38,7 +38,7 @@ namespace SpaceEscaper
         private void Update()
         {
             float oldestTileStart = m_nextSpawnZ - m_numberOfTiles * m_tileLength;
-            if (m_player.position.z - k_RecycleDistance > oldestTileStart)
+            if (m_player.position.z - m_recycleDistance > oldestTileStart)
             {
                 SpawnRandomTile();
                 DeleteOldestTile();
@@ -46,8 +46,8 @@ namespace SpaceEscaper
         }
 
         /// <summary>
-        /// Replaces all tiles with fresh ones. Called by the revive button, right
-        /// after the ship starts running again.
+        /// Replaces all tiles with fresh ones. The revive button calls it for the
+        /// track, right after the ship starts running again.
         /// </summary>
         public void RespawnTiles()
         {

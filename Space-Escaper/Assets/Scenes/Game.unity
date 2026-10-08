@@ -2295,6 +2295,7 @@ MonoBehaviour:
   m_nextSpawnZ: 0
   m_tileLength: 60
   m_numberOfTiles: 4
+  m_recycleDistance: 55
   m_player: {fileID: 521938649}
 --- !u!4 &560458633
 Transform:
@@ -7011,7 +7012,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1803128861}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0fe344e75bc60104a81a9e56b62ddd16, type: 3}
+  m_Script: {fileID: 11500000, guid: 738178674681b5f42b0296c7c670e864, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   m_tilePrefabs:
@@ -7026,6 +7027,7 @@ MonoBehaviour:
   m_nextSpawnZ: 0
   m_tileLength: 40
   m_numberOfTiles: 8
+  m_recycleDistance: 50
   m_player: {fileID: 521938649}
 --- !u!4 &1803128863
 Transform:

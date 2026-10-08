@@ -9,10 +9,10 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 20 Skripte, ~2100 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 19 Skripte, ~2050 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
-  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning),
+  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
   `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
   (Schiffe).
 - `Space-Escaper/Assets/Tests/EditMode/` - EditMode-Tests, siehe „Tests“.
@@ -48,7 +48,9 @@ clean and scalable game code“ (Unity-6-Ausgabe, 2025, PDF über
 unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hier:
 
 - **Namespace** `SpaceEscaper` für alle Skripte. In `unity command eval` deshalb
-  `SpaceEscaper.GameManager` usw. schreiben.
+  `SpaceEscaper.GameManager` usw. schreiben. Veraltete APIs lehnt `eval` als
+  Fehler ab, in Unity 6.6 etwa `FindObjectsByType` mit `FindObjectsSortMode` und
+  `GetInstanceID`.
 - **Namen:** private Felder `m_camelCase`, private statische Felder `s_camelCase`,
   Konstanten `k_PascalCase`, Typen, Methoden und Properties PascalCase, lokale
   Variablen und Parameter camelCase. Booleans beginnen mit einem Verb
@@ -181,6 +183,13 @@ behalten dadurch ihre Weltposition.
 - **Was sich ständig bewegt, bleibt flach.** Unity aktualisiert Transforms pro
   Hierarchie, bewegte Kinder in großen Hierarchien kosten mehr. Deshalb liegt
   `Playership` im Root, und die Streckenabschnitte spawnen dort ebenfalls.
+- **Spawning:** `Systems/TileManager` und `Systems/FieldManager` tragen dieselbe
+  Komponente `TileManager` (seit v1.4.9, vorher zwei fast gleiche Klassen). Die
+  eine legt die Streckenabschnitte vor das Schiff (`Chunk…`, 60 Einheiten lang, 4
+  auf einmal), die andere die Asteroidenfelder im Hintergrund (`AsteroidField…`, 40
+  lang, 8 auf einmal). Wann ein passierter Abschnitt nach vorn wandert, legt
+  `m_recycleDistance` fest: 55 bei der Strecke, 50 bei den Feldern. Nur die Strecke
+  setzt der Revive-Button neu, siehe „Bekannte Altlasten“.
 - **Die Reihenfolge im UI ist die Zeichenreihenfolge:** Spätere Geschwister
   liegen oben. Sie blieb beim Umbau, wie sie war. Vor einem Umsortieren die
   Übergänge prüfen, in denen zwei Menüs gleichzeitig sichtbar sind (Tod, Pause,
@@ -373,7 +382,10 @@ bei 8.
   weiter. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
   Editor gerade läuft, und ein Handler an `Application.onBeforeRender` schreibt
   die Position pro Frame mit. So wurde der Spurwechsel in v1.4.6 bei 30, 60 und
-  144 FPS gemessen.
+  144 FPS gemessen. Für einen Vergleich vor und nach einem Umbau `Random.InitState`
+  vor einem Szenen-Reload und noch einmal beim Start des Runs setzen, dann spawnen
+  die `TileManager` dieselben Abschnitte (so in v1.4.9: alle 62 Ereignisse gleich).
+  Eine Auto-Pause verschiebt dabei nur die Bildnummern.
 - **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
   Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
   `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus
@@ -415,11 +427,12 @@ bei 8.
   `unity.DefaultCompany.FPS2`) und zieht mit dem neuen Paketnamen mit.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
   ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
-  zusätzlich `TileManager.RespawnTiles` auf - diese Verbindung existiert nur in der
-  Szene, nicht im Code. `RespawnTiles` deaktiviert die alten Abschnitte, bevor es sie
-  löscht: `Destroy` greift erst am Frame-Ende, das Schiff fliegt aber im selben
-  Frame wieder los. Ohne das krachte es beim Revive sofort ins selbe Hindernis
-  (zweite Explosion, Spiel-UI weg, Schiff unsichtbar; behoben in v1.4.4).
+  zusätzlich `RespawnTiles` am `TileManager` der Strecke (`Systems/TileManager`)
+  auf - diese Verbindung existiert nur in der Szene, nicht im Code. `RespawnTiles`
+  deaktiviert die alten Abschnitte, bevor es sie löscht: `Destroy` greift erst am
+  Frame-Ende, das Schiff fliegt aber im selben Frame wieder los. Ohne das krachte es
+  beim Revive sofort ins selbe Hindernis (zweite Explosion, Spiel-UI weg, Schiff
+  unsichtbar; behoben in v1.4.4).
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch den lokalen
   Highscore im Spielstand. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
@@ -633,7 +646,11 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
 - **Klicks für Tests so simulieren, nicht per `onClick.Invoke()` von außen.** Ein
   echter Klick läuft im EventSystem vor den `Update()`-Methoden der Spielskripte,
   im selben Frame. Der Revive-Bug (v1.4.4) trat nur so auf - per
-  `onClick.Invoke()` aus dem Editor sah alles gut aus.
+  `onClick.Invoke()` aus dem Editor sah alles gut aus. Kommen echte Eingaben nicht
+  an, weil Unity im Hintergrund läuft, tut es ein eigenes System im `PlayerLoop`
+  unter `PreUpdate`, das `ExecuteEvents.Execute` mit `pointerClickHandler` auf dem
+  Button aufruft: Es läuft wie ein echter Klick vor allen `Update()`-Methoden. So
+  wurde in v1.4.9 der Revive getestet.
 
 ## Pause
 
