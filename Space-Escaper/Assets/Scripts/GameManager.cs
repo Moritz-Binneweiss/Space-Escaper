@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -26,17 +25,6 @@ namespace SpaceEscaper
         private const int k_ScorePerCoin = 1;
         private const float k_SpaceportHideDelay = 3f;
 
-        // Ships are numbered 1-9, three skins per family: ARISTOCRAT 1-3,
-        // FREETER 4-6, VAGOR 7-9.
-        private const int k_FamilyCount = 3;
-        private const int k_SkinsPerFamily = 3;
-
-        // Children of the shop sprite container. The price tag of ship n is
-        // child n + 1.
-        private const int k_SelectSprite = 0;
-        private const int k_SelectedSprite = 1;
-        private const int k_PriceTagOffset = 1;
-
         [Header("Main Menu")]
         [SerializeField] private Animator m_mainMenuAnimator;
         [SerializeField] private Text m_menuCoinText;
@@ -52,23 +40,20 @@ namespace SpaceEscaper
         [SerializeField] private GameObject m_spaceport;
 
         [Header("Ship")]
-        [Tooltip("Child 0 is the flame container, children 1-9 are the ships.")]
+        [SerializeField] private ShipCatalog m_shipCatalog;
+        [Tooltip("The flown ship. Its model and engine flame are created here.")]
         [SerializeField] private Transform m_shipContainer;
-        [Tooltip("Engine flames, one child per family.")]
-        [SerializeField] private Transform m_flameContainer;
 
         [Header("Hangar Shop")]
         [SerializeField] private Animator m_shopAnimator;
         [SerializeField] private GameObject m_hangar;
-        [Tooltip("Price per ship, index = ship - 1.")]
-        [SerializeField] private List<int> m_shipPrices;
-        [Tooltip("Select or buy button per ship, index = ship - 1.")]
-        [SerializeField] private Transform m_buttonContainer;
-        [Tooltip("Hangar model per ship, index = ship - 1.")]
+        [Tooltip("The model of the ship shown in the hangar is created here.")]
         [SerializeField] private Transform m_shopShipContainer;
-        [Tooltip("0 = Select, 1 = Selected, ship + 1 = price tag.")]
-        [SerializeField] private Transform m_shopSpriteContainer;
-        [Tooltip("Skin buttons, one child per family.")]
+        [Tooltip("Graphic of the select or buy button: Select, Selected or the price tag of the shown ship.")]
+        [SerializeField] private Image m_selectOrBuyImage;
+        [SerializeField] private Sprite m_selectSprite;
+        [SerializeField] private Sprite m_selectedSprite;
+        [Tooltip("Skin buttons, one child per family in the order of ShipFamily.")]
         [SerializeField] private Transform m_skinButtonContainer;
 
         [Header("Death Menu")]
@@ -86,12 +71,15 @@ namespace SpaceEscaper
         private float m_reviveScore;
         private readonly RunCoins m_runCoins = new RunCoins();
 
-        private int m_currentShip;
+        // The ship being flown. Flames and everything in the run belong to it, not
+        // to the ship viewed in the hangar.
+        private ShipData m_currentShip;
+        private ShipData m_shownShip;
+        private GameObject m_shipModel;
+        private GameObject m_engineFlame;
+        private GameObject m_hangarModel;
 
-        // The family of the ship being flown. Flames and everything in the run
-        // belong to it, not to the family viewed in the hangar.
-        private int m_currentFamily;
-        private int m_selectedFamily;
+        private static readonly int s_familyCount = System.Enum.GetValues(typeof(ShipFamily)).Length;
 
         public static GameManager Instance { get; private set; }
 
@@ -118,11 +106,8 @@ namespace SpaceEscaper
 
             LoadShipSelection();
             ShowShipModel(m_currentShip);
-            ShowOnlyChild(m_buttonContainer, m_currentShip - 1);
-            ShowOnlyChild(m_shopShipContainer, m_currentShip - 1);
-            ShowOnlyChild(m_shopSpriteContainer, k_SelectedSprite);
-            ShowOnlyChild(m_skinButtonContainer, m_currentFamily);
-            HideAllChildren(m_flameContainer);
+            ShowOnlyChild(m_skinButtonContainer, (int)m_currentShip.Family);
+            ShowShip(m_currentShip);
 
             m_reviveButton.SetActive(true);
             m_spaceport.SetActive(true);
@@ -155,7 +140,7 @@ namespace SpaceEscaper
             FindAnyObjectByType<CameraMotor>().IsMoving = true;
             m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
             m_mainMenuAnimator.SetTrigger(k_HideTrigger);
-            m_flameContainer.GetChild(m_currentFamily).gameObject.SetActive(true);
+            m_engineFlame.SetActive(true);
             StartCoroutine(HideSpaceportAfterDelay());
         }
 
@@ -206,8 +191,8 @@ namespace SpaceEscaper
 
             m_reviveScore = m_score;
 
-            m_shipContainer.GetChild(m_currentShip).GetComponent<Renderer>().enabled = false;
-            m_flameContainer.GetChild(m_currentFamily).gameObject.SetActive(false);
+            m_shipModel.SetActive(false);
+            m_engineFlame.SetActive(false);
 
             saveData.RecordScore(finalScore);
             SaveSystem.Save();
@@ -238,60 +223,54 @@ namespace SpaceEscaper
 
         public void ShowPreviousFamily()
         {
-            m_selectedFamily = (m_selectedFamily + k_FamilyCount - 1) % k_FamilyCount;
-            ShowSelectedFamily();
+            ShowFamily(GetAdjacentFamily(-1));
         }
 
         public void ShowNextFamily()
         {
-            m_selectedFamily = (m_selectedFamily + 1) % k_FamilyCount;
-            ShowSelectedFamily();
+            ShowFamily(GetAdjacentFamily(1));
         }
 
         /// <summary>
-        /// Shows a ship in the hangar: its model, its button, and either its price
-        /// tag or whether it is already the one being flown.
+        /// Shows a ship in the hangar: its model, and either its price tag or
+        /// whether it is already the one being flown.
         /// </summary>
-        public void ShowShip(int ship)
+        public void ShowShip(ShipData ship)
         {
-            ShowOnlyChild(m_buttonContainer, ship - 1);
-            ShowOnlyChild(m_shopShipContainer, ship - 1);
-            ShowOnlyChild(m_shopSpriteContainer, GetShopSprite(ship));
+            m_shownShip = ship;
+            ShowHangarModel(ship);
+            m_selectOrBuyImage.sprite = GetSelectOrBuySprite(ship);
         }
 
         /// <summary>
-        /// Flies an owned ship, or buys one the player can afford and flies it.
+        /// Flies the ship shown in the hangar if it is owned, or buys it if the
+        /// player can afford it and flies it.
         /// </summary>
-        public void SelectOrBuyShip(int ship)
+        public void SelectOrBuyShownShip()
         {
             SaveData saveData = SaveSystem.Data;
-            if (saveData.IsShipUnlocked(ship))
+            if (saveData.IsShipUnlocked(m_shownShip.Id))
             {
                 AudioSystem.Instance.PlayShipSelect();
-                SelectShip(ship);
+                SelectShip(m_shownShip);
                 return;
             }
 
-            if (!saveData.TryBuyShip(ship, m_shipPrices[ship - 1]))
+            if (!saveData.TryBuyShip(m_shownShip.Id, m_shownShip.Price))
             {
                 return;
             }
 
             AudioSystem.Instance.PlayShipPurchase();
             m_menuCoinText.text = saveData.Coins.ToString();
-            SelectShip(ship);
+            SelectShip(m_shownShip);
         }
 
         private void LoadShipSelection()
         {
             SaveData saveData = SaveSystem.Data;
-
-            // Child 0 of the ship container is the flame container, the ships follow.
-            saveData.RepairShips(m_shipContainer.childCount - 1);
-
-            m_currentShip = saveData.CurrentShip;
-            m_currentFamily = GetFamilyOfShip(m_currentShip);
-            m_selectedFamily = m_currentFamily;
+            saveData.RepairShips(m_shipCatalog.StarterShip.Id, m_shipCatalog.GetShipIds());
+            m_currentShip = m_shipCatalog.FindShip(saveData.CurrentShipId);
         }
 
         private void Revive()
@@ -299,65 +278,81 @@ namespace SpaceEscaper
             m_deathMenuAnimator.SetTrigger(k_AliveTrigger);
             m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
             m_score = m_reviveScore;
-            m_shipContainer.GetChild(m_currentShip).GetComponent<Renderer>().enabled = true;
-            m_flameContainer.GetChild(m_currentFamily).gameObject.SetActive(true);
+            m_shipModel.SetActive(true);
+            m_engineFlame.SetActive(true);
             m_playerMotor.StartRunning();
             AudioSystem.Instance.ResumeMusic();
         }
 
-        private void ShowSelectedFamily()
+        private void ShowFamily(ShipFamily family)
         {
-            ShowOnlyChild(m_skinButtonContainer, m_selectedFamily);
-            ShowShip(GetFirstShipOfFamily(m_selectedFamily));
+            ShowOnlyChild(m_skinButtonContainer, (int)family);
+            ShowShip(m_shipCatalog.GetFirstShipOfFamily(family));
         }
 
-        private void SelectShip(int ship)
+        private void SelectShip(ShipData ship)
         {
             ShowShipModel(ship);
-            HideAllChildren(m_flameContainer);
 
             m_currentShip = ship;
-            m_currentFamily = m_selectedFamily;
-            SaveSystem.Data.SelectShip(ship);
+            SaveSystem.Data.SelectShip(ship.Id);
 
             // Written to disk right away rather than when the app is paused or
             // closed. After a purchase, that also keeps the coins spent.
             SaveSystem.Save();
 
-            ShowOnlyChild(m_shopSpriteContainer, k_SelectedSprite);
+            m_selectOrBuyImage.sprite = m_selectedSprite;
         }
 
-        private void ShowShipModel(int ship)
+        // The engine flame of every ship is switched the same way: off until a run
+        // starts, on until the crash, and on again after a revive.
+        private void ShowShipModel(ShipData ship)
         {
-            // Child 0 is the flame container, which stays visible with every ship.
-            ShowOnlyChild(m_shipContainer, ship);
-            m_shipContainer.GetChild(0).gameObject.SetActive(true);
-        }
-
-        private int GetShopSprite(int ship)
-        {
-            if (!SaveSystem.Data.IsShipUnlocked(ship))
+            if (m_shipModel != null)
             {
-                return ship + k_PriceTagOffset;
+                Destroy(m_shipModel);
+                Destroy(m_engineFlame);
             }
 
-            return ship == m_currentShip ? k_SelectedSprite : k_SelectSprite;
+            m_shipModel = Instantiate(ship.Model, m_shipContainer);
+            m_engineFlame = Instantiate(ship.EngineFlame, m_shipContainer);
+            m_engineFlame.SetActive(false);
+        }
+
+        private void ShowHangarModel(ShipData ship)
+        {
+            if (m_hangarModel != null)
+            {
+                Destroy(m_hangarModel);
+            }
+
+            // The model prefab carries its place on the flown ship. The hangar
+            // shows it on its stand instead, at a size of its own.
+            m_hangarModel = Instantiate(ship.Model, m_shopShipContainer);
+            m_hangarModel.transform.localPosition = Vector3.zero;
+            m_hangarModel.transform.localScale = ship.HangarScale;
+        }
+
+        private Sprite GetSelectOrBuySprite(ShipData ship)
+        {
+            if (!SaveSystem.Data.IsShipUnlocked(ship.Id))
+            {
+                return ship.PriceTag;
+            }
+
+            return ship == m_currentShip ? m_selectedSprite : m_selectSprite;
+        }
+
+        // Wraps around at both ends of the hangar.
+        private ShipFamily GetAdjacentFamily(int step)
+        {
+            return (ShipFamily)(((int)m_shownShip.Family + step + s_familyCount) % s_familyCount);
         }
 
         private IEnumerator HideSpaceportAfterDelay()
         {
             yield return new WaitForSeconds(k_SpaceportHideDelay);
             m_spaceport.SetActive(false);
-        }
-
-        private static int GetFirstShipOfFamily(int family)
-        {
-            return family * k_SkinsPerFamily + 1;
-        }
-
-        private static int GetFamilyOfShip(int ship)
-        {
-            return (ship - 1) / k_SkinsPerFamily;
         }
 
         private static string FormatModifier(float modifier)

@@ -23,7 +23,9 @@
 *.ogg filter=lfs diff=lfs merge=lfs binary
 *.flac filter=lfs diff=lfs merge=lfs binary
 *.aiff filter=lfs diff=lfs merge=lfs binary
+*.aif filter=lfs diff=lfs merge=lfs binary
 *.aac filter=lfs diff=lfs merge=lfs binary
+*.als filter=lfs diff=lfs merge=lfs binary
 
 # Video
 *.mp4 filter=lfs diff=lfs merge=lfs binary

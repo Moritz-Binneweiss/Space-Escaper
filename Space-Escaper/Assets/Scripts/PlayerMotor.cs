@@ -23,8 +23,6 @@ namespace SpaceEscaper
         private const float k_SpeedIncreaseAmount = 0.2f;
 
         [SerializeField] private GameObject m_explosionVfx;
-        [Tooltip("The ARISTOCRAT engine flame. Its emission is on while the ship runs.")]
-        [SerializeField] private ParticleSystem m_engineFlame;
 
         private CharacterController m_controller;
         private bool m_isRunning;
@@ -38,7 +36,6 @@ namespace SpaceEscaper
         {
             m_speed = k_StartSpeed;
             m_controller = GetComponent<CharacterController>();
-            SetEngineFlameEmission(false);
         }
 
         private void Update()
@@ -48,7 +45,6 @@ namespace SpaceEscaper
                 return;
             }
 
-            SetEngineFlameEmission(true);
             IncreaseSpeedOverTime();
 
             if (MobileInput.Instance.HasSwipedLeft)
@@ -115,15 +111,8 @@ namespace SpaceEscaper
             m_isRunning = false;
             GameManager.Instance.HandleDeath();
             Instantiate(m_explosionVfx, transform.position, Quaternion.identity);
-            SetEngineFlameEmission(false);
             AudioSystem.Instance.PlayExplosion();
             AudioSystem.Instance.StopEngine();
-        }
-
-        private void SetEngineFlameEmission(bool isEnabled)
-        {
-            ParticleSystem.EmissionModule emission = m_engineFlame.emission;
-            emission.enabled = isEnabled;
         }
     }
 }

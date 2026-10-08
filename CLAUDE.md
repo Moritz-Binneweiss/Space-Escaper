@@ -9,17 +9,19 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 17 Skripte, ~2000 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 20 Skripte, ~2100 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning),
-  `SaveSystem.cs` / `SaveData.cs` (Spielstand).
+  `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
+  (Schiffe).
 - `Space-Escaper/Assets/Tests/EditMode/` - EditMode-Tests, siehe „Tests“.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
 - `Space-Escaper/Assets/Audio/` - Audio-Clips in `Classic/` (Originale von 2020)
-  und `New/`, dazu `ClassicBank.asset`, `NewBank.asset` und `GameAudio.mixer`. Siehe
-  Abschnitt „Audio-System“ unten.
+  und `New/`, dazu `ClassicBank.asset`, `NewBank.asset` und `GameAudio.mixer`, in
+  `New/` außerdem das Ableton-Projekt der neuen SFX. Siehe Abschnitt „Audio-System“
+  unten.
 - Alle übrigen Ordner in `Assets/` sind nach Asset-Typ sortiert, siehe
   „Ordnerstruktur“. `TextMesh Pro/` und `Effects/EffectExamples/` sind
   Fremd-Pakete. Benennung siehe „Benennung von Dateien und Objekten“.
@@ -79,11 +81,12 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   `[FormerlySerializedAs("alterName")]`. Danach die Szene speichern, betroffene
   Assets neu schreiben lassen und das Attribut wieder entfernen. Prefabs dabei
   lieber per Text anpassen: Unity 6.6 schreibt ältere Prefabs beim Speichern
-  komplett im neuen Format (beim `Playership.prefab` rund 20.000 Zeilen Diff).
+  komplett im neuen Format, das gibt große Diffs ohne inhaltliche Änderung. Aus dem
+  `Playership.prefab` kamen Modelle und Flammen in v1.4.8 deshalb per Text heraus.
 - **Methoden mit OnClick-Aufruf:** Die Szene speichert den Methodennamen als Text,
   ein umbenannter Button tut sonst einfach nichts. Betroffen sind
   `GameManager.Play`, `ReturnToMenu`, `RequestRevive`, `OpenShop`, `CloseShop`,
-  `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(int)` und `SelectOrBuyShip(int)`,
+  `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(ShipData)` und `SelectOrBuyShownShip`,
   `PauseMenu.Pause` und `Continue`, `SettingsManager.OpenFromMainMenu`,
   `OpenFromPauseMenu` und `Close`, `CameraSwitch.SwitchToMainCamera` und
   `SwitchToShopCamera` sowie `TileManager.RespawnTiles`. Beim Umbenennen
@@ -98,8 +101,12 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 
 Seit v1.4.7 gibt es EditMode-Tests mit dem Unity Test Framework (1.8.0, im
 Manifest als direkte Abhängigkeit). Sie liegen in `Assets/Tests/EditMode/` und
-prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, ungültiges Schiff,
-Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen und Versionsnummer.
+prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, älterer Spielstand,
+unbekanntes Schiff, Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen
+und Versionsnummer. Seit v1.4.8 prüfen sie auch die Schiffsdaten
+(`ShipCatalogTests`): jedes `ShipData` genau einmal im Katalog, das Startschiff
+darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger ID,
+Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
@@ -125,8 +132,9 @@ nur Ordner.
 | Ordner | Inhalt |
 |---|---|
 | `Animations/` | Animator Controller und Clips, nach Gruppe |
-| `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer |
+| `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
+| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`) |
 | `Materials/` | Materialien, nach Gruppe |
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
 | `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
@@ -179,8 +187,8 @@ behalten dadurch ihre Weltposition.
   Settings).
 - **Code hängt kaum an der Hierarchie:** Skripte finden einander über
   Inspector-Referenzen, `FindAnyObjectByType` und den Tag `Player`, nicht über
-  Pfade. Ausnahmen sind die Reihenfolge der Kinder in den Shop-Containern und im
-  `FlameContainer` (siehe „Shop“) und Clips, die über einen Pfad animieren (siehe
+  Pfade. Ausnahmen sind die Reihenfolge der Kinder im `SkinButtonContainer`, eins
+  pro Familie (siehe „Shop“), und Clips, die über einen Pfad animieren (siehe
   „Benennung von Dateien und Objekten“).
 - **Tags:** `Player` (Schiff), `Obstacle` (Crash) und `MainCamera` (Unity-Standard)
   werden gebraucht, `Coin` steht an der Münze, wird aber noch nicht gelesen.
@@ -299,6 +307,20 @@ bei 8.
 - **`.meta`-Dateien immer mit committen.** Nach einem Unity-Upgrade ändern sich massenhaft
   `.meta`-Dateien (serializedVersion-Bumps) - das ist normal und gehört in einen eigenen
   Upgrade-Commit, nicht vermischt mit inhaltlichen Änderungen.
+- **Blender: die `.blend` ins Repo, ihre Sicherungen nicht.** Die `.blend` ist die
+  Quelle zum Weiterarbeiten und liegt in LFS. Blender legt beim Speichern den
+  vorherigen Stand als `.blend1` daneben (bei mehr „Save Versions“ auch `.blend2`
+  usw.) und schreibt zuerst in eine `.blend@`, die nur nach einem abgebrochenen
+  Speichern liegen bleibt. Git ignoriert beides samt der `.meta`, die Unity dafür
+  anlegt (seit Oktober 2026). Eine `.meta` gehört nur zusammen mit ihrer Datei ins
+  Repo, sonst löscht Unity sie nach einem Clone mit einer Warnung. Die LFS-Regel
+  erfasst nur `*.blend`: `NEROUS SPACEPORT.blend1` (6,8 MB) lag von September 2025
+  bis Januar 2026 als normale Datei im Repo und steckt bis heute im Verlauf. Eigene
+  Regeln stehen am Ende der `.gitignore` unter `### Space Escaper ###`, der Teil
+  darüber ist generiert.
+- **Das Spiel nutzt die `.fbx`-Exporte, nicht die `.blend`.** Von den 38 `.blend`
+  ist nur `Asteroid001Animated.blend` direkt eingebunden (Stand Oktober 2026). Eine
+  Änderung an den anderen kommt erst mit einem neuen FBX-Export ins Spiel.
 - Assets, die nicht in einer Szene oder einem Prefab referenziert sind, landen nicht im
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
 - **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
@@ -416,11 +438,13 @@ Spiel nicht mehr.
 - **Gespeichert wird sofort** bei Tod, Kauf, Schiffswahl und den Audio-Schaltern,
   dazu beim Pausieren und Beenden der App, für den Lautstärkeregler (siehe
   „Audio-System“). Bis dahin stehen Änderungen nur im Speicher.
-- **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 1. Ändert eine spätere
-  Version die Bedeutung von Feldern, erkennt sie alte Stände daran und wandelt sie
-  beim Laden um. Fehlt ein Feld in der Datei, behält es beim Laden seinen
+- **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 2 (seit v1.4.8, Schiffe
+  als ID statt als Nummer). Einen Stand mit anderer Version verwirft
+  `SaveData.FromJson`, das Spiel fängt dann neu an (Entscheidung Oktober 2026, es
+  gibt nur Test-Spielstände). Ab dem Store-Release (v2.0) ältere Stände stattdessen
+  dort umwandeln. Fehlt ein Feld in der Datei, behält es beim Laden seinen
   Standardwert, ein neues Feld braucht also keine neue Version.
-- **Feldnamen sind die Schlüssel in der Datei** (`m_coins`, `m_currentShip` …). Ein
+- **Feldnamen sind die Schlüssel in der Datei** (`m_coins`, `m_currentShipId` …). Ein
   umbenanntes Feld verliert seinen Wert in bestehenden Spielständen, außer es
   bekommt `[FormerlySerializedAs]`.
 - **Kein halber Spielstand:** `SaveSystem.Save` schreibt erst `SaveData.json.tmp`,
@@ -429,9 +453,8 @@ Spiel nicht mehr.
   `.tmp`-Datei da, lädt das Spiel sie. Eine unlesbare Datei ergibt eine Warnung in
   der Konsole und einen neuen Spielstand, der sie beim nächsten Speichern
   überschreibt.
-- **Die Familie wird nicht gespeichert,** `GameManager` leitet sie aus dem Schiff ab
-  (`GetFamilyOfShip`). Bis v1.4.6 lag sie unter einem eigenen Schlüssel und konnte
-  vom Schiff abweichen.
+- **Die Familie wird nicht gespeichert,** sie steht im `ShipData` des Schiffs. Bis
+  v1.4.6 lag sie unter einem eigenen Schlüssel und konnte vom Schiff abweichen.
 - **Alte Spielstände** aus den PlayerPrefs (bis v1.4.6) übernimmt das Spiel nicht,
   es gab nur Test-Spielstände (Entscheidung Oktober 2026). Die alten Schlüssel
   liegen ungenutzt weiter in der Registry und auf den Testhandys.
@@ -440,20 +463,19 @@ Mit v1.4.1 (Oktober 2026) wurden im Spielstand mehrere Bugs behoben. Seit v1.4.7
 stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` und
 `RunCoins`, wo Tests sie ohne Szene prüfen können:
 
-- Gekaufte Schiffe stehen als Liste von Schiffsnummern in `m_unlockedShips` (bis
-  v1.4.6 eine Bitmaske). Bis Januar 2026 lagen sie nur im
+- Gekaufte Schiffe stehen als Liste von Schiffs-IDs in `m_unlockedShipIds` (bis
+  v1.4.7 Nummern, bis v1.4.6 eine Bitmaske). Bis Januar 2026 lagen sie nur im
   Google-Play-Games-Cloud-Save und fielen mit GPG ersatzlos weg - gekaufte Schiffe
   waren danach nach jedem Szenen-Reload wieder gesperrt. Beim Laden gelten
   Startschiff und aktuelles Schiff immer als freigeschaltet und kommen sofort in die
   Liste (`SaveData.RepairShips`) - sonst wäre ein nur implizit besessenes Schiff nach
   einem Wechsel wieder gesperrt.
-- Ein neuer Spielstand beginnt mit dem Startschiff. Ist das gespeicherte Schiff
-  ungültig, fällt `SaveData.RepairShips` aufs Startschiff zurück. Die Zahl der
-  Schiffe übergibt `GameManager.LoadShipSelection` aus der Szene (Kinder des
-  `m_shipContainer` ohne `FlameContainer`). Bis v1.4.0 war der Default 0, das zeigte
-  auf `FlameContainer` statt auf ein Schiff und ließ das Spiel beim Start und beim
-  Tod abstürzen. Lokal fiel das nie auf, weil der Spielstand gesetzt war -
-  **Neuinstallation gezielt testen** (siehe unten).
+- Ein neuer Spielstand bekommt das Startschiff (`ShipCatalog.StarterShip`). Ist das
+  gespeicherte Schiff unbekannt, fällt `SaveData.RepairShips` darauf zurück, die
+  bekannten IDs übergibt `GameManager.LoadShipSelection` aus dem `ShipCatalog`. Bis
+  v1.4.0 war der Default 0, das zeigte auf `FlameContainer` statt auf ein Schiff und
+  ließ das Spiel beim Start und beim Tod abstürzen. Lokal fiel das nie auf, weil der
+  Spielstand gesetzt war - **Neuinstallation gezielt testen** (siehe unten).
 - Ein Kauf (`SaveData.TryBuyShip`) zieht die Münzen ab und schaltet das Schiff frei,
   beides oder nichts. Danach speichert `GameManager` sofort.
 - Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)m_score`),
@@ -490,31 +512,57 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
 
 ## Shop
 
-Bis zum geplanten Umbau auf ScriptableObjects hängt der Shop an Kind-Indizes. Schiffe
-sind 1-9 nummeriert: ARISTOCRAT 1-3, FREETER 4-6, VAGOR 7-9 (je drei Skins bilden eine
-Familie).
+Seit v1.4.8 beschreibt ein `ShipData`-Asset pro Schiff, was der Shop wissen muss:
+Familie, Preis, Preisschild, Modell und Antriebsflamme. Die Assets liegen in
+`Data/Ships/`, der `ShipCatalog` daneben listet alle Schiffe in der Reihenfolge des
+Hangars: ARISTOCRAT, FREETER und VAGOR (`ShipFamily`) mit je drei Skins, das
+Startschiff vorn. Bis v1.4.7 hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11
+Bildern, einer Preisliste im `GameManager` und jedem Modell zweimal in Szene und
+Prefab.
 
-- `m_shipContainer`: Kind 0 = `FlameContainer`, Kinder 1-9 = Schiffe, Index = Schiff
-- `m_buttonContainer`, `m_shopShipContainer`: Index = Schiff − 1
-- `m_shopSpriteContainer`: 0 = Select, 1 = Selected, Schiff + 1 = Preisschild
-- `m_flameContainer`, `m_skinButtonContainer`: Index = Familie (0-2)
-- `m_currentFamily` ist die Familie des *geflogenen* Schiffs, `m_selectedFamily` die
-  gerade im Hangar *angesehene*. Flammen und alles im Spiel gehören an
-  `m_currentFamily` - die Verwechslung zeigte früher eine falsche, neben dem Schiff
-  schwebende Flamme.
+- **Der Hangar liest die Daten:** Die Skin-Buttons übergeben per OnClick ihr
+  `ShipData` an `GameManager.ShowShip`, die Pfeile zeigen das erste Schiff der
+  Familie davor oder danach (`ShipCatalog.GetFirstShipOfFamily`). Ein einziger
+  unsichtbarer Button, `UI/Shop/SelectOrBuyButton`, kauft oder wählt das gezeigte
+  Schiff (`SelectOrBuyShownShip`). Sein Kind `Image` zeigt Select, Selected oder das
+  Preisschild aus dem `ShipData` und lässt Klicks zum Button durch.
+- **Modelle sind Prefabs** in `Prefabs/Ships/` (`AristocratSkin1.prefab` …), mit
+  ihrem Platz auf dem Schiff: Versatz und Skalierung stecken in der Wurzel. Der
+  `GameManager` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein,
+  das des gezeigten unter `Environment/ShopShips`, dort in der Mitte und auf
+  `ShipData.HangarScale`. Beim Tod schaltet er das Modell aus, beim Revive wieder an.
+  Die VAGOR-Skins haben eine etwas andere Skalierung als ihre Familie (Skin 1 2,6 ×
+  3,2 × 3,2, Skin 2 und 3 2,7 × 3 × 3), so übernommen aus dem Stand vor v1.4.8.
+- **IDs:** Jedes `ShipData` hat eine ID (`AristocratSkin1` …), unter der der
+  Spielstand das Schiff speichert. Eine geänderte ID verliert das Schiff in
+  bestehenden Spielständen. Das Startschiff legt `ShipCatalog.StarterShip` fest, die
+  Reihenfolge im Katalog ist nur die des Hangars.
+- **Ein neues Schiff:** Modell-Prefab in `Prefabs/Ships/` anlegen, ein `ShipData` in
+  `Data/Ships/` mit ID, Familie, Preis, Preisschild-Bild, Modell, Hangar-Größe und
+  Flamme, das `ShipData` in den `ShipCatalog` eintragen und einen Skin-Button mit
+  OnClick `GameManager.ShowShip` und dem `ShipData` in die Gruppe der Familie legen.
+  Die `ShipCatalogTests` prüfen danach die Daten.
+- `m_skinButtonContainer` hat ein Kind pro Familie, in der Reihenfolge von
+  `ShipFamily`.
+- `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar
+  *angesehene*. Flammen und alles im Spiel gehören an `m_currentShip` - die
+  Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
 
-**Antriebsflammen** liegen im Prefab `Playership.prefab` unter `Ship/FlameContainer`
-(`FlameAristocrat`, `FlameFreeter` und die Gruppe `FlameVagor` mit `FlameLeft` und
-`FlameRight`), alle mit eingeschalteter Emission. Der Code schaltet nur die
-GameObjects an und aus. `PlayerMotor.m_engineFlame` zeigt zusätzlich auf
-`FlameAristocrat` und schaltet deren Emission im Run selbst ein. Deshalb **keine
-Emission-Overrides in der Szene**: Ein versehentlicher Override (September 2026,
-v1.4.0) ließ den FREETER bis v1.4.2 ohne sichtbaren Antrieb fliegen. Beim ARISTOCRAT
-fiel derselbe Override nicht auf, weil `m_engineFlame` die Emission dort ohnehin
-einschaltet.
+**Antriebsflammen** sind Prefabs in `Prefabs/Ships/`: `FlameAristocrat`,
+`FlameFreeter` und `FlameVagor` mit den Düsen `FlameLeft` und `FlameRight`. Jedes
+`ShipData` verweist auf die Flamme seiner Familie, die Skins teilen sie sich. Der
+`GameManager` setzt sie neben das Modell unter `Playership/Ship` und schaltet sie
+für jedes Schiff gleich, nur über das GameObject: aus im Menü und im Hangar, an vom
+Start des Runs bis zum Crash und wieder nach einem Revive. Die Emission bleibt
+immer an. Bis v1.4.7 lagen die Flammen im `Playership.prefab`, und
+`PlayerMotor.m_engineFlame` schaltete beim ARISTOCRAT zusätzlich die Emission. Ein
+versehentlicher Emission-Override in der Szene ließ deshalb den FREETER von v1.4.0
+bis v1.4.2 ohne sichtbaren Antrieb fliegen, während er beim ARISTOCRAT nicht
+auffiel. Weil die Flammen jetzt erst zur Laufzeit entstehen, kann die Szene sie
+nicht mehr überschreiben.
 
-**Preisschilder sind Bilder, keine Texte.** `m_shipPrices` allein zu ändern reicht
-nicht - der Shop zeigt den Preis aus `Assets/UI/Images/PriceTagAristocrat250.png`,
+**Preisschilder sind Bilder, keine Texte.** Den Preis im `ShipData` allein zu ändern
+reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/PriceTagAristocrat250.png`,
 `PriceTagFreeter750.png` und `PriceTagVagor1250.png`. Aufbau wie bei den Originalen
 (`PriceTagAristocrat3500.png`, `PriceTagFreeter6000.png`, `PriceTagVagor8000.png`,
 pixelgleich nachgeprüft): `ButtonBlank.png` als Platte, `CoinIcon.png` als Icon,
@@ -682,6 +730,29 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
 *Streaming* + Load In Background, SFX auf *Decompress on Load* mit 22050 Hz und
 Vorbis-Qualität 0.6. Das hat den PCM-Speicher von ~75 MB auf ~0,8 MB gesenkt. Neue
 Clips entsprechend importieren, sonst landen sie wieder komplett im RAM.
+
+**Ableton-Projekt der neuen SFX:** In `Audio/New/SoundEffects Project/` entstehen
+die neuen Sounds als Live-Set (seit Oktober 2026). Es liegt bewusst in `Assets/`,
+neben den fertigen Sounds (Entscheidung Oktober 2026).
+
+- **Im Repo** sind `SoundEffects.als` (in LFS, jeder Commit hält einen Arbeitsstand
+  fest), `Ableton Project Info/` und später `Samples/` mit eigenen Aufnahmen und
+  gesammelten Samples. **Nicht im Repo,** jeweils samt `.meta`: `Backup/` mit
+  Abletons eigenen Sicherungen (das Repo ersetzt sie), die `.asd`-Analysedateien, die
+  Ableton neben Samples legt, und die `Desktop.ini` für das Ordner-Symbol. Die
+  Regeln stehen am Ende der `.gitignore`.
+- **Zum Öffnen nach einem Clone** braucht es Ableton Live 11 mit Core Library
+  (gespeichert mit 11.3 Standard) und das Plugin Unison Zen Master (VST3). Alle
+  Samples des Sets stammen aus der Core Library, das Set verweist nur auf sie (Stand
+  Oktober 2026). Kommen Samples von woanders dazu, holt File > Collect All and Save
+  sie ins Projekt. Samples aus Core Library und Packs dabei nicht mitkopieren, das
+  Repo ist öffentlich.
+- **Ins Spiel kommen nur die Exporte:** fertige SFX als WAV nach `Audio/New/`
+  exportieren und wie oben importieren. Banks und Code zeigen nie auf Dateien im
+  Projektordner.
+- **Folge des Platzes in `Assets/`:** Unity legt für jede Datei im Projektordner eine
+  `.meta` an und importiert Aufnahmen in `Samples/` als AudioClips. In den Build
+  kommen sie nur, wenn etwas auf sie verweist.
 
 ## Render Pipeline: URP
 

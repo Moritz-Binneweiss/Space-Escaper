@@ -486,3 +486,21 @@
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/unity,visualstudio,visualstudiocode
+
+### Space Escaper ###
+# Blender: the .blend is the source and stays in Git (LFS). Not needed are the
+# older saves Blender keeps next to it (.blend1, .blend2 ...) and the temporary
+# file of a save that was cut off (.blend@), each with the .meta Unity creates.
+**/*.blend[0-9]*
+**/*.blend@*
+
+# Ableton: the set (.als) and its samples stay in Git. Not needed are the backups
+# Live keeps in the Backup folder of a project, the analysis files it writes next
+# to samples (.asd) and the Desktop.ini that gives the project folder its icon,
+# each with the .meta Unity creates.
+**/* Project/Backup/
+**/* Project/Backup.meta
+**/*.asd
+**/*.asd.meta
+**/[Dd]esktop.ini
+**/[Dd]esktop.ini.meta
