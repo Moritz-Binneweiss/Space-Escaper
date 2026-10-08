@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.7 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.8 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -147,14 +147,14 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-#### **v1.4.8** | Ship Data _(------- --, 2026)_
+#### **v1.4.8** | Ship Data _(October 8, 2026)_
 
 <small>
 
-- [x] One data asset per ship with family, price and price tag, read by the hangar
-- [x] Ship models in the ship data instead of in the scene
-- [x] Engine flames in the ship data, switched the same way for every ship
-- [x] Save stores ships by ID, older saves start over
+- 🗃️ One data asset per ship with family, price and price tag, read by the hangar
+- 🚀 Ship models in the ship data instead of in the scene
+- 🔥 Engine flames in the ship data, switched the same way for every ship
+- 💾 Save stores ships by ID, older saves start over
 
 </small>
 
