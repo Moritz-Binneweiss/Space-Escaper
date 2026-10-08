@@ -19,8 +19,9 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
 - `Space-Escaper/Assets/Audio/` - Audio-Clips in `Classic/` (Originale von 2020)
-  und `New/`, dazu `ClassicBank.asset`, `NewBank.asset` und `GameAudio.mixer`. Siehe
-  Abschnitt „Audio-System“ unten.
+  und `New/`, dazu `ClassicBank.asset`, `NewBank.asset` und `GameAudio.mixer`, in
+  `New/` außerdem das Ableton-Projekt der neuen SFX. Siehe Abschnitt „Audio-System“
+  unten.
 - Alle übrigen Ordner in `Assets/` sind nach Asset-Typ sortiert, siehe
   „Ordnerstruktur“. `TextMesh Pro/` und `Effects/EffectExamples/` sind
   Fremd-Pakete. Benennung siehe „Benennung von Dateien und Objekten“.
@@ -131,7 +132,7 @@ nur Ordner.
 | Ordner | Inhalt |
 |---|---|
 | `Animations/` | Animator Controller und Clips, nach Gruppe |
-| `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer |
+| `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
 | `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`) |
 | `Materials/` | Materialien, nach Gruppe |
@@ -306,6 +307,20 @@ bei 8.
 - **`.meta`-Dateien immer mit committen.** Nach einem Unity-Upgrade ändern sich massenhaft
   `.meta`-Dateien (serializedVersion-Bumps) - das ist normal und gehört in einen eigenen
   Upgrade-Commit, nicht vermischt mit inhaltlichen Änderungen.
+- **Blender: die `.blend` ins Repo, ihre Sicherungen nicht.** Die `.blend` ist die
+  Quelle zum Weiterarbeiten und liegt in LFS. Blender legt beim Speichern den
+  vorherigen Stand als `.blend1` daneben (bei mehr „Save Versions“ auch `.blend2`
+  usw.) und schreibt zuerst in eine `.blend@`, die nur nach einem abgebrochenen
+  Speichern liegen bleibt. Git ignoriert beides samt der `.meta`, die Unity dafür
+  anlegt (seit Oktober 2026). Eine `.meta` gehört nur zusammen mit ihrer Datei ins
+  Repo, sonst löscht Unity sie nach einem Clone mit einer Warnung. Die LFS-Regel
+  erfasst nur `*.blend`: `NEROUS SPACEPORT.blend1` (6,8 MB) lag von September 2025
+  bis Januar 2026 als normale Datei im Repo und steckt bis heute im Verlauf. Eigene
+  Regeln stehen am Ende der `.gitignore` unter `### Space Escaper ###`, der Teil
+  darüber ist generiert.
+- **Das Spiel nutzt die `.fbx`-Exporte, nicht die `.blend`.** Von den 38 `.blend`
+  ist nur `Asteroid001Animated.blend` direkt eingebunden (Stand Oktober 2026). Eine
+  Änderung an den anderen kommt erst mit einem neuen FBX-Export ins Spiel.
 - Assets, die nicht in einer Szene oder einem Prefab referenziert sind, landen nicht im
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
 - **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
@@ -715,6 +730,29 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
 *Streaming* + Load In Background, SFX auf *Decompress on Load* mit 22050 Hz und
 Vorbis-Qualität 0.6. Das hat den PCM-Speicher von ~75 MB auf ~0,8 MB gesenkt. Neue
 Clips entsprechend importieren, sonst landen sie wieder komplett im RAM.
+
+**Ableton-Projekt der neuen SFX:** In `Audio/New/SoundEffects Project/` entstehen
+die neuen Sounds als Live-Set (seit Oktober 2026). Es liegt bewusst in `Assets/`,
+neben den fertigen Sounds (Entscheidung Oktober 2026).
+
+- **Im Repo** sind `SoundEffects.als` (in LFS, jeder Commit hält einen Arbeitsstand
+  fest), `Ableton Project Info/` und später `Samples/` mit eigenen Aufnahmen und
+  gesammelten Samples. **Nicht im Repo,** jeweils samt `.meta`: `Backup/` mit
+  Abletons eigenen Sicherungen (das Repo ersetzt sie), die `.asd`-Analysedateien, die
+  Ableton neben Samples legt, und die `Desktop.ini` für das Ordner-Symbol. Die
+  Regeln stehen am Ende der `.gitignore`.
+- **Zum Öffnen nach einem Clone** braucht es Ableton Live 11 mit Core Library
+  (gespeichert mit 11.3 Standard) und das Plugin Unison Zen Master (VST3). Alle
+  Samples des Sets stammen aus der Core Library, das Set verweist nur auf sie (Stand
+  Oktober 2026). Kommen Samples von woanders dazu, holt File > Collect All and Save
+  sie ins Projekt. Samples aus Core Library und Packs dabei nicht mitkopieren, das
+  Repo ist öffentlich.
+- **Ins Spiel kommen nur die Exporte:** fertige SFX als WAV nach `Audio/New/`
+  exportieren und wie oben importieren. Banks und Code zeigen nie auf Dateien im
+  Projektordner.
+- **Folge des Platzes in `Assets/`:** Unity legt für jede Datei im Projektordner eine
+  `.meta` an und importiert Aufnahmen in `Samples/` als AudioClips. In den Build
+  kommen sie nur, wenn etwas auf sie verweist.
 
 ## Render Pipeline: URP
 
