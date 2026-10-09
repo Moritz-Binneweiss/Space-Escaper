@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.10 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.11 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -146,6 +146,17 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 ### **v1.5.0** | Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
+
+#### **v1.4.11** | Tools & Tests _(October 9, 2026)_
+
+<small>
+
+- 💻 VS Code connected to Unity again, with real errors and debugging
+- 🧰 Editor menu for testing: reset the save, add coins, unlock all ships, invincibility
+- 🧪 Test checks the button calls, scripts and references in the scene
+- 🧪 PlayMode test for a run with a crash and a revive
+
+</small>
 
 #### **v1.4.10** | UI Screens _(October 9, 2026)_
 

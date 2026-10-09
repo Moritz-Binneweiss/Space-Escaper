@@ -511,3 +511,7 @@
 # so the samples stay in Git, but no .meta file from Samples does.
 **/* Project/Samples.meta
 **/* Project/Samples/**/*.meta
+
+# The Visual Studio Editor package writes the solution for VS Code as .slnx.
+# Like the .sln and .csproj files above, Unity generates it on its own.
+**/*.slnx

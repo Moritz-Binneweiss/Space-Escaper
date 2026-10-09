@@ -41,6 +41,15 @@ namespace SpaceEscaper
         /// </summary>
         public float Speed => m_speed;
 
+#if UNITY_EDITOR || UNITY_ENABLE_CHECKS
+        /// <summary>
+        /// For testing: the ship flies through obstacles instead of crashing. Only in the
+        /// editor and in builds with checks, never in a release. Switched in the test menu
+        /// or the test panel.
+        /// </summary>
+        public static bool IsInvincible { get; set; }
+#endif
+
         private void Start()
         {
             m_speed = k_StartSpeed;
@@ -71,10 +80,22 @@ namespace SpaceEscaper
 
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {
-            if (hit.gameObject.CompareTag(k_ObstacleTag))
+            if (!hit.gameObject.CompareTag(k_ObstacleTag))
             {
-                Crash();
+                return;
             }
+
+#if UNITY_EDITOR || UNITY_ENABLE_CHECKS
+            if (IsInvincible)
+            {
+                // The obstacle has stopped the ship for this frame. From the next one
+                // on, the ship flies through it.
+                Physics.IgnoreCollision(m_controller, hit.collider);
+                return;
+            }
+#endif
+
+            Crash();
         }
 
         public void StartRunning()
