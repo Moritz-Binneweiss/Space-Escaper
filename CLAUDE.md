@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 19 Skripte, ~2050 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 21 Skripte, ~2200 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
@@ -61,8 +61,8 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   über Properties (`public bool IsRunning => m_isRunning;`).
 - **Strings als Konstanten** oben in der Klasse: Animator-Trigger, Tags,
   Szenenname, Dateiname des Spielstands. Die Werte selbst sind Daten und bleiben,
-  wie sie sind (etwa der Trigger `Allive` oder `SaveData.json`), sonst brechen
-  Animator und Spielstände.
+  wie sie sind (etwa der Trigger `Collected` der Münze oder `SaveData.json`), sonst
+  brechen Animator und Spielstände.
 - **Formatierung:** Allman-Klammern, 4 Leerzeichen, Klammern auch um einzelne
   Anweisungen, eine Deklaration pro Zeile, `private` immer ausgeschrieben, `switch`
   mit `default`, Zeilen höchstens 120 Zeichen, UTF-8 ohne BOM, LF. Die
@@ -89,11 +89,11 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   ein umbenannter Button tut sonst einfach nichts. Betroffen sind
   `GameManager.Play`, `ReturnToMenu`, `RequestRevive`, `OpenShop`, `CloseShop`,
   `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(ShipData)` und `SelectOrBuyShownShip`,
-  `PauseMenu.Pause` und `Continue`, `SettingsManager.OpenFromMainMenu`,
-  `OpenFromPauseMenu` und `Close`, `CameraSwitch.SwitchToMainCamera` und
-  `SwitchToShopCamera` sowie `TileManager.RespawnTiles`. Beim Umbenennen
-  `m_MethodName` in `Game.unity` mitziehen, am besten im Editor per
-  `SerializedObject`.
+  `PauseMenu.Pause` und `Continue`, `SettingsManager.Open` und `Close`,
+  `CameraSwitch.SwitchToMainCamera` und `SwitchToShopCamera` sowie
+  `TileManager.RespawnTiles`. Beim Umbenennen `m_MethodName` in `Game.unity`
+  mitziehen, am besten im Editor per `SerializedObject`. So wurden in v1.4.10
+  `OpenFromMainMenu` und `OpenFromPauseMenu` zu einem `Open`.
 - **Felder in `SaveData`:** Ihre Namen sind die Schlüssel in der Spielstand-Datei,
   siehe „Spielstand“.
 - **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
@@ -182,7 +182,7 @@ behalten dadurch ihre Weltposition.
 | `Playership` | bleibt im Root, weil es sich jeden Frame bewegt |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings`, `Shop` |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen: `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings`, `Shop` (siehe „UI“) |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit.
@@ -204,9 +204,8 @@ behalten dadurch ihre Weltposition.
   nächsten Szenen-Reload liegen, jede eingesammelte Münze hinterließ ein Objekt. Wer
   einen Effekt austauscht, etwa im Remaster (v1.7.0), passt die Zeit mit an.
 - **Die Reihenfolge im UI ist die Zeichenreihenfolge:** Spätere Geschwister
-  liegen oben. Sie blieb beim Umbau, wie sie war. Vor einem Umsortieren die
-  Übergänge prüfen, in denen zwei Menüs gleichzeitig sichtbar sind (Tod, Pause,
-  Settings).
+  liegen oben. Zwischen den Screens spielt sie seit v1.4.10 keine Rolle mehr, es ist
+  immer nur einer an (siehe „UI“). Innerhalb eines Screens gilt sie weiter.
 - **Code hängt kaum an der Hierarchie:** Skripte finden einander über
   Inspector-Referenzen, `FindAnyObjectByType` und den Tag `Player`, nicht über
   Pfade. Ausnahmen sind die Reihenfolge der Kinder im `SkinButtonContainer`, eins
@@ -246,7 +245,7 @@ geliefert wurden.
 - **Nummern in Serien dreistellig** (`Asteroid001`, `Chunk000`,
   `AsteroidField007`), Varianten einstellig (`AristocratSkin2`). Schiffsfamilien
   ausgeschrieben, keine Kürzel wie ACT, FTR oder VGR.
-- **Animationsclips** heißen `Ziel_Zustand` (`GameMenu_Show`, `DeathMenu_Alive`),
+- **Animationsclips** heißen `Ziel_Zustand` (`TapToStart_Pulse`, `Coin_Collect`),
   das ist der einzige erlaubte Unterstrich. Texturen enden auf `Color`
   (`Asteroid001Color.png`).
 - **Ungenutzte Doppelgänger** einer benutzten Datei tragen `Unused` am Ende
@@ -272,9 +271,9 @@ Beim Umbenennen:
   sie beim nächsten Öffnen. So in v1.4.5 bei 35 Dateien gemacht.
 - **Objekte, die eine Animation über ihren Pfad ansteuert:** Ein Clip speichert den
   Pfad und einen Hash davon, ein Umbenennen bricht die Animation still. Mit
-  `AnimationUtility` umhängen, nicht per Text. In der Szene betrifft das nur
-  `UI/GameMenu/CoinIcon` (Clip `GameMenu_Show`), alle anderen Clips animieren ihr
-  eigenes Objekt.
+  `AnimationUtility` umhängen, nicht per Text. In der Szene animieren seit v1.4.10
+  alle Clips ihr eigenes Objekt, bis dahin steuerte `GameMenu_Show` auch
+  `UI/GameMenu/CoinIcon` an.
 - **Objekte in Prefabs per Text umbenennen** (`m_Name` der GameObjects, `value:`
   unter `propertyPath: m_Name`), aus demselben Grund wie unter „Code-Stil“. Ältere
   Prefabs liegen auf der Platte noch mit CRLF, Git normalisiert das beim Commit.
@@ -644,6 +643,55 @@ Zahl als Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unver
 daneben und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
 entschieden wird beim UI Overhaul (v1.5.1) - bis dahin nicht löschen.
 
+## UI
+
+Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMenu`
+(die Anzeige im Run), `PauseMenu`, `Settings`, `Shop` und `DeathMenu`. Der Root-Canvas
+`UI` trägt den `CanvasScaler` (Referenzhöhe 800, skaliert nach der Höhe) und den
+`ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem Canvas, und sechs Animatoren
+schoben die gerade nicht gebrauchten aus dem Bild.
+
+- **Es ist immer genau ein Screen an.** `ScreenManager.ShowMainMenu()`,
+  `ShowGameMenu()`, `ShowPauseMenu()`, `ShowSettings()`, `ShowShop()` und
+  `ShowDeathMenu()` schalten ihn per `SetActive` ein und alle anderen aus, ohne
+  Übergang (Entscheidung Oktober 2026). Beim Start zeigt er das Hauptmenü, egal welcher
+  Screen beim Bearbeiten an blieb. Gespeichert ist die Szene mit nur dem Hauptmenü an,
+  so sieht sie im Editor aus wie beim Start. Zum Bearbeiten einen Screen einschalten,
+  vor dem Speichern wieder nur das Hauptmenü.
+- **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
+  Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
+  von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
+  ganze UI-Canvas in jedem Frame neu, außer in der Pause. Die Screen-Canvases erben
+  Render Mode und Skalierung vom Root. Ihr eigener Render Mode steht trotzdem auf
+  Overlay, falls ein Screen je aus `UI` herauswandert.
+- **Jeder Screen braucht seinen eigenen `GraphicRaycaster`.** Ein Raycaster trifft nur
+  die Grafiken seines Canvas, ohne ihn reagiert kein Button des Screens. Der Root hat
+  seit v1.4.10 keinen mehr, direkt unter ihm liegt nichts Klickbares.
+- **Ein neuer Screen:** Objekt unter `UI`, auf den ganzen Canvas gestreckt (Anker 0
+  bis 1, Abstände 0), mit `Canvas` und `GraphicRaycaster`. Im `ScreenManager` bekommt
+  er ein Feld, eine `Show…`-Methode und einen Platz in `m_screens`.
+- **Keine Animatoren für Übergänge oder kurze Effekte.** Ein Animator am UI markiert
+  seine Grafiken in jedem Frame neu, auch wenn sich nichts bewegt, und dann baut der
+  ganze Canvas neu. In einem Screen fällt er außerdem bei jedem Einschalten auf seinen
+  Startzustand zurück. Er lohnt sich nur für Elemente, die sich ständig bewegen, wie
+  den Puls von „Tap to Start“ im Hauptmenü. Kurze Effekte laufen im Code, so der
+  Münz-Pop: `PopEffect` am `GameMenu/CoinIcon` vergrößert es für 0,25 s auf 115 % und
+  färbt es gelb. Bis v1.4.9 lief er über einen Animator, der das Icon nach der ersten
+  Münze von 55 auf 65 wachsen ließ. Seit v1.4.10 ist 65 die Ruhegröße.
+- **Unsichtbar heißt nicht kostenlos.** Eine Grafik mit Alpha 0 wird gezeichnet, solange
+  „Cull Transparent Mesh“ an ihrem `CanvasRenderer` aus ist, auf dem Handy kostet das
+  Füllrate. Seit v1.4.10 sind die unsichtbaren Vollbild-Hintergründe von Hauptmenü,
+  Spiel-UI und Hangar weg, und die unsichtbaren Klickflächen der Buttons (`UISprite`
+  mit Alpha 0) haben „Cull Transparent Mesh“ an. Klicks nehmen sie trotzdem an
+  (geprüft per Raycast, die Tiefe bleibt erhalten). Neue unsichtbare Klickflächen
+  genauso einstellen.
+- **UI-Umbauten prüfen:** Im Play Mode alle Zustände über die echten Buttons
+  durchklicken und pro Zustand die sichtbaren Grafiken auflisten, mit Rechteck auf dem
+  Bildschirm, Farbe, Bild und Text, vorher und nachher. Ob ein Klick ankommt, zeigt
+  `EventSystem.RaycastAll` in der Mitte jedes Buttons, `onClick.Invoke()` umgeht das
+  Raycasting. Neu gebaute Canvases zählt ein `ProfilerRecorder` auf `Canvas.BuildBatch`.
+  So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an.
+
 ## Eingabe (Input System)
 
 Seit Oktober 2026 (v1.4.2) läuft alle Eingabe über das **Input System Package**
@@ -778,7 +826,10 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   Szenenkopie in `Awake()` ihre frischen Referenzen an die überlebende Instanz
   (`AdoptSceneReferencesFrom`), bevor sie sich zerstört. Ohne das sind Mute-Buttons
   und Regler nach dem ersten Reload tot. **Neue UI-Elemente dort mit eintragen**,
-  sonst überleben sie den Szenenwechsel nicht.
+  sonst überleben sie den Szenenwechsel nicht. Seit v1.4.10 ist `Settings` aus, bis
+  jemand die Settings öffnet. `BindUi` und `RefreshUi` wirken trotzdem, Listener,
+  Bilder und Werte lassen sich auch an ausgeschalteten Objekten setzen (nach einem
+  Reload geprüft).
   Aus demselben Grund **keine persistenten OnClick-Aufrufe ins AudioSystem**:
   Klicksounds kommen von der Komponente `ButtonClickSound` am jeweiligen Button, die
   über `AudioSystem.Instance` geht. Die alten Klick-Events zeigten seit Februar 2026
