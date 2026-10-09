@@ -96,11 +96,15 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   `CameraSwitch.SwitchToMainCamera` und `SwitchToShopCamera` sowie
   `TileManager.RespawnTiles`. Beim Umbenennen `m_MethodName` in `Game.unity`
   mitziehen, am besten im Editor per `SerializedObject`. So wurden in v1.4.10
-  `OpenFromMainMenu` und `OpenFromPauseMenu` zu einem `Open`.
+  `OpenFromMainMenu` und `OpenFromPauseMenu` zu einem `Open`. Einen Aufruf, der
+  seine Methode nicht mehr findet, meldet `SceneTests`.
 - **Felder in `SaveData`:** Ihre Namen sind die Schlüssel in der Spielstand-Datei,
   siehe „Spielstand“.
 - **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
-  dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich.
+  dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich. Seit
+  v1.4.11 findet `SceneTests` fehlende Skripte, leere Referenzen und Aufrufe ohne
+  Methode von selbst. Ob die Werte gleich geblieben sind, zeigt weiter nur der
+  Vergleich.
 
 ## Tests
 
@@ -114,23 +118,37 @@ darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger 
 Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen. Seit v1.4.9
 prüfen sie die Streckenabschnitte (`ChunkTests`): Jeder feste Collider in einem
 Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponente
-`Coin`), und die Asteroidenfelder haben keine Collider.
+`Coin`), und die Asteroidenfelder haben keine Collider. Seit v1.4.11 prüft
+`SceneTests` die Szene `Game.unity`: kein fehlendes Skript, jeder Button-Aufruf
+findet Ziel, Methode und Argument, jede Referenz unserer Komponenten ist gesetzt
+(auch in Listen), jeder Screen unter `UI` hat `Canvas` und `GraphicRaycaster` und
+keinen Animator, und der `ScreenManager` kennt jeden Screen genau einmal.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
-  also vor jedem Commit, der `SaveData`, `SaveSystem` oder `RunCoins` ändert. Die
-  CLI legt dabei eine `TestResults.xml` neben den Spielstand, die darf weg. Ist die
-  offene Szene ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie
-  speichern soll. Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
-- **Testbar ist, was keine Szene braucht.** Regeln gehören deshalb in einfache
-  Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours. Was nur mit der
-  Szene geht (dass `GameManager` nach einem Kauf sofort speichert, Eingaben,
+  also vor jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die Szene oder
+  eine Methode ändert, die ein Button aufruft. Die CLI legt dabei eine
+  `TestResults.xml` neben den Spielstand, die darf weg. Ist die offene Szene
+  ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie speichern soll.
+  Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
+- **Szenen im Test:** Während des Laufs tauscht der Test Runner die offenen Szenen
+  gegen eine leere und stellt sie danach wieder her. `SceneTests` öffnet
+  `Game.unity` deshalb selbst daneben und schließt sie am Ende wieder. Ist sie schon
+  geladen, prüft der Test sie, wie sie ist, und lässt sie offen.
+- **Testbar ist, was ohne laufende Szene geht.** Regeln gehören deshalb in einfache
+  Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours. `SceneTests` sieht
+  nur, wie die Szene verdrahtet ist, nicht, was sie im Spiel tut. Was nur im Spiel
+  geht (dass `GameManager` nach einem Kauf sofort speichert, Eingaben,
   Auto-Pause), bleibt beim Test im Play Mode, siehe „Bewegung testen“ und „Eingabe“.
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
   scheiterten alle vier ungültigen Schiffe. In v1.4.9 schlug der Chunk-Test vor der
-  Reparatur genau an den drei `Asteroid017` an.
+  Reparatur genau an den drei `Asteroid017` an. In v1.4.11 fand der Szenen-Test
+  alle Fehler, die eine kaputt gespeicherte Kopie der Szene enthielt: eine
+  umbenannte Methode, einen Skin-Button ohne `ShipData`, eine leere Referenz, eine
+  Lücke in der Prefab-Liste des `TileManager`, einen Screen ohne Raycaster, einen
+  mit Animator, das Hauptmenü doppelt im `ScreenManager` und ein fehlendes Skript.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -359,7 +377,8 @@ bei 8.
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
 - **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
   `SpaceEscaper` (`Scripts/SpaceEscaper.asmdef`) statt in `Assembly-CSharp`, die
-  Tests in `SpaceEscaper.Tests.EditMode`. Test-Assemblies kommen an
+  Tests in `SpaceEscaper.Tests.EditMode` (seit v1.4.11 mit `UnityEngine.UI` in den
+  References, für `SceneTests`). Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
   v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
@@ -695,7 +714,8 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   seit v1.4.10 keinen mehr, direkt unter ihm liegt nichts Klickbares.
 - **Ein neuer Screen:** Objekt unter `UI`, auf den ganzen Canvas gestreckt (Anker 0
   bis 1, Abstände 0), mit `Canvas` und `GraphicRaycaster`. Im `ScreenManager` bekommt
-  er ein Feld, eine `Show…`-Methode und einen Platz in `m_screens`.
+  er ein Feld, eine `Show…`-Methode und einen Platz in `m_screens`. Dass beides
+  stimmt, prüft `SceneTests`.
 - **Keine Animatoren für Übergänge oder kurze Effekte.** Ein Animator am UI markiert
   seine Grafiken in jedem Frame neu, auch wenn sich nichts bewegt, und dann baut der
   ganze Canvas neu. In einem Screen fällt er außerdem bei jedem Einschalten auf seinen
