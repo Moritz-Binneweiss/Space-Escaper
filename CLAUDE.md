@@ -29,8 +29,11 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
 ## Arbeitsweise
 
-- **Unity ist die Wahrheit beim Kompilieren.** VS-Code-/OmniSharp-Warnungen sagen nichts
-  darüber aus, ob das Projekt in Unity baut. Nicht auf Basis von Editor-Warnungen "reparieren".
+- **Unity ist die Wahrheit beim Kompilieren.** Seit v1.4.11 kennt VS Code die Projekte
+  wieder und zeigt echte Fehler samt Unity-Analyzern (siehe „VS Code“ unter
+  „Unity-Besonderheiten“), bis dahin sagten seine Warnungen nichts. Ob das Projekt baut,
+  entscheidet trotzdem Unity, etwa nach neuen Skripten, bevor Unity die Projektdateien
+  neu geschrieben hat.
 - Änderungen klein und fokussiert halten; lieber die Ursache beheben als das Symptom.
 - Bestehende Struktur und Namensgebung nicht ohne Anlass umbenennen.
 - Kein Gameplay-System entfernen/umbenennen, ohne vorher alle Aufrufstellen zu prüfen -
@@ -364,6 +367,29 @@ bei 8.
   `UnityEngine.UI`. Szene und Prefabs finden ihre Skripte über deren GUID, der Umzug
   hat nichts gebrochen (geprüft: kein fehlendes Skript, alle 34 OnClick-Aufrufe
   finden ihre Methode).
+- **VS Code** (seit v1.4.11): Das Paket „Visual Studio Editor“
+  (`com.unity.ide.visualstudio`, 2.0.28) hängt VS Code an Unity. Es fehlte vom
+  Unity-6-Update am 17.01.2026 bis v1.4.10, so lange kannte VS Code die
+  Unity-Typen nicht.
+  - Unity schreibt nach Änderungen an Skripten oder Assemblies
+    `Space-Escaper.slnx`, `SpaceEscaper.csproj` und
+    `SpaceEscaper.Tests.EditMode.csproj` nach `Space-Escaper/`. Alle drei sind
+    erzeugt und von Git ignoriert. Von Hand neu schreiben: Preferences > External
+    Tools > Regenerate project files. Bis v1.4.10 lag eine alte `.slnx` im Repo,
+    die nur ein `Assembly-CSharp.csproj` nannte.
+  - In VS Code braucht es die Unity-Erweiterung (`visualstudiotoolsforunity.vstuc`,
+    empfohlen in `.vscode/extensions.json`), sie bringt C# Dev Kit mit.
+    `dotnet.preferCSharpExtension` darf nicht auf `true` stehen, das schaltet
+    C# Dev Kit ab. Bis v1.4.10 stand es so in `.vscode/settings.json`.
+  - VS Code im Unity-Projektordner `Space-Escaper/` öffnen, so macht es Unity beim
+    Doppelklick auf ein Skript oder über Assets > Open C# Project. Nur dort gelten
+    `.vscode/settings.json` und „Attach to Unity“ (F5) aus `.vscode/launch.json`.
+  - Prüfen ohne VS Code: `dotnet build Space-Escaper.slnx` in `Space-Escaper/`
+    (.NET-SDK 10) baut beide Assemblies mit den Unity-Analyzern, die Ausgabe landet
+    in `Temp/`. Stand v1.4.11: keine Fehler, keine Warnungen.
+  - Die Analyzer liegen im Ordner der VS-Code-Erweiterung, ihr Pfad enthält deren
+    Version. Nach einem Update der Erweiterung stimmt er erst wieder, wenn Unity die
+    Projektdateien neu schreibt.
 - **UI-Texte nicht über die Skalierung vergrößern.** Legacy-`Text` wird in seiner
   Schriftgröße gerastert und dann hochgezogen, das wird unscharf. Größer heißt:
   Schriftgröße und Rect-Größe erhöhen, Skalierung 1 lassen. Der Toggle „Use new
