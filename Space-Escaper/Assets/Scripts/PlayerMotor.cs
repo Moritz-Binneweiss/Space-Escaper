@@ -15,12 +15,15 @@ namespace SpaceEscaper
         private const int k_RightLane = 2;
 
         // How quickly the ship closes in on its lane per unit flown forward. 1.25
-        // gets it 95% of the way within 2.4 units, 0.22 s at start speed.
+        // gets it 95% of the way within 2.4 units, 0.18 s at start speed.
         private const float k_LaneChangeSharpness = 1.25f;
 
-        private const float k_StartSpeed = 11f;
+        private const float k_StartSpeed = 13f;
         private const float k_SpeedIncreaseInterval = 5f;
         private const float k_SpeedIncreaseAmount = 0.2f;
+
+        // The explosion emits for at most 2 s, and its embers and smoke live up to 2 s.
+        private const float k_ExplosionLifetime = 4f;
 
         [SerializeField] private GameObject m_explosionVfx;
 
@@ -28,9 +31,15 @@ namespace SpaceEscaper
         private bool m_isRunning;
         private int m_desiredLane = k_MiddleLane;
         private float m_speed;
-        private float m_lastSpeedIncreaseTime;
+        private float m_timeSinceSpeedIncrease;
 
         public bool IsRunning => m_isRunning;
+
+        /// <summary>
+        /// Forward speed in units per second. Keeps its value through a crash, so a
+        /// revive flies on at the same speed.
+        /// </summary>
+        public float Speed => m_speed;
 
         private void Start()
         {
@@ -77,14 +86,17 @@ namespace SpaceEscaper
             // music here would cut it off a frame later.
         }
 
+        // Counts flying time only, so the menu before a run, the death screen before
+        // a revive and the pause do not bring the next speed-up closer.
         private void IncreaseSpeedOverTime()
         {
-            if (Time.time - m_lastSpeedIncreaseTime <= k_SpeedIncreaseInterval)
+            m_timeSinceSpeedIncrease += Time.deltaTime;
+            if (m_timeSinceSpeedIncrease < k_SpeedIncreaseInterval)
             {
                 return;
             }
 
-            m_lastSpeedIncreaseTime = Time.time;
+            m_timeSinceSpeedIncrease -= k_SpeedIncreaseInterval;
             m_speed += k_SpeedIncreaseAmount;
             GameManager.Instance.UpdateModifier(m_speed - k_StartSpeed);
         }
@@ -110,7 +122,8 @@ namespace SpaceEscaper
         {
             m_isRunning = false;
             GameManager.Instance.HandleDeath();
-            Instantiate(m_explosionVfx, transform.position, Quaternion.identity);
+            GameObject explosion = Instantiate(m_explosionVfx, transform.position, Quaternion.identity);
+            Destroy(explosion, k_ExplosionLifetime);
             AudioSystem.Instance.PlayExplosion();
             AudioSystem.Instance.StopEngine();
         }

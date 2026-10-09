@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.8 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.9 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -146,6 +146,21 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 ### **v1.5.0** | Refactoring _(------- --, 2026)_
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
+
+#### **v1.4.9** | Spawning & Camera _(October 9, 2026)_
+
+<small>
+
+- 🔧 One spawner for the track and the asteroid fields instead of two near copies
+- 🐛 Fixed the first speed-up of a run coming too early
+- ⏩ Faster start speed (13 instead of 11)
+- 🎥 Camera takes the ship's speed instead of computing its own, the same at any frame rate
+- 💥 Camera stops behind the wreck after a crash, so the explosion stays in view
+- 🐛 Fixed coin dust and crash explosions staying in the scene after they have played
+- 🐛 Fixed the ship getting stuck on one asteroid instead of crashing
+- 🧪 Test checks the obstacle and coin tags of every track section
+
+</small>
 
 #### **v1.4.8** | Ship Data _(October 8, 2026)_
 

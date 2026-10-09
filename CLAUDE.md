@@ -9,10 +9,10 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 20 Skripte, ~2100 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 19 Skripte, ~2050 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
-  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` / `FieldManager.cs` (Spawning),
+  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
   `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
   (Schiffe).
 - `Space-Escaper/Assets/Tests/EditMode/` - EditMode-Tests, siehe „Tests“.
@@ -48,7 +48,9 @@ clean and scalable game code“ (Unity-6-Ausgabe, 2025, PDF über
 unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hier:
 
 - **Namespace** `SpaceEscaper` für alle Skripte. In `unity command eval` deshalb
-  `SpaceEscaper.GameManager` usw. schreiben.
+  `SpaceEscaper.GameManager` usw. schreiben. Veraltete APIs lehnt `eval` als
+  Fehler ab, in Unity 6.6 etwa `FindObjectsByType` mit `FindObjectsSortMode` und
+  `GetInstanceID`.
 - **Namen:** private Felder `m_camelCase`, private statische Felder `s_camelCase`,
   Konstanten `k_PascalCase`, Typen, Methoden und Properties PascalCase, lokale
   Variablen und Parameter camelCase. Booleans beginnen mit einem Verb
@@ -106,12 +108,17 @@ unbekanntes Schiff, Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellun
 und Versionsnummer. Seit v1.4.8 prüfen sie auch die Schiffsdaten
 (`ShipCatalogTests`): jedes `ShipData` genau einmal im Katalog, das Startschiff
 darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger ID,
-Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen.
+Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen. Seit v1.4.9
+prüfen sie die Streckenabschnitte (`ChunkTests`): Jeder feste Collider in einem
+Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponente
+`Coin`), und die Asteroidenfelder haben keine Collider.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
   also vor jedem Commit, der `SaveData`, `SaveSystem` oder `RunCoins` ändert. Die
-  CLI legt dabei eine `TestResults.xml` neben den Spielstand, die darf weg.
+  CLI legt dabei eine `TestResults.xml` neben den Spielstand, die darf weg. Ist die
+  offene Szene ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie
+  speichern soll. Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
 - **Testbar ist, was keine Szene braucht.** Regeln gehören deshalb in einfache
   Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours. Was nur mit der
   Szene geht (dass `GameManager` nach einem Kauf sofort speichert, Eingaben,
@@ -119,7 +126,8 @@ Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen.
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
-  scheiterten alle vier ungültigen Schiffe.
+  scheiterten alle vier ungültigen Schiffe. In v1.4.9 schlug der Chunk-Test vor der
+  Reparatur genau an den drei `Asteroid017` an.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -181,6 +189,20 @@ behalten dadurch ihre Weltposition.
 - **Was sich ständig bewegt, bleibt flach.** Unity aktualisiert Transforms pro
   Hierarchie, bewegte Kinder in großen Hierarchien kosten mehr. Deshalb liegt
   `Playership` im Root, und die Streckenabschnitte spawnen dort ebenfalls.
+- **Spawning:** `Systems/TileManager` und `Systems/FieldManager` tragen dieselbe
+  Komponente `TileManager` (seit v1.4.9, vorher zwei fast gleiche Klassen). Die
+  eine legt die Streckenabschnitte vor das Schiff (`Chunk…`, 60 Einheiten lang, 4
+  auf einmal), die andere die Asteroidenfelder im Hintergrund (`AsteroidField…`, 40
+  lang, 8 auf einmal). Wann ein passierter Abschnitt nach vorn wandert, legt
+  `m_recycleDistance` fest: 55 bei der Strecke, 50 bei den Feldern. Nur die Strecke
+  setzt der Revive-Button neu, siehe „Bekannte Altlasten“.
+- **Effekte** (Staub beim Einsammeln einer Münze, Explosion beim Crash) entstehen
+  zur Laufzeit im Root und löschen sich selbst, der Staub nach 2 s, die Explosion
+  nach 4 s (`k_DustLifetime` in `Coin`, `k_ExplosionLifetime` in `PlayerMotor`). Das
+  ist die Laufzeit ihrer Partikelsysteme plus die längste Lebensdauer eines
+  Teilchens, leer sind sie schon nach 1 und gut 2 s. Bis v1.4.8 blieben sie bis zum
+  nächsten Szenen-Reload liegen, jede eingesammelte Münze hinterließ ein Objekt. Wer
+  einen Effekt austauscht, etwa im Remaster (v1.7.0), passt die Zeit mit an.
 - **Die Reihenfolge im UI ist die Zeichenreihenfolge:** Spätere Geschwister
   liegen oben. Sie blieb beim Umbau, wie sie war. Vor einem Umsortieren die
   Übergänge prüfen, in denen zwei Menüs gleichzeitig sichtbar sind (Tod, Pause,
@@ -191,10 +213,20 @@ behalten dadurch ihre Weltposition.
   pro Familie (siehe „Shop“), und Clips, die über einen Pfad animieren (siehe
   „Benennung von Dateien und Objekten“).
 - **Tags:** `Player` (Schiff), `Obstacle` (Crash) und `MainCamera` (Unity-Standard)
-  werden gebraucht, `Coin` steht an der Münze, wird aber noch nicht gelesen.
-  `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable` las kein Code, sie sind
-  seit v1.4.5 entfernt, ebenso das deaktivierte `SkinChange` an der
-  `ShopCamera` und ein ungenutzter `CharacterController` am `TileManager`.
+  werden gebraucht, `Coin` steht an der Münze, das Spiel liest es nicht, nur
+  `ChunkTests` prüft es. `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable`
+  las kein Code, sie sind seit v1.4.5 entfernt, ebenso das deaktivierte
+  `SkinChange` an der `ShopCamera` und ein ungenutzter `CharacterController` am
+  `TileManager`.
+- **Hindernisse auf der Strecke:** `PlayerMotor` crasht nur an Collidern mit Tag
+  `Obstacle`. Ein fester Collider ohne das Tag hält das Schiff bloß auf, es hängt
+  dann fest, und der Score läuft weiter. So war es bis v1.4.8 an `Asteroid017` in
+  Chunk023, Chunk027 und Chunk029. Die Asteroiden-Prefabs (`Prefabs/Asteroids/`)
+  betten das Modell als Prefab ein: `Obstacle` steht an ihrer Wurzel und als
+  Override am eingebetteten Modell, das den Collider trägt. Der große Felsbogen
+  `Asteroid023` (Chunk022, Chunk027) hat bewusst keinen Collider: Er lässt alle drei
+  Spuren frei, das Schiff fliegt hindurch. Nach jedem neuen oder getauschten
+  Hindernis (etwa im Remaster, v1.7.0) `ChunkTests` laufen lassen.
 - **Tags nie bei offenem Editor aus der Mitte der Liste löschen.** In Dateien
   stehen Tags als Text, im Speicher als Nummer nach ihrer Position in der Liste.
   Als in v1.4.5 `Shootable` vorne wegfiel, rutschten `Coin` und `Obstacle` im
@@ -351,12 +383,36 @@ bei 8.
   Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
   trotzdem an der Bildrate, umso stärker, je größer `k` ist, und schießen ab
   `k × Time.deltaTime` > 1 übers Ziel hinaus. Bildratenfest ist der Anteil
-  `1 - Mathf.Exp(-k * Time.deltaTime)`. `CameraMotor` glättet noch mit `k` = 1,
-  sein Abstand zum Schiff weicht dadurch zwischen 30 und 60 FPS um unter 2 % ab.
+  `1 - Mathf.Exp(-k * Time.deltaTime)`. So glättet seit v1.4.9 `CameraMotor`,
+  bis dahin wich der Abstand der Kamera zum Schiff zwischen 30 und 60 FPS um
+  1,4 % ab.
+- **Tempo:** Das Schiff startet mit 13 Einheiten pro Sekunde (bis v1.4.8 mit 11)
+  und wird alle 5 s um 0,2 schneller, ohne Obergrenze. Seit v1.4.9 zählt `PlayerMotor` dafür nur die
+  Zeit im Flug: Menü, Pause und Todesbildschirm bringen den nächsten Schritt nicht
+  näher. Bis v1.4.8 maß er an `Time.time` ab App-Start, wer länger als 5 s im Menü
+  blieb, bekam den ersten Schritt schon im ersten Frame des Runs.
+- **Kamera:** `CameraMotor` hält im Run den Abstand `m_offset` zum Schiff, derzeit
+  14 Einheiten dahinter und 8 darüber wie bis v1.4.8 (Entscheidung Oktober 2026),
+  bei jedem Tempo und jeder Bildrate gleich (gemessen bei 30 und 60 FPS: 14,00).
+  Ihre Glättung (`k_FollowSharpness` = 1 pro Sekunde) ließe sie rund eine Sekunde
+  Flug hinter diesem Platz herlaufen. Deshalb liest sie das Tempo bei
+  `PlayerMotor.Speed` und zielt genau um diesen Nachlauf voraus. Bis v1.4.8 rechnete
+  sie die Tempo-Rampe mit eigener Uhr nach. Ihr Abstand hing deshalb am Starttempo
+  (bei 11 rund 14 Einheiten, bei 13 rund 16) und schrumpfte nach einem Revive, weil
+  ihre Rampe auch auf dem Todesbildschirm weiterlief. `m_offset` lässt sich im
+  Inspector auch im Play Mode verstellen. Beim Start des Runs schwenkt sie in rund
+  3 s aus dem Menü hinter das Schiff. Nach einem Crash bremst sie bis
+  `m_crashOffset` hinter dem Wrack ab, derzeit 8 Einheiten dahinter und 8 darüber
+  (seit v1.4.9, Entscheidung Oktober 2026). So bleibt die Explosion unter den
+  Buttons des Todesbildschirms im Bild (Sichtfeld 75°, Neigung 20°). Damit sie dabei
+  nicht ruckartig langsamer wird, schließt sie die Lücke mit Tempo geteilt durch den
+  Abstand der beiden Offsets pro Sekunde und fährt so mit ihrem Flugtempo los. Nach
+  2 s steht sie, bei jedem Tempo. Bis v1.4.8 flog sie nach dem Tod weiter auf ihren
+  Platz im Run zu und stand nach langen Runs über oder vor dem Wrack.
 - **Spurwechsel:** `PlayerMotor.Move()` schließt die Lücke zur Zielspur
   exponentiell mit der geflogenen Strecke (`k_LaneChangeSharpness` = 1,25 pro
   Einheit). Ein Wechsel braucht damit bei jeder Geschwindigkeit dieselbe Strecke,
-  95 % nach 2,4 Einheiten, und bei jeder Bildrate dieselbe Zeit: 0,22 s bei
+  95 % nach 2,4 Einheiten, und bei jeder Bildrate dieselbe Zeit: 0,18 s bei
   Startgeschwindigkeit, rund 0,1 s bei Geschwindigkeit 25. Das ist das Tempo des
   alten Spurwechsels bei 30 FPS auf dem Handy (Entscheidung Oktober 2026). Bis
   v1.4.5 schloss er pro Frame `Geschwindigkeit × Frame-Zeit` der Lücke, lief
@@ -370,10 +426,24 @@ bei 8.
   v1.4.6 gelöscht.
 - **Bewegung testen:** Im Play Mode das Schiff auf y = 100 heben
   (`CharacterController` dafür kurz aus), dann trifft es nichts und fliegt normal
-  weiter. `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
+  weiter. Der erste zufällige Streckenabschnitt beginnt bei z = 60, seine
+  Hindernisse reichen teils bis 57 zurück. Beim Starttempo ist das Schiff nach gut
+  4 s dort, bis dahin also heben oder die Collider der Hindernisse davor
+  ausschalten. Soll es Münzen einsammeln, bleibt es unten, und alle festen Collider
+  der Abschnitte (`Chunk…` im Root, ohne Trigger) gehen jeden Frame aus. Einen
+  bestimmten Abschnitt testet man, indem man sein Prefab per `Instantiate` vor das
+  Schiff setzt (etwa bei z = 100) und die übrigen festen Collider ausschaltet, so in
+  v1.4.9 der Crash an `Asteroid017`.
+  `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
   Editor gerade läuft, und ein Handler an `Application.onBeforeRender` schreibt
   die Position pro Frame mit. So wurde der Spurwechsel in v1.4.6 bei 30, 60 und
-  144 FPS gemessen.
+  144 FPS gemessen. Für einen Vergleich vor und nach einem Umbau `Random.InitState`
+  vor einem Szenen-Reload und noch einmal beim Start des Runs setzen, dann spawnen
+  die `TileManager` dieselben Abschnitte (so in v1.4.9: alle 62 Ereignisse gleich).
+  Eine Auto-Pause verschiebt dabei nur die Bildnummern. Ein Run im Test schreibt
+  beim Tod Münzen und Highscore in den Spielstand. Ihn direkt vor jedem Lauf sichern
+  und danach genau diese Sicherung zurücklegen, keine ältere: Dazwischen kann jemand
+  im Editor gespielt haben (so ging in v1.4.9 ein Spielstand verloren).
 - **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
   Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
   `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus
@@ -415,11 +485,12 @@ bei 8.
   `unity.DefaultCompany.FPS2`) und zieht mit dem neuen Paketnamen mit.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
   ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
-  zusätzlich `TileManager.RespawnTiles` auf - diese Verbindung existiert nur in der
-  Szene, nicht im Code. `RespawnTiles` deaktiviert die alten Abschnitte, bevor es sie
-  löscht: `Destroy` greift erst am Frame-Ende, das Schiff fliegt aber im selben
-  Frame wieder los. Ohne das krachte es beim Revive sofort ins selbe Hindernis
-  (zweite Explosion, Spiel-UI weg, Schiff unsichtbar; behoben in v1.4.4).
+  zusätzlich `RespawnTiles` am `TileManager` der Strecke (`Systems/TileManager`)
+  auf - diese Verbindung existiert nur in der Szene, nicht im Code. `RespawnTiles`
+  deaktiviert die alten Abschnitte, bevor es sie löscht: `Destroy` greift erst am
+  Frame-Ende, das Schiff fliegt aber im selben Frame wieder los. Ohne das krachte es
+  beim Revive sofort ins selbe Hindernis (zweite Explosion, Spiel-UI weg, Schiff
+  unsichtbar; behoben in v1.4.4).
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch den lokalen
   Highscore im Spielstand. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
@@ -490,7 +561,9 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
   ~45 min, erster VAGOR nach ~2 h, alles nach ~3,3 h. Die Originalpreise von 2021
   (3.500 / 6.000 / 8.000) hätten über 20 h gebraucht. Der derzeit kostenlose
   Revive hebt das Einkommen pro Run grob um 50-70 % - nach dessen Umbau (v1.9.2)
-  die Preise gegenprüfen.
+  die Preise gegenprüfen. Seit v1.4.9 startet das Schiff mit 13 statt 11: Ein
+  gleich langer Run fliegt rund 15 % weiter und bringt entsprechend mehr Münzen,
+  60 s also ~50 statt ~40. Ob Runs dadurch kürzer werden, zeigt das Spielen.
 - **Merkposten: Der Spielstand ist unverschlüsselt** (früher ein TODO im
   `GameManager`, in v1.4.3 hierher verschoben). Die Datei ist lesbares JSON und
   lässt sich mit Zugriff auf den Datenordner der App ändern. Ohne Echtgeld-Käufe und
@@ -633,7 +706,11 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
 - **Klicks für Tests so simulieren, nicht per `onClick.Invoke()` von außen.** Ein
   echter Klick läuft im EventSystem vor den `Update()`-Methoden der Spielskripte,
   im selben Frame. Der Revive-Bug (v1.4.4) trat nur so auf - per
-  `onClick.Invoke()` aus dem Editor sah alles gut aus.
+  `onClick.Invoke()` aus dem Editor sah alles gut aus. Kommen echte Eingaben nicht
+  an, weil Unity im Hintergrund läuft, tut es ein eigenes System im `PlayerLoop`
+  unter `PreUpdate`, das `ExecuteEvents.Execute` mit `pointerClickHandler` auf dem
+  Button aufruft: Es läuft wie ein echter Klick vor allen `Update()`-Methoden. So
+  wurde in v1.4.9 der Revive getestet.
 
 ## Pause
 
@@ -739,8 +816,12 @@ neben den fertigen Sounds (Entscheidung Oktober 2026).
   fest), `Ableton Project Info/` und später `Samples/` mit eigenen Aufnahmen und
   gesammelten Samples. **Nicht im Repo,** jeweils samt `.meta`: `Backup/` mit
   Abletons eigenen Sicherungen (das Repo ersetzt sie), die `.asd`-Analysedateien, die
-  Ableton neben Samples legt, und die `Desktop.ini` für das Ordner-Symbol. Die
-  Regeln stehen am Ende der `.gitignore`.
+  Ableton neben Samples legt, und die `Desktop.ini` für das Ordner-Symbol. Aus
+  `Samples/` kommen nur die Samples selbst ins Repo, keine `.meta`: Live legt die
+  Ordner darin selbst an, oft leer, und Git hält keine leeren Ordner. Ihre `.meta`
+  stünden nach einem Clone ohne Ordner da. Weil nichts im Spiel auf das Live-Projekt
+  zeigt, schadet es nicht, dass Unity sie nach einem Clone neu anlegt (seit v1.4.9).
+  Die Regeln stehen am Ende der `.gitignore`.
 - **Zum Öffnen nach einem Clone** braucht es Ableton Live 11 mit Core Library
   (gespeichert mit 11.3 Standard) und das Plugin Unison Zen Master (VST3). Alle
   Samples des Sets stammen aus der Core Library, das Set verweist nur auf sie (Stand
