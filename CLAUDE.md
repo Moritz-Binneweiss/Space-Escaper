@@ -108,7 +108,10 @@ unbekanntes Schiff, Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellun
 und Versionsnummer. Seit v1.4.8 prüfen sie auch die Schiffsdaten
 (`ShipCatalogTests`): jedes `ShipData` genau einmal im Katalog, das Startschiff
 darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger ID,
-Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen.
+Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen. Seit v1.4.9
+prüfen sie die Streckenabschnitte (`ChunkTests`): Jeder feste Collider in einem
+Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponente
+`Coin`), und die Asteroidenfelder haben keine Collider.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
   oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
@@ -123,7 +126,8 @@ Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen.
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
-  scheiterten alle vier ungültigen Schiffe.
+  scheiterten alle vier ungültigen Schiffe. In v1.4.9 schlug der Chunk-Test vor der
+  Reparatur genau an den drei `Asteroid017` an.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -209,10 +213,11 @@ behalten dadurch ihre Weltposition.
   pro Familie (siehe „Shop“), und Clips, die über einen Pfad animieren (siehe
   „Benennung von Dateien und Objekten“).
 - **Tags:** `Player` (Schiff), `Obstacle` (Crash) und `MainCamera` (Unity-Standard)
-  werden gebraucht, `Coin` steht an der Münze, wird aber noch nicht gelesen.
-  `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable` las kein Code, sie sind
-  seit v1.4.5 entfernt, ebenso das deaktivierte `SkinChange` an der
-  `ShopCamera` und ein ungenutzter `CharacterController` am `TileManager`.
+  werden gebraucht, `Coin` steht an der Münze, das Spiel liest es nicht, nur
+  `ChunkTests` prüft es. `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable`
+  las kein Code, sie sind seit v1.4.5 entfernt, ebenso das deaktivierte
+  `SkinChange` an der `ShopCamera` und ein ungenutzter `CharacterController` am
+  `TileManager`.
 - **Hindernisse auf der Strecke:** `PlayerMotor` crasht nur an Collidern mit Tag
   `Obstacle`. Ein fester Collider ohne das Tag hält das Schiff bloß auf, es hängt
   dann fest, und der Score läuft weiter. So war es bis v1.4.8 an `Asteroid017` in
@@ -220,7 +225,8 @@ behalten dadurch ihre Weltposition.
   betten das Modell als Prefab ein: `Obstacle` steht an ihrer Wurzel und als
   Override am eingebetteten Modell, das den Collider trägt. Der große Felsbogen
   `Asteroid023` (Chunk022, Chunk027) hat bewusst keinen Collider: Er lässt alle drei
-  Spuren frei, das Schiff fliegt hindurch.
+  Spuren frei, das Schiff fliegt hindurch. Nach jedem neuen oder getauschten
+  Hindernis (etwa im Remaster, v1.7.0) `ChunkTests` laufen lassen.
 - **Tags nie bei offenem Editor aus der Mitte der Liste löschen.** In Dateien
   stehen Tags als Text, im Speicher als Nummer nach ihrer Position in der Liste.
   Als in v1.4.5 `Shootable` vorne wegfiel, rutschten `Coin` und `Obstacle` im

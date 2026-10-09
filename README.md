@@ -158,6 +158,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Camera stops behind the wreck after a crash, so the explosion stays in view
 - [x] Fixed coin dust and crash explosions staying in the scene after they have played
 - [x] Fixed the ship getting stuck on one asteroid instead of crashing
+- [x] Test checks the obstacle and coin tags of every track section
 
 </small>
 
