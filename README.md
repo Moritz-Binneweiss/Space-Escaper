@@ -147,6 +147,14 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
+#### **v1.4.10** | UI Screens _(------- --, 2026)_
+
+<small>
+
+- [x] Menus switch on and off instead of sliding, each on its own canvas
+
+</small>
+
 #### **v1.4.9** | Spawning & Camera _(October 9, 2026)_
 
 <small>

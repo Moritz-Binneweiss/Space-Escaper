@@ -8,11 +8,7 @@ namespace SpaceEscaper
     /// </summary>
     public class PauseMenu : MonoBehaviour
     {
-        private const string k_ShowTrigger = "Show";
-        private const string k_HideTrigger = "Hide";
-
-        [SerializeField] private Animator m_pauseMenuAnimator;
-        [SerializeField] private Animator m_gameMenuAnimator;
+        [SerializeField] private ScreenManager m_screens;
 
         /// <summary>
         /// The one pause state of the game. SettingsManager reads it to decide where
@@ -60,8 +56,7 @@ namespace SpaceEscaper
 
             IsPaused = true;
             AudioSystem.Instance.StopEngine();
-            m_gameMenuAnimator.SetTrigger(k_HideTrigger);
-            m_pauseMenuAnimator.SetTrigger(k_ShowTrigger);
+            m_screens.ShowPauseMenu();
             Time.timeScale = 0f;
         }
 
@@ -74,8 +69,7 @@ namespace SpaceEscaper
 
             IsPaused = false;
             AudioSystem.Instance.StartEngine();
-            m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
-            m_pauseMenuAnimator.SetTrigger(k_HideTrigger);
+            m_screens.ShowGameMenu();
             Time.timeScale = 1f;
         }
     }

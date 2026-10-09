@@ -13,26 +13,19 @@ namespace SpaceEscaper
         private const string k_GameSceneName = "Game";
         private const string k_PlayerTag = "Player";
 
-        private const string k_ShowTrigger = "Show";
-        private const string k_HideTrigger = "Hide";
-        private const string k_CollectTrigger = "Collect";
-        private const string k_DeadTrigger = "Dead";
-
-        // Spelled this way in the death menu's Animator Controller.
-        private const string k_AliveTrigger = "Allive";
-
         private const float k_ScorePerSecond = 3f;
         private const int k_ScorePerCoin = 1;
         private const float k_SpaceportHideDelay = 3f;
 
+        [SerializeField] private ScreenManager m_screens;
+
         [Header("Main Menu")]
-        [SerializeField] private Animator m_mainMenuAnimator;
         [SerializeField] private Text m_menuCoinText;
         [SerializeField] private Text m_highscoreText;
 
         [Header("Run")]
-        [SerializeField] private Animator m_gameMenuAnimator;
-        [SerializeField] private Animator m_coinAnimator;
+        [Tooltip("The coin icon of the game menu, which pops for every coin collected.")]
+        [SerializeField] private PopEffect m_coinIconPop;
         [SerializeField] private Text m_scoreText;
         [SerializeField] private Text m_coinText;
         [SerializeField] private Text m_modifierText;
@@ -45,7 +38,6 @@ namespace SpaceEscaper
         [SerializeField] private Transform m_shipContainer;
 
         [Header("Hangar Shop")]
-        [SerializeField] private Animator m_shopAnimator;
         [SerializeField] private GameObject m_hangar;
         [Tooltip("The model of the ship shown in the hangar is created here.")]
         [SerializeField] private Transform m_shopShipContainer;
@@ -57,7 +49,6 @@ namespace SpaceEscaper
         [SerializeField] private Transform m_skinButtonContainer;
 
         [Header("Death Menu")]
-        [SerializeField] private Animator m_deathMenuAnimator;
         [SerializeField] private Text m_deathScoreText;
         [SerializeField] private Text m_deathCoinText;
         [SerializeField] private GameObject m_reviveButton;
@@ -138,15 +129,14 @@ namespace SpaceEscaper
             AudioSystem.Instance.PlayGameMusic();
             m_playerMotor.StartRunning();
             FindAnyObjectByType<CameraMotor>().IsMoving = true;
-            m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
-            m_mainMenuAnimator.SetTrigger(k_HideTrigger);
+            m_screens.ShowGameMenu();
             m_engineFlame.SetActive(true);
             StartCoroutine(HideSpaceportAfterDelay());
         }
 
         public void CollectCoin()
         {
-            m_coinAnimator.SetTrigger(k_CollectTrigger);
+            m_coinIconPop.Play();
             m_runCoins.Collect();
             m_coinText.text = m_runCoins.Count.ToString();
             m_score += k_ScorePerCoin;
@@ -177,10 +167,9 @@ namespace SpaceEscaper
             // highscore cannot disagree (rounding 41.7 shows 42, truncating saves 41).
             int finalScore = (int)m_score;
 
-            m_gameMenuAnimator.SetTrigger(k_HideTrigger);
             m_deathScoreText.text = finalScore.ToString();
             m_deathCoinText.text = m_runCoins.Count.ToString();
-            m_deathMenuAnimator.SetTrigger(k_DeadTrigger);
+            m_screens.ShowDeathMenu();
 
             // Paused, not stopped, so a revive continues the track where it was.
             // Going back to the menu reloads the scene, which starts the menu music.
@@ -209,15 +198,13 @@ namespace SpaceEscaper
 
         public void OpenShop()
         {
-            m_mainMenuAnimator.SetTrigger(k_HideTrigger);
-            m_shopAnimator.SetTrigger(k_ShowTrigger);
+            m_screens.ShowShop();
             m_hangar.SetActive(true);
         }
 
         public void CloseShop()
         {
-            m_mainMenuAnimator.SetTrigger(k_ShowTrigger);
-            m_shopAnimator.SetTrigger(k_HideTrigger);
+            m_screens.ShowMainMenu();
             m_hangar.SetActive(false);
         }
 
@@ -275,8 +262,7 @@ namespace SpaceEscaper
 
         private void Revive()
         {
-            m_deathMenuAnimator.SetTrigger(k_AliveTrigger);
-            m_gameMenuAnimator.SetTrigger(k_ShowTrigger);
+            m_screens.ShowGameMenu();
             m_score = m_reviveScore;
             m_shipModel.SetActive(true);
             m_engineFlame.SetActive(true);

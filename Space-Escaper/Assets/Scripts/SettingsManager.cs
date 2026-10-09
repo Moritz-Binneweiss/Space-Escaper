@@ -7,23 +7,11 @@ namespace SpaceEscaper
     /// </summary>
     public class SettingsManager : MonoBehaviour
     {
-        private const string k_ShowTrigger = "Show";
-        private const string k_HideTrigger = "Hide";
+        [SerializeField] private ScreenManager m_screens;
 
-        [SerializeField] private Animator m_pauseMenuAnimator;
-        [SerializeField] private Animator m_settingsAnimator;
-        [SerializeField] private Animator m_mainMenuAnimator;
-
-        public void OpenFromMainMenu()
+        public void Open()
         {
-            m_settingsAnimator.SetTrigger(k_ShowTrigger);
-            m_mainMenuAnimator.SetTrigger(k_HideTrigger);
-        }
-
-        public void OpenFromPauseMenu()
-        {
-            m_settingsAnimator.SetTrigger(k_ShowTrigger);
-            m_pauseMenuAnimator.SetTrigger(k_HideTrigger);
+            m_screens.ShowSettings();
         }
 
         /// <summary>
@@ -34,13 +22,11 @@ namespace SpaceEscaper
         {
             if (PauseMenu.IsPaused)
             {
-                m_pauseMenuAnimator.SetTrigger(k_ShowTrigger);
-                m_settingsAnimator.SetTrigger(k_HideTrigger);
+                m_screens.ShowPauseMenu();
             }
             else
             {
-                m_settingsAnimator.SetTrigger(k_HideTrigger);
-                m_mainMenuAnimator.SetTrigger(k_ShowTrigger);
+                m_screens.ShowMainMenu();
             }
         }
     }
