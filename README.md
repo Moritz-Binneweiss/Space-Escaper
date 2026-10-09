@@ -153,6 +153,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [x] VS Code connected to Unity again, with real errors and debugging
 - [x] Test checks the button calls, scripts and references in the scene
+- [x] PlayMode test for a run with a crash and a revive
 
 </small>
 

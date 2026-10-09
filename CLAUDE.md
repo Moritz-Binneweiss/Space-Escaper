@@ -15,7 +15,8 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
   `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
   (Schiffe).
-- `Space-Escaper/Assets/Tests/EditMode/` - EditMode-Tests, siehe „Tests“.
+- `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, ein PlayMode-Test in
+  `PlayMode/`, siehe „Tests“.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
 - `Space-Escaper/Assets/Audio/` - Audio-Clips in `Classic/` (Originale von 2020)
@@ -124,10 +125,25 @@ findet Ziel, Methode und Argument, jede Referenz unserer Komponenten ist gesetzt
 (auch in Listen), jeder Screen unter `UI` hat `Canvas` und `GraphicRaycaster` und
 keinen Animator, und der `ScreenManager` kennt jeden Screen genau einmal.
 
-- **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode,
-  oder per `unity command run_tests --mode EditMode`. Dauert wenige Sekunden,
-  also vor jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die Szene oder
-  eine Methode ändert, die ein Button aufruft. Die CLI legt dabei eine
+Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
+(`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
+zum ersten Hindernis, dann prüft er Todesbildschirm und Spielstand, tippt Revive
+und prüft, dass das Schiff 20 Einheiten weiterfliegt, ohne wieder zu crashen. Mit
+dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
+„Bekannte Altlasten“).
+
+- **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
+  oder PlayMode. Per CLI die EditMode-Tests mit
+  `unity command run_tests --mode EditMode`. Sie dauern wenige Sekunden, also vor
+  jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die Szene oder eine
+  Methode ändert, die ein Button aufruft. Den PlayMode-Test nur asynchron:
+  `unity command run_tests --mode playmode --async_tests true`, dann
+  `unity command test_status` abfragen, bis es nach `running` `completed` meldet.
+  Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten. Synchron führt
+  das Test Framework nur EditMode-Tests aus, die in einem Frame fertig sind, und
+  die CLI meldet 0/0. `--mode all` startet asynchron gar nichts, also beide Modi
+  einzeln. Mit dem Wechsel in den Play Mode dauert er knapp 20 s, also
+  vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Die CLI legt eine
   `TestResults.xml` neben den Spielstand, die darf weg. Ist die offene Szene
   ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie speichern soll.
   Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
@@ -135,11 +151,30 @@ keinen Animator, und der `ScreenManager` kennt jeden Screen genau einmal.
   gegen eine leere und stellt sie danach wieder her. `SceneTests` öffnet
   `Game.unity` deshalb selbst daneben und schließt sie am Ende wieder. Ist sie schon
   geladen, prüft der Test sie, wie sie ist, und lässt sie offen.
-- **Testbar ist, was ohne laufende Szene geht.** Regeln gehören deshalb in einfache
-  Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours. `SceneTests` sieht
-  nur, wie die Szene verdrahtet ist, nicht, was sie im Spiel tut. Was nur im Spiel
-  geht (dass `GameManager` nach einem Kauf sofort speichert, Eingaben,
-  Auto-Pause), bleibt beim Test im Play Mode, siehe „Bewegung testen“ und „Eingabe“.
+- **Der PlayMode-Test spielt echt, aber stumm und ohne den echten Spielstand.** Ein
+  Tod schreibt Münzen und Highscore, deshalb lenkt `SetUp` den Spielstand mit
+  `SaveSystem.LoadFrom` in einen eigenen Ordner um, im Editor
+  `%LOCALAPPDATA%\Temp\ANIMO Games\Space Escaper\PlayModeTests\`. Der beginnt leer
+  wie eine Neuinstallation, nur der Lautstärkeregler steht auf 0: Musik und Sounds
+  laufen durch denselben Code wie im Spiel, man hört sie nur nicht. Den echten
+  Spielstand fasst der Test nicht an (Hash vor und nach jedem Lauf gleich).
+  Sichern und zurücklegen ginge nicht sauber: Beim Verlassen des Play Mode speichert
+  `AudioSystem.OnApplicationQuit` noch einmal und überschriebe den zurückgelegten
+  Stand. Die Umleitung gilt deshalb bis zum Ende des Play Mode, der nächste Start
+  lädt wieder den echten Spielstand.
+- **Tippen wie ein Finger:** Der Test tippt jeden Button an seiner Mitte. Vorher
+  prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
+  Der Tipp selbst kommt in `PreUpdate`, vor allen `Update()`, wie ein echter (siehe
+  „Eingabe“). `Random.InitState` wählt immer dieselben Abschnitte, das Schiff crasht
+  also immer an derselben Stelle (derzeit bei z = 56,8 nach 4,4 s). Pausiert ein
+  Fokuswechsel im Editor den Run, tippt der Test Continue und vermerkt das in seiner
+  Ausgabe.
+- **Am schnellsten testbar ist, was ohne laufende Szene geht.** Regeln gehören
+  deshalb in einfache Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours.
+  `SceneTests` sieht nur, wie die Szene verdrahtet ist, nicht, was sie im Spiel tut.
+  Run, Tod und Revive spielt `RunTests` durch. Was sonst nur im Spiel geht (dass
+  `GameManager` nach einem Kauf sofort speichert, Wischer, Auto-Pause), bleibt beim
+  Ausprobieren im Play Mode, siehe „Bewegung testen“ und „Eingabe“.
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
@@ -149,6 +184,9 @@ keinen Animator, und der `ScreenManager` kennt jeden Screen genau einmal.
   umbenannte Methode, einen Skin-Button ohne `ShipData`, eine leere Referenz, eine
   Lücke in der Prefab-Liste des `TileManager`, einen Screen ohne Raycaster, einen
   mit Animator, das Hauptmenü doppelt im `ScreenManager` und ein fehlendes Skript.
+  Der PlayMode-Test scheiterte mit `RespawnTiles` ohne das Ausschalten der alten
+  Abschnitte im Frame des Revive. Tippte er dabei aus dem Test selbst, also nach
+  `Update()`, blieb er grün: So wäre der Bug durchgerutscht.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -171,7 +209,7 @@ nur Ordner.
 | `Scripts/` | alle Skripte, flach, dazu `SpaceEscaper.asmdef` |
 | `Settings/` | URP-Asset, Renderer, Global Settings, Volume Profile, Build Profiles |
 | `Shaders/` | `BendWorld.shader` |
-| `Tests/` | `EditMode/` mit den Tests und ihrer Assembly Definition |
+| `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
 | `UI/` | `Images/` (Sprites, Shop-Sprites in `Images/Shop/`), `Fonts/`, `Mockups.png` |
 
@@ -378,8 +416,11 @@ bei 8.
 - **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
   `SpaceEscaper` (`Scripts/SpaceEscaper.asmdef`) statt in `Assembly-CSharp`, die
   Tests in `SpaceEscaper.Tests.EditMode` (seit v1.4.11 mit `UnityEngine.UI` in den
-  References, für `SceneTests`). Test-Assemblies kommen an
-  `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
+  References, für `SceneTests`) und seit v1.4.11 `SpaceEscaper.Tests.PlayMode`. Die
+  PlayMode-Assembly gilt für alle Plattformen, nur dann führt der Test Runner sie
+  unter PlayMode. `Scripts/AssemblyInfo.cs` öffnet ihr `internal`
+  (`InternalsVisibleTo`), derzeit nur für `SaveSystem.LoadFrom`. Test-Assemblies
+  kommen an `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
   v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
   findet der Compiler es nicht. Derzeit stehen dort `Unity.InputSystem` und
@@ -391,9 +432,9 @@ bei 8.
   Unity-6-Update am 17.01.2026 bis v1.4.10, so lange kannte VS Code die
   Unity-Typen nicht.
   - Unity schreibt nach Änderungen an Skripten oder Assemblies
-    `Space-Escaper.slnx`, `SpaceEscaper.csproj` und
-    `SpaceEscaper.Tests.EditMode.csproj` nach `Space-Escaper/`. Alle drei sind
-    erzeugt und von Git ignoriert. Von Hand neu schreiben: Preferences > External
+    `Space-Escaper.slnx`, `SpaceEscaper.csproj`,
+    `SpaceEscaper.Tests.EditMode.csproj` und `SpaceEscaper.Tests.PlayMode.csproj`
+    nach `Space-Escaper/`. Alle vier sind erzeugt und von Git ignoriert. Von Hand neu schreiben: Preferences > External
     Tools > Regenerate project files. Bis v1.4.10 lag eine alte `.slnx` im Repo,
     die nur ein `Assembly-CSharp.csproj` nannte.
   - In VS Code braucht es die Unity-Erweiterung (`visualstudiotoolsforunity.vstuc`,
@@ -404,8 +445,8 @@ bei 8.
     Doppelklick auf ein Skript oder über Assets > Open C# Project. Nur dort gelten
     `.vscode/settings.json` und „Attach to Unity“ (F5) aus `.vscode/launch.json`.
   - Prüfen ohne VS Code: `dotnet build Space-Escaper.slnx` in `Space-Escaper/`
-    (.NET-SDK 10) baut beide Assemblies mit den Unity-Analyzern, die Ausgabe landet
-    in `Temp/`. Stand v1.4.11: keine Fehler, keine Warnungen.
+    (.NET-SDK 10) baut alle drei Assemblies mit den Unity-Analyzern, die Ausgabe
+    landet in `Temp/`. Stand v1.4.11: keine Fehler, keine Warnungen.
   - Die Analyzer liegen im Ordner der VS-Code-Erweiterung, ihr Pfad enthält deren
     Version. Nach einem Update der Erweiterung stimmt er erst wieder, wenn Unity die
     Projektdateien neu schreibt.
@@ -534,7 +575,7 @@ bei 8.
   deaktiviert die alten Abschnitte, bevor es sie löscht: `Destroy` greift erst am
   Frame-Ende, das Schiff fliegt aber im selben Frame wieder los. Ohne das krachte es
   beim Revive sofort ins selbe Hindernis (zweite Explosion, Spiel-UI weg, Schiff
-  unsichtbar; behoben in v1.4.4).
+  unsichtbar; behoben in v1.4.4). Seit v1.4.11 prüft `RunTests` das bei jedem Lauf.
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch den lokalen
   Highscore im Spielstand. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
@@ -618,7 +659,8 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
   löschen“ in den App-Einstellungen setzt ihn zurück. Im Editor unter
   `%USERPROFILE%\AppData\LocalLow\ANIMO Games\Space Escaper\SaveData.json`. Der Pfad
   hängt an Firma und App-Name (`productName`), ein neuer App-Name lässt den
-  Spielstand im Editor deshalb verschwinden.
+  Spielstand im Editor deshalb verschwinden. Der PlayMode-Test schreibt in einen
+  eigenen Ordner, siehe „Tests“.
 - **Neuinstallation im Editor testen:** Play Mode beenden und `SaveData.json` samt
   einer eventuellen `SaveData.json.tmp` wegschieben. Der nächste Start beginnt mit 0
   Münzen, Highscore 0, dem Startschiff, den neuen Sounds, Musik und SFX an und voller
@@ -799,12 +841,13 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   nachher vergleichen.
 - **Klicks für Tests so simulieren, nicht per `onClick.Invoke()` von außen.** Ein
   echter Klick läuft im EventSystem vor den `Update()`-Methoden der Spielskripte,
-  im selben Frame. Der Revive-Bug (v1.4.4) trat nur so auf - per
+  im selben Frame (Execution Order -1000, eingetragen in der `.meta` von
+  `EventSystem.cs` im Paket `com.unity.ugui`). Der Revive-Bug (v1.4.4) trat nur so auf - per
   `onClick.Invoke()` aus dem Editor sah alles gut aus. Kommen echte Eingaben nicht
   an, weil Unity im Hintergrund läuft, tut es ein eigenes System im `PlayerLoop`
   unter `PreUpdate`, das `ExecuteEvents.Execute` mit `pointerClickHandler` auf dem
   Button aufruft: Es läuft wie ein echter Klick vor allen `Update()`-Methoden. So
-  wurde in v1.4.9 der Revive getestet.
+  wurde in v1.4.9 der Revive getestet, seit v1.4.11 tippt `RunTests` genauso.
 
 ## Pause
 

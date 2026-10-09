@@ -14,15 +14,16 @@ namespace SpaceEscaper
         private const string k_TemporaryFileName = "SaveData.json.tmp";
 
         private static SaveData s_data;
+        private static string s_directory;
 
         /// <summary>
         /// The save of this session. Changes stay in memory until <see cref="Save"/>.
         /// </summary>
         public static SaveData Data => s_data;
 
-        private static string FilePath => Path.Combine(Application.persistentDataPath, k_FileName);
+        private static string FilePath => Path.Combine(s_directory, k_FileName);
 
-        private static string TemporaryFilePath => Path.Combine(Application.persistentDataPath, k_TemporaryFileName);
+        private static string TemporaryFilePath => Path.Combine(s_directory, k_TemporaryFileName);
 
         /// <summary>
         /// Writes the save to disk. Cheap enough for every purchase or death, not for
@@ -44,10 +45,15 @@ namespace SpaceEscaper
             }
         }
 
-        // Before the first scene loads, so every Awake can read the save.
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void Load()
+        /// <summary>
+        /// Loads the save from another folder and writes it there from then on. Tests
+        /// that play the game use it to leave the real save alone. The next start of
+        /// the game loads from Application.persistentDataPath again.
+        /// </summary>
+        internal static void LoadFrom(string directory)
         {
+            s_directory = directory;
+
             // Only the temporary file is left if the app was killed between deleting
             // the old save and moving the new one in. It is complete by then.
             string path = File.Exists(FilePath) ? FilePath : TemporaryFilePath;
@@ -70,6 +76,13 @@ namespace SpaceEscaper
                 Debug.LogWarning($"Could not read the save file, starting a new save: {exception.Message}");
                 s_data = new SaveData();
             }
+        }
+
+        // Before the first scene loads, so every Awake can read the save.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static void Load()
+        {
+            LoadFrom(Application.persistentDataPath);
         }
     }
 }
