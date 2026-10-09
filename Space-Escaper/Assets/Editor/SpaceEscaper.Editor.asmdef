@@ -1,12 +1,12 @@
 {
-    "name": "SpaceEscaper",
-    "rootNamespace": "SpaceEscaper",
+    "name": "SpaceEscaper.Editor",
+    "rootNamespace": "SpaceEscaper.Editor",
     "references": [
-        "Unity.InputSystem",
-        "Unity.RenderPipelines.Core.Runtime",
-        "UnityEngine.UI"
+        "SpaceEscaper"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,

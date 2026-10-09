@@ -54,6 +54,11 @@ namespace SpaceEscaper.Tests
             // still go through the same code as in the game.
             SaveSystem.Data.MasterVolume = 0f;
 
+#if UNITY_EDITOR || UNITY_ENABLE_CHECKS
+            // The ship has to crash, whatever the test menu says.
+            PlayerMotor.IsInvincible = false;
+#endif
+
             m_originalPlayerLoop = PlayerLoop.GetCurrentPlayerLoop();
             PlayerLoop.SetPlayerLoop(AddToPreUpdate(PlayerLoop.GetCurrentPlayerLoop(), TapPendingButton));
         }

@@ -1,4 +1,6 @@
 using System.Runtime.CompilerServices;
 
-// The PlayMode tests move the save to a folder of their own, see SaveSystem.LoadFrom.
+// The test menu and the PlayMode tests reach into the save, see SaveSystem.LoadFrom
+// and SaveSystem.Delete.
+[assembly: InternalsVisibleTo("SpaceEscaper.Editor")]
 [assembly: InternalsVisibleTo("SpaceEscaper.Tests.PlayMode")]

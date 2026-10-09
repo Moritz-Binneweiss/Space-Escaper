@@ -78,6 +78,17 @@ namespace SpaceEscaper
             }
         }
 
+        /// <summary>
+        /// Deletes the save on disk and starts a new one, as after a new install. For the
+        /// test menu.
+        /// </summary>
+        internal static void Delete()
+        {
+            File.Delete(FilePath);
+            File.Delete(TemporaryFilePath);
+            s_data = new SaveData();
+        }
+
         // Before the first scene loads, so every Awake can read the save.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Load()
