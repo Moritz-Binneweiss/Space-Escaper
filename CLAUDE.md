@@ -213,6 +213,14 @@ behalten dadurch ihre Weltposition.
   `Pause`, `Shop`, `TileManager`, `Audio` und `Shootable` las kein Code, sie sind
   seit v1.4.5 entfernt, ebenso das deaktivierte `SkinChange` an der
   `ShopCamera` und ein ungenutzter `CharacterController` am `TileManager`.
+- **Hindernisse auf der Strecke:** `PlayerMotor` crasht nur an Collidern mit Tag
+  `Obstacle`. Ein fester Collider ohne das Tag hält das Schiff bloß auf, es hängt
+  dann fest, und der Score läuft weiter. So war es bis v1.4.8 an `Asteroid017` in
+  Chunk023, Chunk027 und Chunk029. Die Asteroiden-Prefabs (`Prefabs/Asteroids/`)
+  betten das Modell als Prefab ein: `Obstacle` steht an ihrer Wurzel und als
+  Override am eingebetteten Modell, das den Collider trägt. Der große Felsbogen
+  `Asteroid023` (Chunk022, Chunk027) hat bewusst keinen Collider: Er lässt alle drei
+  Spuren frei, das Schiff fliegt hindurch.
 - **Tags nie bei offenem Editor aus der Mitte der Liste löschen.** In Dateien
   stehen Tags als Text, im Speicher als Nummer nach ihrer Position in der Liste.
   Als in v1.4.5 `Shootable` vorne wegfiel, rutschten `Coin` und `Obstacle` im
@@ -416,7 +424,10 @@ bei 8.
   Hindernisse reichen teils bis 57 zurück. Beim Starttempo ist das Schiff nach gut
   4 s dort, bis dahin also heben oder die Collider der Hindernisse davor
   ausschalten. Soll es Münzen einsammeln, bleibt es unten, und alle festen Collider
-  der Abschnitte (`Chunk…` im Root, ohne Trigger) gehen jeden Frame aus.
+  der Abschnitte (`Chunk…` im Root, ohne Trigger) gehen jeden Frame aus. Einen
+  bestimmten Abschnitt testet man, indem man sein Prefab per `Instantiate` vor das
+  Schiff setzt (etwa bei z = 100) und die übrigen festen Collider ausschaltet, so in
+  v1.4.9 der Crash an `Asteroid017`.
   `Time.captureFramerate` legt die Frame-Zeit fest, egal wie schnell der
   Editor gerade läuft, und ein Handler an `Application.onBeforeRender` schreibt
   die Position pro Frame mit. So wurde der Spurwechsel in v1.4.6 bei 30, 60 und
