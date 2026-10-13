@@ -158,6 +158,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Shadows and additional lights off, the game uses neither
 - [x] Incremental garbage collection, spread over several frames instead of one long pause
 - [x] No longer requires the OpenGL ES extension pack, which the game does not use
+- [x] Removed leftover define symbols, a missing settings object and unused built-in shaders
 
 </small>
 

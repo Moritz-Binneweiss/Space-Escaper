@@ -598,6 +598,13 @@ bei 8.
   Projekt nutzt sie. Die Pflicht stand trotzdem im Manifest
   (`android.hardware.opengles.aep`, required), und der Play Store bietet eine App dann
   nur Geräten mit AEP an. Ob Vulkan dazukommt, zeigt die Messung am Ende von v1.5.0.
+- **Keine Define-Symbole** in den Player Settings (seit v1.4.12). Bis dahin standen
+  dort für 19 Plattformen Überbleibsel entfernter Pakete, für Android
+  `CROSS_PLATFORM_INPUT` und `MOBILE_INPUT` (Standard Assets),
+  `UNITY_POST_PROCESSING_STACK_V2`, `SENTIS_ANALYTICS_ENABLED` und
+  `APP_UI_EDITOR_ONLY`. Kein Code las sie, weder in `Assets/` noch in den Paketen.
+  Ebenso weg ist der Eintrag `com.unity.dt.app-ui` in den Build Settings, er zeigte
+  auf ein gelöschtes Asset. Ein neues Symbol nur zusammen mit Code, der es liest.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
@@ -1113,7 +1120,16 @@ neuen Stand in einem eigenen Commit aufnehmen, nicht vermischt mit inhaltlichen
 Änderungen.
 
 Shader-Verteilung: 34 Materialien auf `ANIMO/BendWorld`, 13 auf URP/Lit, 7 auf URP
-Particles (Lit/Unlit), 2 TextMesh Pro, 1 Skybox.
+Particles (Lit/Unlit), 2 TextMesh Pro, 1 auf dem eingebauten `Unlit/Texture` (der
+Sternenhintergrund, `Materials/Skybox/Background.mat`).
+
+**Always Included Shaders** (Project Settings > Graphics) kommen in jeden Build, auch
+wenn nichts sie nutzt. Seit v1.4.12 stehen dort nur noch Unitys Helfer für UI,
+Cubemaps und `Hidden/Compositing`. „Legacy Shaders/Diffuse“ aus der Built-in Pipeline
+nutzte kein Material, und kein Shader fällt darauf zurück (`BendWorld` fällt auf
+URP/Unlit zurück). Die drei Video-Shader sind ebenfalls raus, und „Video“ steht auf
+„Referenced“: Sie kommen nur mit, wenn eine Szene ein Video nutzt, das Spiel hat
+keins. Die Einstellung allein nimmt sie nicht aus der Liste, das ging nur von Hand.
 
 `Assets/Shaders/BendWorld.shader` ist der handportierte Curved-World-Shader (vorher
 Surface Shader, jetzt URP mit ForwardLit / ShadowCaster / DepthOnly / DepthNormals).
