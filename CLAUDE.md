@@ -199,8 +199,11 @@ dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
     `#if UNITY_EDITOR || UNITY_ENABLE_CHECKS`. `UNITY_ENABLE_CHECKS` setzen die
     Managed Code Variants „Checked“ und „Debug“, also genau die Builds, in denen
     es auch den Rendering Debugger gibt. `DEVELOPMENT_BUILD` meldet der
-    Unity-Analyzer in Unity 6.6 als veraltet (UAC0009). Auf dem Handy ist das Panel
-    noch nicht ausprobiert, das kommt mit dem Messen in v1.4.12.
+    Unity-Analyzer in Unity 6.6 als veraltet (UAC0009). Der Haken „Development
+    Build“ allein setzt keine Variante, für Android steht sie in den Player
+    Settings auf Release: Ein solcher Build hat weder Panel noch Rendering Debugger
+    (geprüft in v1.4.12). Auf dem Handy ist das Panel noch nicht ausprobiert, das
+    kommt mit dem Messen am Ende von v1.5.0.
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
@@ -1017,6 +1020,27 @@ Das Projekt lief bis September 2026 auf der Built-in Render Pipeline und wurde a
 **URP 17.6.0** umgestellt. Die Migration ist abgeschlossen: URP Asset liegt unter
 `Assets/Settings/UniversalRenderPipeline.asset` (Renderer: `UniversalRenderer.asset`)
 und ist in Project Settings > Graphics zugewiesen, alle Materialien sind konvertiert.
+
+**HDR ist aus** (seit v1.4.12, `m_SupportsHDR` im URP-Asset, das alle
+Qualitätsstufen nutzen). Ohne Post-Processing brauchte nichts den größeren
+Wertebereich. HDR ließ URP nur in eine Zwischentextur rendern und diese am Ende in
+den Bildschirm kopieren (`BlitFinalToBackBuffer`, im Editor gezählt: mit HDR in
+jedem Frame, ohne keinmal). Jetzt rendert die Kamera direkt in den Bildschirm, das
+spart auf dem Handy die Kopie und ihre Bandbreite. Im Bildvergleich blieben Flammen,
+Menü und Hangar gleich, bei der Explosion leuchten die Funken der ersten
+Zehntelsekunden etwas schwächer (unter 1 % der Pixel). An beiden Kameras steht HDR
+weiter an, das wirkt nur, wenn das Asset es erlaubt. Kommt Post-Processing dazu
+(etwa Bloom im Remaster, v1.7.0), braucht es HDR wieder, dann Flammen und Explosion
+neu ansehen.
+
+**Bilder vorher und nachher** nimmt im Play Mode `unity command capture_game_view
+--source screen --width 720 --height 1280 --save_path …` auf, über den Bildschirm
+wie auf dem Handy und im Hochformat. So in v1.4.12 für HDR: Zeit anhalten
+(`Time.timeScale = 0`), UI ausblenden, je ein Bild mit und ohne `Camera.allowHDR`.
+Ein Kamera-Render in eine eigene Render Texture (`--source camera`) taugt dafür
+nicht, dort ignoriert URP HDR. Die CLI legt jede Datei unter `Assets/` ab, auch einen
+Pfad unter `Temp/`. Den Ordner danach über `AssetDatabase.DeleteAsset` löschen, dann
+verschwinden die `.meta` mit.
 
 **Jeder Player-Build schreibt in zwei URP-Assets:** in `UniversalRenderPipeline.asset`,
 welche Shader-Varianten er weglassen darf (`m_Prefilter…`), und in

@@ -147,6 +147,14 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
+#### **v1.4.12** | Performance & Assets _(------- --, 2026)_
+
+<small>
+
+- [x] HDR off, the game uses no post-processing
+
+</small>
+
 #### **v1.4.11** | Tools & Tests _(October 9, 2026)_
 
 <small>
