@@ -153,6 +153,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [x] Textures imported no larger than they are shown, for a smaller app
 - [x] HDR off, the game uses no post-processing
+- [x] One quality level for mobile instead of Unity's six presets
 
 </small>
 

@@ -1021,8 +1021,32 @@ Das Projekt lief bis September 2026 auf der Built-in Render Pipeline und wurde a
 `Assets/Settings/UniversalRenderPipeline.asset` (Renderer: `UniversalRenderer.asset`)
 und ist in Project Settings > Graphics zugewiesen, alle Materialien sind konvertiert.
 
-**HDR ist aus** (seit v1.4.12, `m_SupportsHDR` im URP-Asset, das alle
-Qualitätsstufen nutzen). Ohne Post-Processing brauchte nichts den größeren
+**Eine Qualitätsstufe, „Mobile“** (seit v1.4.12). Bis dahin gab es die sechs Stufen
+aus Unitys Vorlage für die Built-in Pipeline, „Fastest“ bis „Fantastic“. Genutzt hat
+das Spiel nur „Fastest“: Android, der Editor und alle anderen Plattformen standen
+darauf. „Mobile“ ist diese Stufe unter neuem Namen und zeigt dasselbe (im Edit Mode
+gerendert: Haupt- und Hangar-Kamera bitgleich).
+
+- **In URP regelt die Stufe wenig.** Was auf dem Handy Leistung kostet, steht im
+  URP-Asset, das die Stufe nutzt: Render Scale, MSAA, HDR, Schatten und Lichter. Die
+  Stufe selbst bestimmt hier nur Texture Quality (siehe „Texturen“), anisotropes
+  Filtern (aus) und vSync (aus, auf Android ohne Wirkung, siehe „Bildrate“).
+- **Werte für Dinge, die das Spiel nicht hat,** stehen auf Unitys mittleren Werten
+  statt auf denen von „Fastest“: LOD Bias 1 statt 0,3, Skin Weights 2 Bones statt 1,
+  Particle Raycast Budget 256 statt 4. Es gibt keine LODs und keine Modelle mit
+  Knochen, und die einzige Partikel-Kollision (Debris der Explosion) rechnet genau,
+  ohne Budget (geprüft in v1.4.12: die Szene und alle 120 Prefabs und Modelle, die sie
+  nutzt). Mit den alten Werten sähen neue Inhalte ab dem Remaster (v1.7.0) still
+  schlechter aus.
+- **Ändern** in Project Settings > Quality oder per Code wie das Quality-Fenster:
+  `SerializedObject` auf `ProjectSettings/QualitySettings.asset`, danach
+  `AssetDatabase.SaveAssets()`. So in v1.4.12.
+- **Mehr Stufen erst mit Grund,** etwa wenn nach dem Remaster schwache Handys ruckeln:
+  dann je Stufe ein eigenes URP-Asset, und das Spiel wählt die Stufe beim Start nach
+  dem Gerät. Ein Grafikmenü im Spiel ist nicht geplant (Entscheidung Oktober 2026).
+
+**HDR ist aus** (seit v1.4.12, `m_SupportsHDR` im URP-Asset, das die
+Qualitätsstufe nutzt). Ohne Post-Processing brauchte nichts den größeren
 Wertebereich. HDR ließ URP nur in eine Zwischentextur rendern und diese am Ende in
 den Bildschirm kopieren (`BlitFinalToBackBuffer`, im Editor gezählt: mit HDR in
 jedem Frame, ohne keinmal). Jetzt rendert die Kamera direkt in den Bildschirm, das
@@ -1096,13 +1120,13 @@ Beide Prefabs sind unveraendert - der Fix sitzt nur im Material.
 ## Texturen
 
 **Auf dem Handy erscheint jede Textur mit Mipmaps nur in halber Importgröße.**
-Android nutzt die Qualitätsstufe „Fastest“ (`m_PerPlatformDefaultQuality`, so schon
-im ersten Stand des Repos), und die hat Texture Quality „Half Res“
-(`globalTextureMipmapLimit: 1`). Eine Textur mit Max-Size 2048 zeigt dort höchstens
-1024, die oberste Stufe liegt trotzdem in der APK. UI-Sprites haben keine Mipmaps und
-erscheinen in voller Größe, ebenso winzige Texturen wie die 2×2-Paletten der
-Asteroiden 001 bis 015. Der Editor steht ebenfalls auf „Fastest“ und zeigt dasselbe
-wie das Handy, die übrigen Stufen stehen auf Full Res.
+Die Qualitätsstufe „Mobile“ hat Texture Quality „Half Res“
+(`globalTextureMipmapLimit: 1`), übernommen von „Fastest“, auf dem Android seit dem
+ersten Stand des Repos lief (siehe „Render Pipeline: URP“). Eine Textur mit
+Max-Size 2048 zeigt dort höchstens 1024, die oberste Stufe liegt trotzdem in der APK.
+UI-Sprites haben keine Mipmaps und erscheinen in voller Größe, ebenso winzige
+Texturen wie die 2×2-Paletten der Asteroiden 001 bis 015. Der Editor nutzt dieselbe
+Stufe und zeigt dasselbe wie das Handy.
 
 **Nicht größer importieren als gezeigt** (seit v1.4.12): Die Max-Size richtet sich
 danach, wie groß eine Textur höchstens auf dem Bildschirm erscheint, bei Texturen mit
