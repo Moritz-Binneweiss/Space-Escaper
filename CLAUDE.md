@@ -1034,13 +1034,18 @@ weiter an, das wirkt nur, wenn das Asset es erlaubt. Kommt Post-Processing dazu
 neu ansehen.
 
 **Bilder vorher und nachher** nimmt im Play Mode `unity command capture_game_view
---source screen --width 720 --height 1280 --save_path …` auf, über den Bildschirm
-wie auf dem Handy und im Hochformat. So in v1.4.12 für HDR: Zeit anhalten
-(`Time.timeScale = 0`), UI ausblenden, je ein Bild mit und ohne `Camera.allowHDR`.
-Ein Kamera-Render in eine eigene Render Texture (`--source camera`) taugt dafür
-nicht, dort ignoriert URP HDR. Die CLI legt jede Datei unter `Assets/` ab, auch einen
-Pfad unter `Temp/`. Den Ordner danach über `AssetDatabase.DeleteAsset` löschen, dann
-verschwinden die `.meta` mit.
+--source screen` auf, über den Bildschirm wie auf dem Handy. Die Aufnahme rendert
+aber nicht neu, sie skaliert nur das Game-Fenster auf `--width` und `--height`. Für
+echte Handy-Auflösung das Game-Fenster vorher auf eine feste Größe stellen (intern
+`GameView.SetCustomResolution`, per Reflection), danach die alte Größe wieder wählen
+und die neue löschen (`GameViewSizeGroup.RemoveCustomSize` erwartet den Gesamtindex).
+Ohne `--save_path` kommt das Bild als Base64 zurück und lässt sich speichern, wo man
+will. Mit `--save_path` legt die CLI jede Datei unter `Assets/` ab. Zeit anhalten
+(`Time.timeScale = 0`), UI ausblenden und zuerst zweimal hintereinander aufnehmen:
+Beide Bilder müssen gleich sein. So in v1.4.12 für HDR, je ein Bild mit und ohne
+`Camera.allowHDR` (720×1280, im 9:16-Fenster also nur leicht hochskaliert), und für
+die Texturen in 1080×2400. Ein Kamera-Render in eine eigene Render Texture (`--source
+camera`) ignoriert HDR.
 
 **Jeder Player-Build schreibt in zwei URP-Assets:** in `UniversalRenderPipeline.asset`,
 welche Shader-Varianten er weglassen darf (`m_Prefilter…`), und in
@@ -1087,6 +1092,76 @@ v1.7.0 (Art- und Sound-Remaster).
 Das Material haengt an einem Child namens `Shockwave` in zwei Prefabs:
 `BigExplosion.prefab` (die Todesexplosion des Spielers) und `Shockwave.prefab`.
 Beide Prefabs sind unveraendert - der Fix sitzt nur im Material.
+
+## Texturen
+
+**Auf dem Handy erscheint jede Textur mit Mipmaps nur in halber Importgröße.**
+Android nutzt die Qualitätsstufe „Fastest“ (`m_PerPlatformDefaultQuality`, so schon
+im ersten Stand des Repos), und die hat Texture Quality „Half Res“
+(`globalTextureMipmapLimit: 1`). Eine Textur mit Max-Size 2048 zeigt dort höchstens
+1024, die oberste Stufe liegt trotzdem in der APK. UI-Sprites haben keine Mipmaps und
+erscheinen in voller Größe, ebenso winzige Texturen wie die 2×2-Paletten der
+Asteroiden 001 bis 015. Der Editor steht ebenfalls auf „Fastest“ und zeigt dasselbe
+wie das Handy, die übrigen Stufen stehen auf Full Res.
+
+**Nicht größer importieren als gezeigt** (seit v1.4.12): Die Max-Size richtet sich
+danach, wie groß eine Textur höchstens auf dem Bildschirm erscheint, bei Texturen mit
+Mipmaps mal zwei wegen Half Res. Gemessen in 1080×2400:
+
+- `UI/Images/CoinIcon.png` 512: Das Icon ist im Canvas höchstens 75 Einheiten groß,
+  auf einem 3200 px hohen Display rund 300 px. Im Bildvergleich blieb es gleich, die
+  Unterschiede zu 2000 px sind Rauschen in der Rost-Struktur.
+- Die neun Schiffspaletten 1024 ohne Alphakanal, `Asteroid016To025Color.png` 512,
+  siehe Paletten.
+- `Textures/Coin/CoinColor.jpg` 1024: Münzen auf der Strecke nutzen höchstens die
+  Mip-Stufe 256, eine Münze direkt vor der Kamera 512.
+- Bei 2048 bleiben Explosion, Rauch, Münzstaub und der Sternenhintergrund, das Handy
+  zeigt sie schon jetzt vergrößert: Ein Einzelbild des Feuers (6×6 auf 2048) hat dort
+  171 px, die Partikel werden bis zu 480 px groß, der Hintergrund läuft überall auf
+  Mip-Stufe 0.
+
+**Paletten** (Schiffe, Asteroiden-Atlas) sind Felder aus je einer Farbe, getrennt von
+dünnen Linien. Bei ihnen zählt nicht die Größe auf dem Bildschirm, sondern wie weit
+die UVs von der nächsten Farbgrenze entfernt liegen: Je kleiner die Textur, desto
+weiter verwischen bilineares Filtern und ETC2 die Grenzen. Stand v1.4.12 liegt kein
+Dreieck über einer Grenze, die Schiffe halten mindestens 40 Quellpixel (von 3000)
+Abstand, die Asteroiden 60. Im Hangar änderten sich bei 1024 (Handy 512) höchstens 2
+Pixel, bei 512 bis zu 21 an einer Kante. Flächen ohne UV-Abwicklung (UV 0,0 an allen
+Ecken, etwa bei Aristocrat Skin 1 und den Vagor-Skins) nehmen die Farbe der vier
+Eckpixel an, also des schwarzen Rands. Bei kleinen Texturen mischt sich dort das
+angrenzende Feld hinein. Ohne Transparenz brauchen Paletten keinen Alphakanal (Alpha
+Source „None“), `ANIMO/BendWorld` liest ihn nicht.
+
+**Android-Format ist ETC2** (Player Settings), nicht ASTC: mit Alphakanal 1 Byte pro
+Pixel, ohne 0,5. Kantenlängen müssen durch 4 teilbar sein, sonst bleibt eine Textur
+unkomprimiert (RGBA32). Das trifft 35 UI-Bilder mit zusammen 10,4 MB (etwa 648×207),
+ein Sprite Atlas soll das in v1.5.1 lösen.
+
+**Messen:**
+
+- Größe im Android-Format über `TextureUtil.GetStorageMemorySizeLong` (intern, per
+  Reflection), alle Texturen der Szene über `AssetDatabase.GetDependencies` auf
+  `Game.unity`. Stand v1.4.12: 73 Texturen, 37,6 MB (vorher 62,6). Die Editor-Zahl
+  von `Profiler.GetRuntimeMemorySizeLong` liegt höher, der Editor hält Kopien.
+- Welche Mip-Stufe die GPU wählt: die Textur im Play Mode durch eine gleich große
+  ersetzen, deren Stufen verschiedene Farben haben (rot, gelb, grün …), mit
+  `ignoreMipmapLimit = true`, damit Half Res nicht mitspielt. Bei geteilten
+  Materialien per `MaterialPropertyBlock`, nie am Material-Asset. Dann je ein Bild
+  mit und ohne und die geänderten Pixel nach Farbton zählen.
+- Partikelgrößen: die Zeit anhalten, den Effekt mit `ParticleSystem.Simulate`
+  vorspulen und pro Teilchen `GetCurrentSize` durch die Tiefe zur Kamera teilen. Eine
+  Aufzeichnung pro Frame verpasst die meisten Frames, wenn Unity im Hintergrund
+  läuft.
+- Bilder vorher und nachher wie unter „Render Pipeline: URP“.
+
+**`.meta` im alten Format** (`serializedVersion: 11`, Stand v1.4.12 noch 38 von 161
+Texturen, darunter Schiffe, Münze und Asteroiden) per Text ändern wie Prefabs (siehe
+„Code-Stil“): Über den Importer gespeichert, schreibt Unity die ganze Datei im neuen
+Format, rund 60 Zeilen Diff ohne inhaltliche Änderung. Die Max-Size steht im Eintrag
+`DefaultTexturePlatform` (die gleichnamige Zeile weiter oben zieht Unity nicht mehr
+mit), der Alphakanal unter `alphaUsage`, 0 heißt None. Danach
+`AssetDatabase.ImportAsset` mit `ImportAssetOptions.ForceUpdate`: Unity importiert
+neu, schreibt die Datei aber nicht um.
 
 ## Sprache
 
