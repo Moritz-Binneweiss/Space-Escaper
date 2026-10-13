@@ -497,6 +497,13 @@ bei 8.
   Displays, rundet Unity: 90 Hz ergibt 45 FPS, 144 Hz 72 FPS. „Optimized Frame
   Pacing“ ist aus, damit würde Unity immer abrunden. Im Editor gilt das Ziel nur
   fürs Game-Fenster.
+- **Garbage Collection inkrementell** seit v1.4.12 (Player Settings > Other
+  Settings > „Use incremental GC“, Unitys Standard für neue Projekte, hier war es
+  aus). Der GC räumt dann in kleinen Schritten über mehrere Frames auf, statt das
+  Spiel für einen ganzen Durchlauf anzuhalten. Bei 60 FPS hat ein Frame 16,7 ms,
+  ein voller Durchlauf kann darüber liegen und ruckeln. Wie oft der GC überhaupt
+  läuft, hängt daran, wie viel das Spiel pro Frame neu anlegt. Das zeigt die
+  Messung am Ende von v1.5.0.
 - **Spiellogik an die Zeit binden, nicht an Frames:** Bewegung mit
   `Time.deltaTime`, Abläufe mit `Time.time`. Vorsicht bei Glättungen, die pro
   Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
