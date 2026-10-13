@@ -1024,8 +1024,9 @@ und ist in Project Settings > Graphics zugewiesen, alle Materialien sind konvert
 **Eine Qualitätsstufe, „Mobile“** (seit v1.4.12). Bis dahin gab es die sechs Stufen
 aus Unitys Vorlage für die Built-in Pipeline, „Fastest“ bis „Fantastic“. Genutzt hat
 das Spiel nur „Fastest“: Android, der Editor und alle anderen Plattformen standen
-darauf. „Mobile“ ist diese Stufe unter neuem Namen und zeigt dasselbe (im Edit Mode
-gerendert: Haupt- und Hangar-Kamera bitgleich).
+darauf. „Mobile“ ist diese Stufe unter neuem Namen und zeigte dasselbe (im Edit Mode
+gerendert: Haupt- und Hangar-Kamera bitgleich). Danach kam Texture Quality „Full Res“
+dazu, siehe „Texturen“.
 
 - **In URP regelt die Stufe wenig.** Was auf dem Handy Leistung kostet, steht im
   URP-Asset, das die Stufe nutzt: Render Scale, MSAA, HDR, Schatten und Lichter. Die
@@ -1119,42 +1120,55 @@ Beide Prefabs sind unveraendert - der Fix sitzt nur im Material.
 
 ## Texturen
 
-**Auf dem Handy erscheint jede Textur mit Mipmaps nur in halber Importgröße.**
-Die Qualitätsstufe „Mobile“ hat Texture Quality „Half Res“
-(`globalTextureMipmapLimit: 1`), übernommen von „Fastest“, auf dem Android seit dem
-ersten Stand des Repos lief (siehe „Render Pipeline: URP“). Eine Textur mit
-Max-Size 2048 zeigt dort höchstens 1024, die oberste Stufe liegt trotzdem in der APK.
-UI-Sprites haben keine Mipmaps und erscheinen in voller Größe, ebenso winzige
-Texturen wie die 2×2-Paletten der Asteroiden 001 bis 015. Der Editor nutzt dieselbe
-Stufe und zeigt dasselbe wie das Handy.
+**Jede Textur erscheint auf dem Handy höchstens in ihrer Importgröße.** Die
+Qualitätsstufe „Mobile“ hat seit v1.4.12 Texture Quality „Full Res“. Bis dahin stand
+sie auf „Half Res“ (`globalTextureMipmapLimit: 1`, so seit dem ersten Stand des
+Repos): Jede Textur mit Mipmaps erschien nur in halber Importgröße, und die oberste
+Stufe lag ungenutzt in der APK. Für Full Res sind die 22 betroffenen Texturen halb so
+groß importiert. So zeigt das Handy dieselbe Größe wie vorher, und die Texturen
+belegen 20 MB weniger. UI-Sprites haben keine Mipmaps, und winzige Texturen wie die
+2×2-Paletten der Asteroiden 001 bis 015 hatte Unity von Half Res ausgenommen
+(`Texture2D.activeMipmapLimit` war 0). Der Editor nutzt dieselbe Stufe und zeigt
+dasselbe wie das Handy.
+
+**Kleiner importiert ist nicht bitgleich mit der halben Stufe.** Unity verkleinert
+beim Import in einem Schritt aus der Quelle (Resize Algorithm „Mitchell“), Mipmaps
+entstehen per Box-Filter aus der Stufe darüber. „Bilinear“ lag beim Sternenhimmel
+(Quelle 1920×1080) noch weiter weg. Gemessen in v1.4.12 im Play Mode in 1080×2400:
+Schiffe, Münzstaub und Explosion praktisch gleich (in 24 Bildern zusammen 35 Pixel
+über 8 Stufen), in der Rost-Struktur der Münzen feines Rauschen (0,3 % der Pixel,
+höchstens 38 Stufen), die Sterne minimal schwächer (0,2 %, höchstens 52).
 
 **Nicht größer importieren als gezeigt** (seit v1.4.12): Die Max-Size richtet sich
-danach, wie groß eine Textur höchstens auf dem Bildschirm erscheint, bei Texturen mit
-Mipmaps mal zwei wegen Half Res. Gemessen in 1080×2400:
+danach, wie groß eine Textur höchstens auf dem Bildschirm erscheint. Gemessen in
+1080×2400:
 
 - `UI/Images/CoinIcon.png` 512: Das Icon ist im Canvas höchstens 75 Einheiten groß,
   auf einem 3200 px hohen Display rund 300 px. Im Bildvergleich blieb es gleich, die
   Unterschiede zu 2000 px sind Rauschen in der Rost-Struktur.
-- Die neun Schiffspaletten 1024 ohne Alphakanal, `Asteroid016To025Color.png` 512,
+- Die neun Schiffspaletten 512 ohne Alphakanal, `Asteroid016To025Color.png` 256,
   siehe Paletten.
-- `Textures/Coin/CoinColor.jpg` 1024: Münzen auf der Strecke nutzen höchstens die
+- `Textures/Coin/CoinColor.jpg` 512: Münzen auf der Strecke nutzen höchstens die
   Mip-Stufe 256, eine Münze direkt vor der Kamera 512.
-- Bei 2048 bleiben Explosion, Rauch, Münzstaub und der Sternenhintergrund, das Handy
-  zeigt sie schon jetzt vergrößert: Ein Einzelbild des Feuers (6×6 auf 2048) hat dort
-  171 px, die Partikel werden bis zu 480 px groß, der Hintergrund läuft überall auf
-  Mip-Stufe 0.
+- Explosion, Rauch und Münzstaub 1024, der Sternenhintergrund 1024×512. Das Handy
+  zeigt sie vergrößert: Ein Einzelbild des Feuers (6×6 Felder) hat 171 px, die
+  Partikel werden bis zu 480 px groß, der Hintergrund läuft überall auf Mip-Stufe 0.
+  Größer importiert wären sie schärfer, das gehört zum Remaster (v1.7.0).
+- Hangar und Raumhafen (`HangarColor`, `NerousColor`, je zwei) 512, aus der Explosion
+  `Debris` 128 und `shockwave` 256: nur halbiert, damit das Handy dieselbe Größe
+  zeigt wie mit Half Res. Ob weniger reicht, ist nicht gemessen.
 
 **Paletten** (Schiffe, Asteroiden-Atlas) sind Felder aus je einer Farbe, getrennt von
 dünnen Linien. Bei ihnen zählt nicht die Größe auf dem Bildschirm, sondern wie weit
 die UVs von der nächsten Farbgrenze entfernt liegen: Je kleiner die Textur, desto
 weiter verwischen bilineares Filtern und ETC2 die Grenzen. Stand v1.4.12 liegt kein
 Dreieck über einer Grenze, die Schiffe halten mindestens 40 Quellpixel (von 3000)
-Abstand, die Asteroiden 60. Im Hangar änderten sich bei 1024 (Handy 512) höchstens 2
-Pixel, bei 512 bis zu 21 an einer Kante. Flächen ohne UV-Abwicklung (UV 0,0 an allen
-Ecken, etwa bei Aristocrat Skin 1 und den Vagor-Skins) nehmen die Farbe der vier
-Eckpixel an, also des schwarzen Rands. Bei kleinen Texturen mischt sich dort das
-angrenzende Feld hinein. Ohne Transparenz brauchen Paletten keinen Alphakanal (Alpha
-Source „None“), `ANIMO/BendWorld` liest ihn nicht.
+Abstand, die Asteroiden 60. Im Hangar änderten sich mit 512 statt 1024 auf dem Handy
+höchstens 2 Pixel, mit 256 bis zu 21 an einer Kante. Flächen ohne UV-Abwicklung (UV
+0,0 an allen Ecken, etwa bei Aristocrat Skin 1 und den Vagor-Skins) nehmen die Farbe
+der vier Eckpixel an, also des schwarzen Rands. Bei kleinen Texturen mischt sich dort
+das angrenzende Feld hinein. Ohne Transparenz brauchen Paletten keinen Alphakanal
+(Alpha Source „None“), `ANIMO/BendWorld` liest ihn nicht.
 
 **Android-Format ist ETC2** (Player Settings), nicht ASTC: mit Alphakanal 1 Byte pro
 Pixel, ohne 0,5. Kantenlängen müssen durch 4 teilbar sein, sonst bleibt eine Textur
@@ -1165,21 +1179,32 @@ ein Sprite Atlas soll das in v1.5.1 lösen.
 
 - Größe im Android-Format über `TextureUtil.GetStorageMemorySizeLong` (intern, per
   Reflection), alle Texturen der Szene über `AssetDatabase.GetDependencies` auf
-  `Game.unity`. Stand v1.4.12: 73 Texturen, 37,6 MB (vorher 62,6). Die Editor-Zahl
+  `Game.unity`. Stand v1.4.12: 73 Texturen, 17,4 MB (vorher 62,6). Die Editor-Zahl
   von `Profiler.GetRuntimeMemorySizeLong` liegt höher, der Editor hält Kopien.
 - Welche Mip-Stufe die GPU wählt: die Textur im Play Mode durch eine gleich große
   ersetzen, deren Stufen verschiedene Farben haben (rot, gelb, grün …), mit
-  `ignoreMipmapLimit = true`, damit Half Res nicht mitspielt. Bei geteilten
-  Materialien per `MaterialPropertyBlock`, nie am Material-Asset. Dann je ein Bild
-  mit und ohne und die geänderten Pixel nach Farbton zählen.
+  `ignoreMipmapLimit = true`, falls eine Qualitätsstufe die Auflösung senkt. Bei
+  geteilten Materialien per `MaterialPropertyBlock`, nie am Material-Asset. Dann je
+  ein Bild mit und ohne und die geänderten Pixel nach Farbton zählen.
+- Ob eine Textur nach einer Änderung gleich aussieht: die oberste Stufe, die die GPU
+  bekommt, per `Graphics.Blit` in eine Render Texture genau ihrer Größe kopieren und
+  auslesen (in halber Größe die Stufe darunter), vorher und nachher Pixel für Pixel
+  vergleichen. Das geht ohne Play Mode für alle Texturen auf einmal, so in v1.4.12 für
+  die 22 halbierten.
 - Partikelgrößen: die Zeit anhalten, den Effekt mit `ParticleSystem.Simulate`
   vorspulen und pro Teilchen `GetCurrentSize` durch die Tiefe zur Kamera teilen. Eine
   Aufzeichnung pro Frame verpasst die meisten Frames, wenn Unity im Hintergrund
   läuft.
-- Bilder vorher und nachher wie unter „Render Pipeline: URP“.
+- Bilder vorher und nachher wie unter „Render Pipeline: URP“. Für Objekte und Effekte
+  die Zeit anhalten, sie auf eine eigene Ebene legen und nur diese vor schwarzem Grund
+  rendern (`cullingMask`, `clearFlags`), Partikel mit festem `randomSeed` per
+  `Simulate` vorspulen. Die Explosion nur bis etwa 1 s vergleichen: Danach prallt ihr
+  Debris an den zufällig gespawnten Hindernissen ab, und die Bilder weichen auch ohne
+  Änderung ab.
 
-**`.meta` im alten Format** (`serializedVersion: 11`, Stand v1.4.12 noch 38 von 161
-Texturen, darunter Schiffe, Münze und Asteroiden) per Text ändern wie Prefabs (siehe
+**`.meta` im alten Format** (Stand v1.4.12 noch 45 von 161 Texturen: 38 mit
+`serializedVersion: 11`, darunter Schiffe, Münze und Asteroiden, und 7 aus
+`Effects/EffectExamples` mit 4 und 5) per Text ändern wie Prefabs (siehe
 „Code-Stil“): Über den Importer gespeichert, schreibt Unity die ganze Datei im neuen
 Format, rund 60 Zeilen Diff ohne inhaltliche Änderung. Die Max-Size steht im Eintrag
 `DefaultTexturePlatform` (die gleichnamige Zeile weiter oben zieht Unity nicht mehr
