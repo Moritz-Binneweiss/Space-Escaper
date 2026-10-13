@@ -333,7 +333,11 @@ geliefert wurden.
 
 - **Nummern in Serien dreistellig** (`Asteroid001`, `Chunk000`,
   `AsteroidField007`), Varianten einstellig (`AristocratSkin2`). Schiffsfamilien
-  ausgeschrieben, keine Kürzel wie ACT, FTR oder VGR.
+  ausgeschrieben, keine Kürzel wie ACT, FTR oder VGR. Eine Kopie im Project-Fenster
+  bekommt seit v1.4.12 die nächste freie Nummer ohne Leerzeichen (Project Settings >
+  Editor, „Space Before Number in Asset Names“ aus): aus `Asteroid001.prefab` wird
+  `Asteroid026.prefab`, aus `Coin.prefab` `Coin1.prefab`. Bis dahin hieß sie
+  `Asteroid001 1.prefab`.
 - **Animationsclips** heißen `Ziel_Zustand` (`TapToStart_Pulse`, `Coin_Collect`),
   das ist der einzige erlaubte Unterstrich. Texturen enden auf `Color`
   (`Asteroid001Color.png`).
@@ -366,6 +370,9 @@ Beim Umbenennen:
 - **Objekte in Prefabs per Text umbenennen** (`m_Name` der GameObjects, `value:`
   unter `propertyPath: m_Name`), aus demselben Grund wie unter „Code-Stil“. Ältere
   Prefabs liegen auf der Platte noch mit CRLF, Git normalisiert das beim Commit.
+  Damit ein Prefab nicht versehentlich neu geschrieben wird, speichert der Prefab
+  Mode seit v1.4.12 nicht mehr von selbst (Project Settings > Editor, „Allow Auto
+  Save“ aus). Beim Verlassen fragt Unity, ob gespeichert werden soll.
 
 ## Versionen, PRs & Tags
 

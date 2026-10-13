@@ -159,6 +159,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Incremental garbage collection, spread over several frames instead of one long pause
 - [x] No longer requires the OpenGL ES extension pack, which the game does not use
 - [x] Removed leftover define symbols, a missing settings object and unused built-in shaders
+- [x] Editor saves prefabs only when asked, copied assets get the next free number without a space
 
 </small>
 
