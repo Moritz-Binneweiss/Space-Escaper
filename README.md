@@ -157,6 +157,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Full texture resolution, with textures imported one size smaller for a smaller app
 - [x] Shadows and additional lights off, the game uses neither
 - [x] Incremental garbage collection, spread over several frames instead of one long pause
+- [x] No longer requires the OpenGL ES extension pack, which the game does not use
 
 </small>
 

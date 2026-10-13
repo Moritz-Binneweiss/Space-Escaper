@@ -590,6 +590,14 @@ bei 8.
   als Default Icon und TV-Banner. Das graue Unity-Icon (96 px), das daneben noch in der
   APK liegt, ist nur der Ersatz für Android vor 8 und wird nie angezeigt. Ein echtes
   adaptives Icon mit getrennten Ebenen kommt mit dem Icon-Remaster (v1.7.0).
+- **Grafik-API auf Android:** nur OpenGL ES 3 (Player Settings, „Auto Graphics API“
+  aus). Unity 6.6 setzt dabei immer ES 3.1 voraus, der Haken „Require ES3.1“ wirkt
+  nicht mehr (`PlayerSettings.openGLRequireES31` liefert fest `true`, egal was in
+  `ProjectSettings.asset` steht). „Require ES3.1+AEP“ ist seit v1.4.12 aus: Das
+  Android Extension Pack bringt Geometrie- und Tessellation-Shader, kein Shader im
+  Projekt nutzt sie. Die Pflicht stand trotzdem im Manifest
+  (`android.hardware.opengles.aep`, required), und der Play Store bietet eine App dann
+  nur Geräten mit AEP an. Ob Vulkan dazukommt, zeigt die Messung am Ende von v1.5.0.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
