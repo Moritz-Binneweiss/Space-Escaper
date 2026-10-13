@@ -241,7 +241,7 @@ nur Ordner.
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
-| `UI/` | `Images/` (Sprites, Shop-Sprites in `Images/Shop/`), `Fonts/`, `Mockups.png` |
+| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/`, `Mockups.png` |
 
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
@@ -256,6 +256,19 @@ nur Ordner.
   `Models/` beieinander und nicht in `Textures/`.
 - `Scripts/` bleibt flach, solange es so wenige Skripte sind. Unterordner kommen
   mit dem Aufteilen des GameManagers in v1.5.0.
+- **UI-Bilder liegen nach Herkunft** (seit v1.4.12): `UI/Images/2020/` hat die 38
+  Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hat die 39
+  aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
+  hat die Preisschilder aus v1.4.1. Das Spiel nutzt 36: aus `2020/` nur `CoinIcon`,
+  aus `2021/` alle bis auf die leere Platte `ButtonBlank`, die drei Namensschriftzüge
+  in `Shop/` und die alten Preisschilder, dazu die drei aus `2026/`. Neue Bilder
+  kommen in den Ordner ihres Jahres.
+- **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
+  lagen auch im Ordner `GUI/` der Quelldateien des Originals, die im Januar 2026 ins
+  Repo kamen (`84f02f9`). Sieben tragen einen PNG-Zeitstempel von August oder
+  September 2020, und die Szene von v1.3 nutzte nur `CoinIcon`. Die Bilder von v1.3
+  sind exakt zugeschnitten, ihre `.meta` kannte schon iOS als Plattform, und die
+  Vagor-Bilder gehören dazu (Vagor kam mit v1.3).
 - Fremd-Pakete bleiben an ihrem Platz, Asset-Store-Updates erwarten sie dort.
 
 ## Aufbau der Szene
@@ -619,9 +632,10 @@ bei 8.
   Preisschilder oder Doppelgänger mit `Unused` im Namen. Aufräumen gehört zum UI
   Overhaul (v1.5.1) und zum Remaster (v1.7.0). Bitgleiche Duplikate sind seit
   v1.4.5 gelöscht (39 in `Assets/UI/`, 4 beim Sortieren der Ordner), alle
-  UI-Bilder liegen in `UI/Images/`. Gleiche Texturen in `Models/` und `Textures/`
-  sind Absicht: die einen gehören zu den `.blend`-Quellen, die anderen zu den
-  Unity-Materialien.
+  UI-Bilder liegen in `UI/Images/`. Von ihren 80 nutzt das Spiel 36, die übrigen 44
+  liegen fast alle in `UI/Images/2020/` (siehe „Ordnerstruktur“). Gleiche Texturen
+  in `Models/` und `Textures/` sind Absicht: die einen gehören zu den
+  `.blend`-Quellen, die anderen zu den Unity-Materialien.
 - **Play Store kommt erst mit v2.0** - als *neuer* Store-Eintrag, nicht als Update des
   alten von 2020 (Entscheidung Oktober 2026). Bis dahin bewusst offen:
   `AndroidTargetSdkVersion: 29` (Google verlangt seit 31.08.2026 API 36),
@@ -788,13 +802,14 @@ auffiel. Weil die Flammen jetzt erst zur Laufzeit entstehen, kann die Szene sie
 nicht mehr überschreiben.
 
 **Preisschilder sind Bilder, keine Texte.** Den Preis im `ShipData` allein zu ändern
-reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/PriceTagAristocrat250.png`,
-`PriceTagFreeter750.png` und `PriceTagVagor1250.png`. Aufbau wie bei den Originalen
-(`PriceTagAristocrat3500.png`, `PriceTagFreeter6000.png`, `PriceTagVagor8000.png`,
-pixelgleich nachgeprüft): `ButtonBlank.png` als Platte, `CoinIcon.png` als Icon,
-Zahl in `UI/Fonts/NeuropolXRegular.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und
-Zahl als Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert
-daneben und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
+reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/2026/`:
+`PriceTagAristocrat250.png`, `PriceTagFreeter750.png` und `PriceTagVagor1250.png`.
+Aufbau wie bei den Originalen von v1.3 (`2021/PriceTagAristocrat3500.png`,
+`PriceTagFreeter6000.png`, `PriceTagVagor8000.png`, pixelgleich nachgeprüft):
+`2021/ButtonBlank.png` als Platte, `2020/CoinIcon.png` als Icon, Zahl in
+`UI/Fonts/NeuropolXRegular.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und Zahl als
+Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert in
+`2021/` und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
 entschieden wird beim UI Overhaul (v1.5.1) - bis dahin nicht löschen.
 
 ## UI
@@ -1196,7 +1211,7 @@ höchstens 38 Stufen), die Sterne minimal schwächer (0,2 %, höchstens 52).
 danach, wie groß eine Textur höchstens auf dem Bildschirm erscheint. Gemessen in
 1080×2400:
 
-- `UI/Images/CoinIcon.png` 512: Das Icon ist im Canvas höchstens 75 Einheiten groß,
+- `UI/Images/2020/CoinIcon.png` 512: Das Icon ist im Canvas höchstens 75 Einheiten groß,
   auf einem 3200 px hohen Display rund 300 px. Im Bildvergleich blieb es gleich, die
   Unterschiede zu 2000 px sind Rauschen in der Rost-Struktur.
 - Die neun Schiffspaletten 512 ohne Alphakanal, `Asteroid016To025Color.png` 256,
