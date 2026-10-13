@@ -1058,6 +1058,21 @@ weiter an, das wirkt nur, wenn das Asset es erlaubt. Kommt Post-Processing dazu
 (etwa Bloom im Remaster, v1.7.0), braucht es HDR wieder, dann Flammen und Explosion
 neu ansehen.
 
+**Schatten und zusätzliche Lichter sind aus** (seit v1.4.12, im URP-Asset unter
+Lighting: „Cast Shadows“ des Main Light aus, „Additional Lights“ auf „Disabled“). Das
+Spiel hat nur `Environment/DirectionalLight`, und das wirft keine Schatten. Das
+Lights-Modul eines Partikelsystems in `BigExplosion` ist zwar an, hat aber kein Licht
+zugewiesen und erzeugt keins. Trotzdem rechnete jeder beleuchtete Pixel beides mit:
+Für ein Licht ohne Schatten rendert URP eine leere Shadow Map und schaltet
+`_MAIN_LIGHT_SHADOWS` trotzdem ein, so kommt es mit weniger Shader-Varianten aus.
+`_ADDITIONAL_LIGHTS` startete in jedem Pixel eine Schleife über null Lichter. Jetzt
+sind beide Schlüsselwörter aus (nach einem Kamera-Render ausgelesen), Haupt- und
+Hangar-Kamera rendern bitgleich wie vorher. Wie viel das auf dem Handy spart, zeigt
+erst die Messung am Ende von v1.5.0. Der nächste Build schreibt dazu neue
+`m_Prefilter…`-Werte ins Asset (siehe unten). Kommen im Remaster (v1.7.0) Schatten
+oder weitere Lichter dazu, beides hier wieder einschalten, sonst bleiben sie
+unsichtbar.
+
 **Bilder vorher und nachher** nimmt im Play Mode `unity command capture_game_view
 --source screen` auf, über den Bildschirm wie auf dem Handy. Die Aufnahme rendert
 aber nicht neu, sie skaliert nur das Game-Fenster auf `--width` und `--height`. Für
