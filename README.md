@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.11 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.12 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -147,21 +147,21 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-#### **v1.4.12** | Performance & Assets _(------- --, 2026)_
+#### **v1.4.12** | Performance & Assets _(October 14, 2026)_
 
 <small>
 
-- [x] Textures imported no larger than they are shown, for a smaller app
-- [x] HDR off, the game uses no post-processing
-- [x] One quality level for mobile instead of Unity's six presets
-- [x] Full texture resolution, with textures imported one size smaller for a smaller app
-- [x] Shadows and additional lights off, the game uses neither
-- [x] Incremental garbage collection, spread over several frames instead of one long pause
-- [x] No longer requires the OpenGL ES extension pack, which the game does not use
-- [x] Removed leftover define symbols, a missing settings object and unused built-in shaders
-- [x] Editor saves prefabs only when asked, copied assets get the next free number without a space
-- [x] UI images sorted into folders by year of origin
-- [x] Asteroids and coins spin evenly, without an animator on each
+- 🖼️ Textures imported no larger than they are shown, for a smaller app
+- ⚡ HDR off, the game uses no post-processing
+- ⚙️ One quality level for mobile instead of Unity's six presets
+- 🖼️ Full texture resolution, with textures imported one size smaller for a smaller app
+- 💡 Shadows and additional lights off, the game uses neither
+- 🧹 Incremental garbage collection, spread over several frames instead of one long pause
+- 📱 No longer requires the OpenGL ES extension pack, which the game does not use
+- 🗑️ Removed leftover define symbols, a missing settings object and unused built-in shaders
+- 🧰 Editor saves prefabs only when asked, copied assets get the next free number without a space
+- 📁 UI images sorted into folders by year of origin
+- ☄️ Asteroids and coins spin evenly, without an animator on each
 
 </small>
 
