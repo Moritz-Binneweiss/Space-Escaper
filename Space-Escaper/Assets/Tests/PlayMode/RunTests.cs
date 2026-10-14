@@ -26,15 +26,35 @@ namespace SpaceEscaper.Tests
         private const float k_TimeOnDeathScreen = 1f;
         private const float k_MaxTimeToFlyOn = 10f;
 
-        // The fresh track after a revive starts at least 35 units ahead of the ship, so
-        // a crash within this distance can only come from the old one.
-        private const float k_DistanceAfterRevive = 20f;
+        // The fresh track after a revive starts at least 35 units ahead of the ship, and
+        // obstacles reach at most 3 units back from the start of their tile. So a crash
+        // within this distance can only come from the old track.
+        private const float k_DistanceAfterRevive = 25f;
 
+        // The world moves back every 20 units instead of every few thousand, so the run
+        // crosses the floating origin on the way to the crash and again shortly after the
+        // revive, while the explosion still burns.
+        private const float k_FloatingOriginDistance = 20f;
+
+        // The ship and the camera move a few units per frame at most. Whatever the floating
+        // origin misses jumps by the whole distance.
+        private const float k_MaxStepPerFrame = k_FloatingOriginDistance / 2f;
+        private const float k_PlaceTolerance = 0.001f;
+
+        private readonly Dictionary<Transform, float> m_places = new Dictionary<Transform, float>();
+        private readonly List<TileManager> m_tileManagers = new List<TileManager>();
+        private readonly List<Transform> m_groups = new List<Transform>();
         private string m_saveDirectory;
         private PlayerLoopSystem m_originalPlayerLoop;
         private GameObject m_pendingTap;
         private PointerEventData m_pendingTapData;
         private Button m_continueButton;
+        private Transform m_ship;
+        private Transform m_camera;
+        private float m_shiftedDistance;
+        private int m_shiftCount;
+        private float m_lastShipPlace;
+        private float m_lastCameraPlace;
 
         [SetUp]
         public void SetUp()
@@ -59,6 +79,11 @@ namespace SpaceEscaper.Tests
             PlayerMotor.IsInvincible = false;
 #endif
 
+            m_places.Clear();
+            m_shiftedDistance = 0f;
+            m_shiftCount = 0;
+            FloatingOrigin.WorldShifted += FloatingOrigin_WorldShifted;
+
             m_originalPlayerLoop = PlayerLoop.GetCurrentPlayerLoop();
             PlayerLoop.SetPlayerLoop(AddToPreUpdate(PlayerLoop.GetCurrentPlayerLoop(), TapPendingButton));
         }
@@ -69,11 +94,13 @@ namespace SpaceEscaper.Tests
         public void TearDown()
         {
             PlayerLoop.SetPlayerLoop(m_originalPlayerLoop);
+            FloatingOrigin.WorldShifted -= FloatingOrigin_WorldShifted;
         }
 
         // Start, crash and revive through the buttons of the game. The revive must not
         // crash the ship again: the obstacle that killed it is only destroyed at the end
-        // of the frame, and the ship flies on in that same frame.
+        // of the frame, and the ship flies on in that same frame. All along, the world
+        // moves back to the origin every few units, and nothing on screen may jump.
         [UnityTest]
         public IEnumerator ShipCrashesAndFliesOnAfterRevive()
         {
@@ -82,7 +109,13 @@ namespace SpaceEscaper.Tests
             yield return null;
 
             GameManager gameManager = GameManager.Instance;
-            Transform ship = Object.FindAnyObjectByType<PlayerMotor>().transform;
+            m_ship = Object.FindAnyObjectByType<PlayerMotor>().transform;
+            m_camera = Object.FindAnyObjectByType<CameraMotor>().transform;
+            FloatingOrigin floatingOrigin = Object.FindAnyObjectByType<FloatingOrigin>();
+            Assert.That(floatingOrigin, Is.Not.Null, "No FloatingOrigin in the scene");
+            floatingOrigin.Distance = k_FloatingOriginDistance;
+            FindTileManagersAndGroups();
+
             Button playButton = FindButtonCalling<GameManager>(nameof(GameManager.Play));
             Button pauseButton = FindButtonCalling<PauseMenu>(nameof(PauseMenu.Pause));
             Button reviveButton = FindButtonCalling<GameManager>(nameof(GameManager.RequestRevive));
@@ -94,30 +127,38 @@ namespace SpaceEscaper.Tests
 
             // Straight down the middle lane until the first obstacle.
             float startTime = Time.time;
+            WatchFromHere();
             while (gameManager.IsRunActive)
             {
                 Assert.That(Time.time - startTime, Is.LessThan(k_MaxTimeToCrash), "No crash flying straight");
+                AssertNothingJumped();
                 yield return NextFrame();
             }
 
-            float crashZ = ship.position.z;
-            TestContext.WriteLine($"Crashed at z = {crashZ:0.0} after {Time.time - startTime:0.0} s");
+            float crashPlace = GetPlace(m_ship);
+            TestContext.WriteLine($"Crashed at z = {crashPlace:0.0} after {Time.time - startTime:0.0} s, "
+                + $"the world moved back {m_shiftCount} times");
             Assert.That(reviveButton.gameObject.activeInHierarchy, Is.True, "No death menu with the revive button");
             AssertDeathIsSaved();
 
             yield return new WaitForSeconds(k_TimeOnDeathScreen);
+            int shiftsBeforeRevive = m_shiftCount;
+            WatchFromHere();
             yield return Tap(reviveButton);
 
             float reviveTime = Time.time;
-            while (ship.position.z < crashZ + k_DistanceAfterRevive)
+            while (GetPlace(m_ship) < crashPlace + k_DistanceAfterRevive)
             {
-                float distance = ship.position.z - crashZ;
+                float distance = GetPlace(m_ship) - crashPlace;
                 Assert.That(gameManager.IsRunActive, Is.True, $"Crashed again {distance:0.0} units after the revive");
                 Assert.That(Time.time - reviveTime, Is.LessThan(k_MaxTimeToFlyOn), "Did not fly on after the revive");
+                AssertNothingJumped();
                 yield return NextFrame();
             }
 
             Assert.That(pauseButton.gameObject.activeInHierarchy, Is.True, "No game menu after the revive");
+            Assert.That(m_shiftCount, Is.GreaterThan(shiftsBeforeRevive),
+                "The world did not move back after the revive");
         }
 
         private static Button FindButtonCalling<T>(string methodName) where T : Object
@@ -201,6 +242,145 @@ namespace SpaceEscaper.Tests
             Assert.That(File.Exists(path), Is.True, "The death was not saved");
             Assert.That(SaveSystem.Data.Highscore, Is.GreaterThan(0), "The death did not record the score");
             Assert.That(File.ReadAllText(path), Is.EqualTo(SaveSystem.Data.ToJson()), "The save file is out of date");
+        }
+
+        private void FloatingOrigin_WorldShifted(Vector3 offset)
+        {
+            m_shiftedDistance -= offset.z;
+            m_shiftCount++;
+        }
+
+        // The groups of the scene are the empty objects at the origin, apart from the tiles.
+        private void FindTileManagersAndGroups()
+        {
+            m_tileManagers.Clear();
+            m_groups.Clear();
+            List<GameObject> tiles = new List<GameObject>();
+            GameObject[] roots = SceneManager.GetActiveScene().GetRootGameObjects();
+            foreach (GameObject root in roots)
+            {
+                foreach (TileManager tileManager in root.GetComponentsInChildren<TileManager>())
+                {
+                    m_tileManagers.Add(tileManager);
+                    tiles.AddRange(tileManager.Tiles);
+                }
+            }
+
+            foreach (GameObject root in roots)
+            {
+                if (root.GetComponentCount() == 1 && !tiles.Contains(root))
+                {
+                    m_groups.Add(root.transform);
+                }
+            }
+        }
+
+        // The z position as if the world had never moved back.
+        private float GetPlace(Transform target)
+        {
+            return target.position.z + m_shiftedDistance;
+        }
+
+        // The next check compares with this frame.
+        private void WatchFromHere()
+        {
+            m_lastShipPlace = GetPlace(m_ship);
+            m_lastCameraPlace = GetPlace(m_camera);
+        }
+
+        // Once per frame. The ship stays near the origin, and everything else moves back
+        // along with it, so nothing on screen jumps.
+        private void AssertNothingJumped()
+        {
+            Assert.That(m_ship.position.z, Is.LessThan(k_FloatingOriginDistance + k_MaxStepPerFrame),
+                "The world did not move back");
+
+            float shipPlace = GetPlace(m_ship);
+            float cameraPlace = GetPlace(m_camera);
+            Assert.That(shipPlace - m_lastShipPlace, Is.InRange(0f, k_MaxStepPerFrame), "The ship jumped");
+            Assert.That(Mathf.Abs(cameraPlace - m_lastCameraPlace), Is.LessThan(k_MaxStepPerFrame), "The camera jumped");
+            m_lastShipPlace = shipPlace;
+            m_lastCameraPlace = cameraPlace;
+
+            foreach (TileManager tileManager in m_tileManagers)
+            {
+                AssertTilesLineUp(tileManager);
+            }
+
+            AssertWorldKeepsItsPlace();
+        }
+
+        // A tile manager spawns its tiles end to end, the next one where the last one ends.
+        // A spawn point the floating origin left behind would open a gap, and the track would
+        // not be extended until the ship has flown that far.
+        private static void AssertTilesLineUp(TileManager tileManager)
+        {
+            IReadOnlyList<GameObject> tiles = tileManager.Tiles;
+            float tileLength = tiles[1].transform.position.z - tiles[0].transform.position.z;
+            for (int i = 2; i < tiles.Count; i++)
+            {
+                float gap = tiles[i].transform.position.z - tiles[i - 1].transform.position.z;
+                Assert.That(gap, Is.EqualTo(tileLength).Within(k_PlaceTolerance),
+                    $"The tiles of {tileManager.name} do not line up");
+            }
+
+            float nextGap = tileManager.NextSpawnZ - tiles[tiles.Count - 1].transform.position.z;
+            Assert.That(nextGap, Is.EqualTo(tileLength).Within(k_PlaceTolerance),
+                $"The next tile of {tileManager.name} would not start where the last one ends");
+        }
+
+        // Everything but the ship and the camera stands still, so its place stays the same
+        // however often the world moves back. The groups stay at the origin while their
+        // children move: if a group moved, the ship and the camera inside would build up
+        // local positions as large as the distance flown, and lose the precision again.
+        private void AssertWorldKeepsItsPlace()
+        {
+            foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
+            {
+                if (root.TryGetComponent(out Canvas _))
+                {
+                    continue;
+                }
+
+                if (!m_groups.Contains(root.transform))
+                {
+                    AssertKeepsItsPlace(root.transform);
+                    continue;
+                }
+
+                Assert.That(root.transform.position, Is.EqualTo(Vector3.zero), $"{root.name} left the origin");
+                foreach (Transform child in root.transform)
+                {
+                    if (child != m_ship && child != m_camera)
+                    {
+                        AssertKeepsItsPlace(child);
+                    }
+                }
+            }
+        }
+
+        private void AssertKeepsItsPlace(Transform target)
+        {
+            float place = GetPlace(target);
+            if (m_places.TryGetValue(target, out float firstPlace))
+            {
+                Assert.That(place, Is.EqualTo(firstPlace).Within(k_PlaceTolerance), $"{GetPath(target)} moved");
+            }
+            else
+            {
+                m_places.Add(target, place);
+            }
+        }
+
+        private static string GetPath(Transform transform)
+        {
+            string path = transform.name;
+            for (Transform parent = transform.parent; parent != null; parent = parent.parent)
+            {
+                path = parent.name + "/" + path;
+            }
+
+            return path;
         }
 
         private static PlayerLoopSystem AddToPreUpdate(PlayerLoopSystem playerLoop,

@@ -26,6 +26,20 @@ namespace SpaceEscaper
 
         private readonly List<GameObject> m_activeTiles = new List<GameObject>();
 
+        // For tests, which check that the tiles and the spawn point line up end to end.
+        internal IReadOnlyList<GameObject> Tiles => m_activeTiles;
+        internal float NextSpawnZ => m_nextSpawnZ;
+
+        private void OnEnable()
+        {
+            FloatingOrigin.WorldShifted += FloatingOrigin_WorldShifted;
+        }
+
+        private void OnDisable()
+        {
+            FloatingOrigin.WorldShifted -= FloatingOrigin_WorldShifted;
+        }
+
         private void Start()
         {
             SpawnTile(0);
@@ -88,6 +102,12 @@ namespace SpaceEscaper
         {
             Destroy(m_activeTiles[0]);
             m_activeTiles.RemoveAt(0);
+        }
+
+        // The tiles move back with the world, the spawn point is only a number.
+        private void FloatingOrigin_WorldShifted(Vector3 offset)
+        {
+            m_nextSpawnZ += offset.z;
         }
     }
 }
