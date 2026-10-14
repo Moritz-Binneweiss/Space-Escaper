@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 22 Skripte, ~2300 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 24 Skripte, ~2400 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
@@ -66,8 +66,8 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   über Properties (`public bool IsRunning => m_isRunning;`).
 - **Strings als Konstanten** oben in der Klasse: Animator-Trigger, Tags,
   Szenenname, Dateiname des Spielstands. Die Werte selbst sind Daten und bleiben,
-  wie sie sind (etwa der Trigger `Collected` der Münze oder `SaveData.json`), sonst
-  brechen Animator und Spielstände.
+  wie sie sind (etwa der Tag `Obstacle` oder `SaveData.json`), sonst brechen
+  Prefabs und Spielstände.
 - **Formatierung:** Allman-Klammern, 4 Leerzeichen, Klammern auch um einzelne
   Anweisungen, eine Deklaration pro Zeile, `private` immer ausgeschrieben, `switch`
   mit `default`, Zeilen höchstens 120 Zeichen, UTF-8 ohne BOM, LF. Die
@@ -120,11 +120,14 @@ darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger 
 Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen. Seit v1.4.9
 prüfen sie die Streckenabschnitte (`ChunkTests`): Jeder feste Collider in einem
 Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponente
-`Coin`), und die Asteroidenfelder haben keine Collider. Seit v1.4.11 prüft
-`SceneTests` die Szene `Game.unity`: kein fehlendes Skript, jeder Button-Aufruf
-findet Ziel, Methode und Argument, jede Referenz unserer Komponenten ist gesetzt
-(auch in Listen), jeder Screen unter `UI` hat `Canvas` und `GraphicRaycaster` und
-keinen Animator, und der `ScreenManager` kennt jeden Screen genau einmal.
+`Coin`), und die Asteroidenfelder haben keine Collider. Seit v1.4.12 haben Chunks
+und Asteroidenfelder auch keine Animatoren (siehe „Drehen ohne Animator“ unter
+„Aufbau der Szene“). Seit v1.4.11 prüft `SceneTests` die Szene `Game.unity`: kein
+fehlendes Skript, jeder Button-Aufruf findet Ziel, Methode und Argument, jede
+Referenz unserer Komponenten ist gesetzt (auch in Listen), jeder Screen unter `UI`
+hat `Canvas` und `GraphicRaycaster` und keinen Animator, und der `ScreenManager`
+kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem genau einen
+`SpinManager`.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
@@ -227,7 +230,7 @@ nur Ordner.
 
 | Ordner | Inhalt |
 |---|---|
-| `Animations/` | Animator Controller und Clips, nach Gruppe |
+| `Animations/` | Animator Controller und Clips, nach Gruppe (seit v1.4.12 nur noch `UI/`) |
 | `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
 | `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`) |
@@ -279,7 +282,7 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `EventSystem` |
+| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `EventSystem` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
 | `Playership` | bleibt im Root, weil es sich jeden Frame bewegt |
 | `Cameras` | `MainCamera`, `ShopCamera` |
@@ -305,6 +308,32 @@ behalten dadurch ihre Weltposition.
   Teilchens, leer sind sie schon nach 1 und gut 2 s. Bis v1.4.8 blieben sie bis zum
   nächsten Szenen-Reload liegen, jede eingesammelte Münze hinterließ ein Objekt. Wer
   einen Effekt austauscht, etwa im Remaster (v1.7.0), passt die Zeit mit an.
+- **Drehen ohne Animator** (seit v1.4.12): Asteroiden und Münzen tragen einen
+  `Spinner` mit Grad pro Sekunde um die x-, y- und z-Achse ihres Parents, und
+  `Systems/SpinManager` dreht alle in einem einzigen `Update`. Mehrere Achsen lassen
+  einen Asteroiden taumeln. Bis v1.4.11 drehte jedes Objekt ein eigener Animator auf
+  „Always Animate“, rund 185 gleichzeitig, mit Kurven aus Blender, die in jedem
+  Durchlauf bis zum Stillstand abbremsten und wieder anliefen. Jetzt drehen sie
+  gleichmäßig (Entscheidung Oktober 2026): jeder Asteroid um dieselben Achsen wie sein
+  alter Clip und mit dessen mittlerem Tempo, die Münze mit 100°/s um die Senkrechte, so
+  schnell, wie man sie vorher beim Einsammeln sah. `Asteroid005`, `006`, `007`, `017`
+  und `025` drehen sich nicht, wie schon vorher. Eingesammelt schrumpft die Münze in
+  0,25 s auf null (`Coin`). Ein neues drehendes Objekt bekommt einen `Spinner`, keinen
+  Animator.
+- **Was der Animator in jedem Frame überschrieb, steht jetzt im Prefab:** die
+  Startdrehung von `Asteroid001` (-90° um x) und die Skalierung 1 statt 1,1 des Modells
+  in `Asteroid021`. In `AsteroidField004` und `005` saßen drei Modelle versetzt zu ihrer
+  Wurzel, im Spiel war das nie zu sehen, die Verschiebung ist weg. Elf stehende
+  `Asteroid001` in den Feldern (Animator und Collider entfernt) behalten ihre alte
+  Drehung per Override. Geprüft: Alle 564 Renderer in Chunks und Feldern stehen beim
+  Spawnen an derselben Stelle, gleich groß und höchstens 0,7° anders gedreht.
+- **Die Collider drehen mit,** wie schon mit dem Animator, sie sitzen am selben Objekt
+  wie das Modell. Die Kugeln der Asteroiden liegen um den Drehpunkt, die Kollision bleibt
+  also gleich, aber die Physik zieht ihre Pose in jedem Frame nach. Gemessen im Editor
+  im Hauptmenü: Animation 0,28 ms pro Frame vorher, 0,065 ms nachher (es bleibt der Puls
+  von „Tap to Start“). Dafür kostet der `SpinManager` 0,07 ms für 184 Spinner, die 25
+  mitdrehenden Collider 0,05 ms Physik (im selben Lauf mit ausgeschalteten Collidern
+  verglichen).
 - **Die Reihenfolge im UI ist die Zeichenreihenfolge:** Spätere Geschwister
   liegen oben. Zwischen den Screens spielt sie seit v1.4.10 keine Rolle mehr, es ist
   immer nur einer an (siehe „UI“). Innerhalb eines Screens gilt sie weiter.
@@ -351,7 +380,7 @@ geliefert wurden.
   Editor, „Space Before Number in Asset Names“ aus): aus `Asteroid001.prefab` wird
   `Asteroid026.prefab`, aus `Coin.prefab` `Coin1.prefab`. Bis dahin hieß sie
   `Asteroid001 1.prefab`.
-- **Animationsclips** heißen `Ziel_Zustand` (`TapToStart_Pulse`, `Coin_Collect`),
+- **Animationsclips** heißen `Ziel_Zustand` (`TapToStart_Pulse`),
   das ist der einzige erlaubte Unterstrich. Texturen enden auf `Color`
   (`Asteroid001Color.png`).
 - **Ungenutzte Doppelgänger** einer benutzten Datei tragen `Unused` am Ende
@@ -460,7 +489,10 @@ bei 8.
   darüber ist generiert.
 - **Das Spiel nutzt die `.fbx`-Exporte, nicht die `.blend`.** Von den 38 `.blend`
   ist nur `Asteroid001Animated.blend` direkt eingebunden (Stand Oktober 2026). Eine
-  Änderung an den anderen kommt erst mit einem neuen FBX-Export ins Spiel.
+  Änderung an den anderen kommt erst mit einem neuen FBX-Export ins Spiel. Drehungen
+  kommen so an: Blender-x wird Unity-x, Blender-y wird Unity-z, Blender-z wird
+  Unity -y, angewendet in Blenders Reihenfolge x, y, z (in v1.4.12 an den
+  Asteroiden-Clips nachgemessen, auf 0,4° genau).
 - Assets, die nicht in einer Szene oder einem Prefab referenziert sind, landen nicht im
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
 - **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 
 namespace SpaceEscaper
@@ -8,20 +9,12 @@ namespace SpaceEscaper
     public class Coin : MonoBehaviour
     {
         private const string k_PlayerTag = "Player";
-        private const string k_CollectedTrigger = "Collected";
-        private const float k_DestroyDelay = 1.5f;
+        private const float k_ShrinkDuration = 0.25f;
 
         // The dust emits for at most 1 s, and each speck lives up to 1 s.
         private const float k_DustLifetime = 2f;
 
         [SerializeField] private GameObject m_dustVfx;
-
-        private Animator m_animator;
-
-        private void Start()
-        {
-            m_animator = GetComponent<Animator>();
-        }
 
         private void OnTriggerEnter(Collider other)
         {
@@ -33,10 +26,21 @@ namespace SpaceEscaper
             GetComponent<CapsuleCollider>().enabled = false;
             AudioSystem.Instance.PlayCoinPickup();
             GameManager.Instance.CollectCoin();
-            m_animator.SetTrigger(k_CollectedTrigger);
             GameObject dust = Instantiate(m_dustVfx, transform.position, Quaternion.identity);
             Destroy(dust, k_DustLifetime);
-            Destroy(gameObject, k_DestroyDelay);
+            StartCoroutine(ShrinkAway());
+        }
+
+        private IEnumerator ShrinkAway()
+        {
+            Vector3 startScale = transform.localScale;
+            for (float time = 0f; time < k_ShrinkDuration; time += Time.deltaTime)
+            {
+                transform.localScale = startScale * (1f - time / k_ShrinkDuration);
+                yield return null;
+            }
+
+            Destroy(gameObject);
         }
     }
 }

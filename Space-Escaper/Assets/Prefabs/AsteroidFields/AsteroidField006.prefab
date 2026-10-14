@@ -808,6 +808,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: Asteroid001
       objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1192667457024553246, guid: 99bf4a925695b7d43be8301a69157bf8, type: 3}
     - {fileID: 1192667457024553247, guid: 99bf4a925695b7d43be8301a69157bf8, type: 3}
@@ -1115,6 +1135,26 @@ PrefabInstance:
         type: 3}
       propertyPath: m_Name
       value: Asteroid001
+      objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1659450872854301868, guid: 99bf4a925695b7d43be8301a69157bf8,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 1192667457024553246, guid: 99bf4a925695b7d43be8301a69157bf8, type: 3}
