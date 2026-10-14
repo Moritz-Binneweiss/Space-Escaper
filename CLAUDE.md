@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 22 Skripte, ~2300 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 24 Skripte, ~2400 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
@@ -66,8 +66,8 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   über Properties (`public bool IsRunning => m_isRunning;`).
 - **Strings als Konstanten** oben in der Klasse: Animator-Trigger, Tags,
   Szenenname, Dateiname des Spielstands. Die Werte selbst sind Daten und bleiben,
-  wie sie sind (etwa der Trigger `Collected` der Münze oder `SaveData.json`), sonst
-  brechen Animator und Spielstände.
+  wie sie sind (etwa der Tag `Obstacle` oder `SaveData.json`), sonst brechen
+  Prefabs und Spielstände.
 - **Formatierung:** Allman-Klammern, 4 Leerzeichen, Klammern auch um einzelne
   Anweisungen, eine Deklaration pro Zeile, `private` immer ausgeschrieben, `switch`
   mit `default`, Zeilen höchstens 120 Zeichen, UTF-8 ohne BOM, LF. Die
@@ -120,11 +120,14 @@ darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger 
 Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen. Seit v1.4.9
 prüfen sie die Streckenabschnitte (`ChunkTests`): Jeder feste Collider in einem
 Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponente
-`Coin`), und die Asteroidenfelder haben keine Collider. Seit v1.4.11 prüft
-`SceneTests` die Szene `Game.unity`: kein fehlendes Skript, jeder Button-Aufruf
-findet Ziel, Methode und Argument, jede Referenz unserer Komponenten ist gesetzt
-(auch in Listen), jeder Screen unter `UI` hat `Canvas` und `GraphicRaycaster` und
-keinen Animator, und der `ScreenManager` kennt jeden Screen genau einmal.
+`Coin`), und die Asteroidenfelder haben keine Collider. Seit v1.4.12 haben Chunks
+und Asteroidenfelder auch keine Animatoren (siehe „Drehen ohne Animator“ unter
+„Aufbau der Szene“). Seit v1.4.11 prüft `SceneTests` die Szene `Game.unity`: kein
+fehlendes Skript, jeder Button-Aufruf findet Ziel, Methode und Argument, jede
+Referenz unserer Komponenten ist gesetzt (auch in Listen), jeder Screen unter `UI`
+hat `Canvas` und `GraphicRaycaster` und keinen Animator, und der `ScreenManager`
+kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem genau einen
+`SpinManager`.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
@@ -199,8 +202,11 @@ dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
     `#if UNITY_EDITOR || UNITY_ENABLE_CHECKS`. `UNITY_ENABLE_CHECKS` setzen die
     Managed Code Variants „Checked“ und „Debug“, also genau die Builds, in denen
     es auch den Rendering Debugger gibt. `DEVELOPMENT_BUILD` meldet der
-    Unity-Analyzer in Unity 6.6 als veraltet (UAC0009). Auf dem Handy ist das Panel
-    noch nicht ausprobiert, das kommt mit dem Messen in v1.4.12.
+    Unity-Analyzer in Unity 6.6 als veraltet (UAC0009). Der Haken „Development
+    Build“ allein setzt keine Variante, für Android steht sie in den Player
+    Settings auf Release: Ein solcher Build hat weder Panel noch Rendering Debugger
+    (geprüft in v1.4.12). Auf dem Handy ist das Panel noch nicht ausprobiert, das
+    kommt mit dem Messen am Ende von v1.5.0.
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
@@ -224,7 +230,7 @@ nur Ordner.
 
 | Ordner | Inhalt |
 |---|---|
-| `Animations/` | Animator Controller und Clips, nach Gruppe |
+| `Animations/` | Animator Controller und Clips, nach Gruppe (seit v1.4.12 nur noch `UI/`) |
 | `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
 | `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`) |
@@ -238,7 +244,7 @@ nur Ordner.
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
-| `UI/` | `Images/` (Sprites, Shop-Sprites in `Images/Shop/`), `Fonts/`, `Mockups.png` |
+| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/`, `Mockups.png` |
 
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
@@ -253,6 +259,19 @@ nur Ordner.
   `Models/` beieinander und nicht in `Textures/`.
 - `Scripts/` bleibt flach, solange es so wenige Skripte sind. Unterordner kommen
   mit dem Aufteilen des GameManagers in v1.5.0.
+- **UI-Bilder liegen nach Herkunft** (seit v1.4.12): `UI/Images/2020/` hat die 38
+  Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hat die 39
+  aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
+  hat die Preisschilder aus v1.4.1. Das Spiel nutzt 36: aus `2020/` nur `CoinIcon`,
+  aus `2021/` alle bis auf die leere Platte `ButtonBlank`, die drei Namensschriftzüge
+  in `Shop/` und die alten Preisschilder, dazu die drei aus `2026/`. Neue Bilder
+  kommen in den Ordner ihres Jahres.
+- **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
+  lagen auch im Ordner `GUI/` der Quelldateien des Originals, die im Januar 2026 ins
+  Repo kamen (`84f02f9`). Sieben tragen einen PNG-Zeitstempel von August oder
+  September 2020, und die Szene von v1.3 nutzte nur `CoinIcon`. Die Bilder von v1.3
+  sind exakt zugeschnitten, ihre `.meta` kannte schon iOS als Plattform, und die
+  Vagor-Bilder gehören dazu (Vagor kam mit v1.3).
 - Fremd-Pakete bleiben an ihrem Platz, Asset-Store-Updates erwarten sie dort.
 
 ## Aufbau der Szene
@@ -263,7 +282,7 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `EventSystem` |
+| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `EventSystem` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
 | `Playership` | bleibt im Root, weil es sich jeden Frame bewegt |
 | `Cameras` | `MainCamera`, `ShopCamera` |
@@ -289,6 +308,32 @@ behalten dadurch ihre Weltposition.
   Teilchens, leer sind sie schon nach 1 und gut 2 s. Bis v1.4.8 blieben sie bis zum
   nächsten Szenen-Reload liegen, jede eingesammelte Münze hinterließ ein Objekt. Wer
   einen Effekt austauscht, etwa im Remaster (v1.7.0), passt die Zeit mit an.
+- **Drehen ohne Animator** (seit v1.4.12): Asteroiden und Münzen tragen einen
+  `Spinner` mit Grad pro Sekunde um die x-, y- und z-Achse ihres Parents, und
+  `Systems/SpinManager` dreht alle in einem einzigen `Update`. Mehrere Achsen lassen
+  einen Asteroiden taumeln. Bis v1.4.11 drehte jedes Objekt ein eigener Animator auf
+  „Always Animate“, rund 185 gleichzeitig, mit Kurven aus Blender, die in jedem
+  Durchlauf bis zum Stillstand abbremsten und wieder anliefen. Jetzt drehen sie
+  gleichmäßig (Entscheidung Oktober 2026): jeder Asteroid um dieselben Achsen wie sein
+  alter Clip und mit dessen mittlerem Tempo, die Münze mit 100°/s um die Senkrechte, so
+  schnell, wie man sie vorher beim Einsammeln sah. `Asteroid005`, `006`, `007`, `017`
+  und `025` drehen sich nicht, wie schon vorher. Eingesammelt schrumpft die Münze in
+  0,25 s auf null (`Coin`). Ein neues drehendes Objekt bekommt einen `Spinner`, keinen
+  Animator.
+- **Was der Animator in jedem Frame überschrieb, steht jetzt im Prefab:** die
+  Startdrehung von `Asteroid001` (-90° um x) und die Skalierung 1 statt 1,1 des Modells
+  in `Asteroid021`. In `AsteroidField004` und `005` saßen drei Modelle versetzt zu ihrer
+  Wurzel, im Spiel war das nie zu sehen, die Verschiebung ist weg. Elf stehende
+  `Asteroid001` in den Feldern (Animator und Collider entfernt) behalten ihre alte
+  Drehung per Override. Geprüft: Alle 564 Renderer in Chunks und Feldern stehen beim
+  Spawnen an derselben Stelle, gleich groß und höchstens 0,7° anders gedreht.
+- **Die Collider drehen mit,** wie schon mit dem Animator, sie sitzen am selben Objekt
+  wie das Modell. Die Kugeln der Asteroiden liegen um den Drehpunkt, die Kollision bleibt
+  also gleich, aber die Physik zieht ihre Pose in jedem Frame nach. Gemessen im Editor
+  im Hauptmenü: Animation 0,28 ms pro Frame vorher, 0,065 ms nachher (es bleibt der Puls
+  von „Tap to Start“). Dafür kostet der `SpinManager` 0,07 ms für 184 Spinner, die 25
+  mitdrehenden Collider 0,05 ms Physik (im selben Lauf mit ausgeschalteten Collidern
+  verglichen).
 - **Die Reihenfolge im UI ist die Zeichenreihenfolge:** Spätere Geschwister
   liegen oben. Zwischen den Screens spielt sie seit v1.4.10 keine Rolle mehr, es ist
   immer nur einer an (siehe „UI“). Innerhalb eines Screens gilt sie weiter.
@@ -330,8 +375,12 @@ geliefert wurden.
 
 - **Nummern in Serien dreistellig** (`Asteroid001`, `Chunk000`,
   `AsteroidField007`), Varianten einstellig (`AristocratSkin2`). Schiffsfamilien
-  ausgeschrieben, keine Kürzel wie ACT, FTR oder VGR.
-- **Animationsclips** heißen `Ziel_Zustand` (`TapToStart_Pulse`, `Coin_Collect`),
+  ausgeschrieben, keine Kürzel wie ACT, FTR oder VGR. Eine Kopie im Project-Fenster
+  bekommt seit v1.4.12 die nächste freie Nummer ohne Leerzeichen (Project Settings >
+  Editor, „Space Before Number in Asset Names“ aus): aus `Asteroid001.prefab` wird
+  `Asteroid026.prefab`, aus `Coin.prefab` `Coin1.prefab`. Bis dahin hieß sie
+  `Asteroid001 1.prefab`.
+- **Animationsclips** heißen `Ziel_Zustand` (`TapToStart_Pulse`),
   das ist der einzige erlaubte Unterstrich. Texturen enden auf `Color`
   (`Asteroid001Color.png`).
 - **Ungenutzte Doppelgänger** einer benutzten Datei tragen `Unused` am Ende
@@ -363,6 +412,9 @@ Beim Umbenennen:
 - **Objekte in Prefabs per Text umbenennen** (`m_Name` der GameObjects, `value:`
   unter `propertyPath: m_Name`), aus demselben Grund wie unter „Code-Stil“. Ältere
   Prefabs liegen auf der Platte noch mit CRLF, Git normalisiert das beim Commit.
+  Damit ein Prefab nicht versehentlich neu geschrieben wird, speichert der Prefab
+  Mode seit v1.4.12 nicht mehr von selbst (Project Settings > Editor, „Allow Auto
+  Save“ aus). Beim Verlassen fragt Unity, ob gespeichert werden soll.
 
 ## Versionen, PRs & Tags
 
@@ -437,7 +489,10 @@ bei 8.
   darüber ist generiert.
 - **Das Spiel nutzt die `.fbx`-Exporte, nicht die `.blend`.** Von den 38 `.blend`
   ist nur `Asteroid001Animated.blend` direkt eingebunden (Stand Oktober 2026). Eine
-  Änderung an den anderen kommt erst mit einem neuen FBX-Export ins Spiel.
+  Änderung an den anderen kommt erst mit einem neuen FBX-Export ins Spiel. Drehungen
+  kommen so an: Blender-x wird Unity-x, Blender-y wird Unity-z, Blender-z wird
+  Unity -y, angewendet in Blenders Reihenfolge x, y, z (in v1.4.12 an den
+  Asteroiden-Clips nachgemessen, auf 0,4° genau).
 - Assets, die nicht in einer Szene oder einem Prefab referenziert sind, landen nicht im
   Build - Aufräumen in `Assets/` ist also Repo-Hygiene, keine Build-Größen-Optimierung.
 - **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
@@ -494,6 +549,13 @@ bei 8.
   Displays, rundet Unity: 90 Hz ergibt 45 FPS, 144 Hz 72 FPS. „Optimized Frame
   Pacing“ ist aus, damit würde Unity immer abrunden. Im Editor gilt das Ziel nur
   fürs Game-Fenster.
+- **Garbage Collection inkrementell** seit v1.4.12 (Player Settings > Other
+  Settings > „Use incremental GC“, Unitys Standard für neue Projekte, hier war es
+  aus). Der GC räumt dann in kleinen Schritten über mehrere Frames auf, statt das
+  Spiel für einen ganzen Durchlauf anzuhalten. Bei 60 FPS hat ein Frame 16,7 ms,
+  ein voller Durchlauf kann darüber liegen und ruckeln. Wie oft der GC überhaupt
+  läuft, hängt daran, wie viel das Spiel pro Frame neu anlegt. Das zeigt die
+  Messung am Ende von v1.5.0.
 - **Spiellogik an die Zeit binden, nicht an Frames:** Bewegung mit
   `Time.deltaTime`, Abläufe mit `Time.time`. Vorsicht bei Glättungen, die pro
   Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
@@ -580,6 +642,21 @@ bei 8.
   als Default Icon und TV-Banner. Das graue Unity-Icon (96 px), das daneben noch in der
   APK liegt, ist nur der Ersatz für Android vor 8 und wird nie angezeigt. Ein echtes
   adaptives Icon mit getrennten Ebenen kommt mit dem Icon-Remaster (v1.7.0).
+- **Grafik-API auf Android:** nur OpenGL ES 3 (Player Settings, „Auto Graphics API“
+  aus). Unity 6.6 setzt dabei immer ES 3.1 voraus, der Haken „Require ES3.1“ wirkt
+  nicht mehr (`PlayerSettings.openGLRequireES31` liefert fest `true`, egal was in
+  `ProjectSettings.asset` steht). „Require ES3.1+AEP“ ist seit v1.4.12 aus: Das
+  Android Extension Pack bringt Geometrie- und Tessellation-Shader, kein Shader im
+  Projekt nutzt sie. Die Pflicht stand trotzdem im Manifest
+  (`android.hardware.opengles.aep`, required), und der Play Store bietet eine App dann
+  nur Geräten mit AEP an. Ob Vulkan dazukommt, zeigt die Messung am Ende von v1.5.0.
+- **Keine Define-Symbole** in den Player Settings (seit v1.4.12). Bis dahin standen
+  dort für 19 Plattformen Überbleibsel entfernter Pakete, für Android
+  `CROSS_PLATFORM_INPUT` und `MOBILE_INPUT` (Standard Assets),
+  `UNITY_POST_PROCESSING_STACK_V2`, `SENTIS_ANALYTICS_ENABLED` und
+  `APP_UI_EDITOR_ONLY`. Kein Code las sie, weder in `Assets/` noch in den Paketen.
+  Ebenso weg ist der Eintrag `com.unity.dt.app-ui` in den Build Settings, er zeigte
+  auf ein gelöschtes Asset. Ein neues Symbol nur zusammen mit Code, der es liest.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
@@ -587,9 +664,10 @@ bei 8.
   Preisschilder oder Doppelgänger mit `Unused` im Namen. Aufräumen gehört zum UI
   Overhaul (v1.5.1) und zum Remaster (v1.7.0). Bitgleiche Duplikate sind seit
   v1.4.5 gelöscht (39 in `Assets/UI/`, 4 beim Sortieren der Ordner), alle
-  UI-Bilder liegen in `UI/Images/`. Gleiche Texturen in `Models/` und `Textures/`
-  sind Absicht: die einen gehören zu den `.blend`-Quellen, die anderen zu den
-  Unity-Materialien.
+  UI-Bilder liegen in `UI/Images/`. Von ihren 80 nutzt das Spiel 36, die übrigen 44
+  liegen fast alle in `UI/Images/2020/` (siehe „Ordnerstruktur“). Gleiche Texturen
+  in `Models/` und `Textures/` sind Absicht: die einen gehören zu den
+  `.blend`-Quellen, die anderen zu den Unity-Materialien.
 - **Play Store kommt erst mit v2.0** - als *neuer* Store-Eintrag, nicht als Update des
   alten von 2020 (Entscheidung Oktober 2026). Bis dahin bewusst offen:
   `AndroidTargetSdkVersion: 29` (Google verlangt seit 31.08.2026 API 36),
@@ -756,13 +834,14 @@ auffiel. Weil die Flammen jetzt erst zur Laufzeit entstehen, kann die Szene sie
 nicht mehr überschreiben.
 
 **Preisschilder sind Bilder, keine Texte.** Den Preis im `ShipData` allein zu ändern
-reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/PriceTagAristocrat250.png`,
-`PriceTagFreeter750.png` und `PriceTagVagor1250.png`. Aufbau wie bei den Originalen
-(`PriceTagAristocrat3500.png`, `PriceTagFreeter6000.png`, `PriceTagVagor8000.png`,
-pixelgleich nachgeprüft): `ButtonBlank.png` als Platte, `CoinIcon.png` als Icon,
-Zahl in `UI/Fonts/NeuropolXRegular.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und
-Zahl als Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert
-daneben und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
+reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/2026/`:
+`PriceTagAristocrat250.png`, `PriceTagFreeter750.png` und `PriceTagVagor1250.png`.
+Aufbau wie bei den Originalen von v1.3 (`2021/PriceTagAristocrat3500.png`,
+`PriceTagFreeter6000.png`, `PriceTagVagor8000.png`, pixelgleich nachgeprüft):
+`2021/ButtonBlank.png` als Platte, `2020/CoinIcon.png` als Icon, Zahl in
+`UI/Fonts/NeuropolXRegular.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und Zahl als
+Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert in
+`2021/` und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
 entschieden wird beim UI Overhaul (v1.5.1) - bis dahin nicht löschen.
 
 ## UI
@@ -1018,6 +1097,72 @@ Das Projekt lief bis September 2026 auf der Built-in Render Pipeline und wurde a
 `Assets/Settings/UniversalRenderPipeline.asset` (Renderer: `UniversalRenderer.asset`)
 und ist in Project Settings > Graphics zugewiesen, alle Materialien sind konvertiert.
 
+**Eine Qualitätsstufe, „Mobile“** (seit v1.4.12). Bis dahin gab es die sechs Stufen
+aus Unitys Vorlage für die Built-in Pipeline, „Fastest“ bis „Fantastic“. Genutzt hat
+das Spiel nur „Fastest“: Android, der Editor und alle anderen Plattformen standen
+darauf. „Mobile“ ist diese Stufe unter neuem Namen und zeigte dasselbe (im Edit Mode
+gerendert: Haupt- und Hangar-Kamera bitgleich). Danach kam Texture Quality „Full Res“
+dazu, siehe „Texturen“.
+
+- **In URP regelt die Stufe wenig.** Was auf dem Handy Leistung kostet, steht im
+  URP-Asset, das die Stufe nutzt: Render Scale, MSAA, HDR, Schatten und Lichter. Die
+  Stufe selbst bestimmt hier nur Texture Quality (siehe „Texturen“), anisotropes
+  Filtern (aus) und vSync (aus, auf Android ohne Wirkung, siehe „Bildrate“).
+- **Werte für Dinge, die das Spiel nicht hat,** stehen auf Unitys mittleren Werten
+  statt auf denen von „Fastest“: LOD Bias 1 statt 0,3, Skin Weights 2 Bones statt 1,
+  Particle Raycast Budget 256 statt 4. Es gibt keine LODs und keine Modelle mit
+  Knochen, und die einzige Partikel-Kollision (Debris der Explosion) rechnet genau,
+  ohne Budget (geprüft in v1.4.12: die Szene und alle 120 Prefabs und Modelle, die sie
+  nutzt). Mit den alten Werten sähen neue Inhalte ab dem Remaster (v1.7.0) still
+  schlechter aus.
+- **Ändern** in Project Settings > Quality oder per Code wie das Quality-Fenster:
+  `SerializedObject` auf `ProjectSettings/QualitySettings.asset`, danach
+  `AssetDatabase.SaveAssets()`. So in v1.4.12.
+- **Mehr Stufen erst mit Grund,** etwa wenn nach dem Remaster schwache Handys ruckeln:
+  dann je Stufe ein eigenes URP-Asset, und das Spiel wählt die Stufe beim Start nach
+  dem Gerät. Ein Grafikmenü im Spiel ist nicht geplant (Entscheidung Oktober 2026).
+
+**HDR ist aus** (seit v1.4.12, `m_SupportsHDR` im URP-Asset, das die
+Qualitätsstufe nutzt). Ohne Post-Processing brauchte nichts den größeren
+Wertebereich. HDR ließ URP nur in eine Zwischentextur rendern und diese am Ende in
+den Bildschirm kopieren (`BlitFinalToBackBuffer`, im Editor gezählt: mit HDR in
+jedem Frame, ohne keinmal). Jetzt rendert die Kamera direkt in den Bildschirm, das
+spart auf dem Handy die Kopie und ihre Bandbreite. Im Bildvergleich blieben Flammen,
+Menü und Hangar gleich, bei der Explosion leuchten die Funken der ersten
+Zehntelsekunden etwas schwächer (unter 1 % der Pixel). An beiden Kameras steht HDR
+weiter an, das wirkt nur, wenn das Asset es erlaubt. Kommt Post-Processing dazu
+(etwa Bloom im Remaster, v1.7.0), braucht es HDR wieder, dann Flammen und Explosion
+neu ansehen.
+
+**Schatten und zusätzliche Lichter sind aus** (seit v1.4.12, im URP-Asset unter
+Lighting: „Cast Shadows“ des Main Light aus, „Additional Lights“ auf „Disabled“). Das
+Spiel hat nur `Environment/DirectionalLight`, und das wirft keine Schatten. Das
+Lights-Modul eines Partikelsystems in `BigExplosion` ist zwar an, hat aber kein Licht
+zugewiesen und erzeugt keins. Trotzdem rechnete jeder beleuchtete Pixel beides mit:
+Für ein Licht ohne Schatten rendert URP eine leere Shadow Map und schaltet
+`_MAIN_LIGHT_SHADOWS` trotzdem ein, so kommt es mit weniger Shader-Varianten aus.
+`_ADDITIONAL_LIGHTS` startete in jedem Pixel eine Schleife über null Lichter. Jetzt
+sind beide Schlüsselwörter aus (nach einem Kamera-Render ausgelesen), Haupt- und
+Hangar-Kamera rendern bitgleich wie vorher. Wie viel das auf dem Handy spart, zeigt
+erst die Messung am Ende von v1.5.0. Der nächste Build schreibt dazu neue
+`m_Prefilter…`-Werte ins Asset (siehe unten). Kommen im Remaster (v1.7.0) Schatten
+oder weitere Lichter dazu, beides hier wieder einschalten, sonst bleiben sie
+unsichtbar.
+
+**Bilder vorher und nachher** nimmt im Play Mode `unity command capture_game_view
+--source screen` auf, über den Bildschirm wie auf dem Handy. Die Aufnahme rendert
+aber nicht neu, sie skaliert nur das Game-Fenster auf `--width` und `--height`. Für
+echte Handy-Auflösung das Game-Fenster vorher auf eine feste Größe stellen (intern
+`GameView.SetCustomResolution`, per Reflection), danach die alte Größe wieder wählen
+und die neue löschen (`GameViewSizeGroup.RemoveCustomSize` erwartet den Gesamtindex).
+Ohne `--save_path` kommt das Bild als Base64 zurück und lässt sich speichern, wo man
+will. Mit `--save_path` legt die CLI jede Datei unter `Assets/` ab. Zeit anhalten
+(`Time.timeScale = 0`), UI ausblenden und zuerst zweimal hintereinander aufnehmen:
+Beide Bilder müssen gleich sein. So in v1.4.12 für HDR, je ein Bild mit und ohne
+`Camera.allowHDR` (720×1280, im 9:16-Fenster also nur leicht hochskaliert), und für
+die Texturen in 1080×2400. Ein Kamera-Render in eine eigene Render Texture (`--source
+camera`) ignoriert HDR.
+
 **Jeder Player-Build schreibt in zwei URP-Assets:** in `UniversalRenderPipeline.asset`,
 welche Shader-Varianten er weglassen darf (`m_Prefilter…`), und in
 `UniversalRenderPipelineGlobalSettings.asset` die Liste der Einstellungen, die ins
@@ -1029,7 +1174,16 @@ neuen Stand in einem eigenen Commit aufnehmen, nicht vermischt mit inhaltlichen
 Änderungen.
 
 Shader-Verteilung: 34 Materialien auf `ANIMO/BendWorld`, 13 auf URP/Lit, 7 auf URP
-Particles (Lit/Unlit), 2 TextMesh Pro, 1 Skybox.
+Particles (Lit/Unlit), 2 TextMesh Pro, 1 auf dem eingebauten `Unlit/Texture` (der
+Sternenhintergrund, `Materials/Skybox/Background.mat`).
+
+**Always Included Shaders** (Project Settings > Graphics) kommen in jeden Build, auch
+wenn nichts sie nutzt. Seit v1.4.12 stehen dort nur noch Unitys Helfer für UI,
+Cubemaps und `Hidden/Compositing`. „Legacy Shaders/Diffuse“ aus der Built-in Pipeline
+nutzte kein Material, und kein Shader fällt darauf zurück (`BendWorld` fällt auf
+URP/Unlit zurück). Die drei Video-Shader sind ebenfalls raus, und „Video“ steht auf
+„Referenced“: Sie kommen nur mit, wenn eine Szene ein Video nutzt, das Spiel hat
+keins. Die Einstellung allein nimmt sie nicht aus der Liste, das ging nur von Hand.
 
 `Assets/Shaders/BendWorld.shader` ist der handportierte Curved-World-Shader (vorher
 Surface Shader, jetzt URP mit ForwardLit / ShadowCaster / DepthOnly / DepthNormals).
@@ -1063,6 +1217,100 @@ v1.7.0 (Art- und Sound-Remaster).
 Das Material haengt an einem Child namens `Shockwave` in zwei Prefabs:
 `BigExplosion.prefab` (die Todesexplosion des Spielers) und `Shockwave.prefab`.
 Beide Prefabs sind unveraendert - der Fix sitzt nur im Material.
+
+## Texturen
+
+**Jede Textur erscheint auf dem Handy höchstens in ihrer Importgröße.** Die
+Qualitätsstufe „Mobile“ hat seit v1.4.12 Texture Quality „Full Res“. Bis dahin stand
+sie auf „Half Res“ (`globalTextureMipmapLimit: 1`, so seit dem ersten Stand des
+Repos): Jede Textur mit Mipmaps erschien nur in halber Importgröße, und die oberste
+Stufe lag ungenutzt in der APK. Für Full Res sind die 22 betroffenen Texturen halb so
+groß importiert. So zeigt das Handy dieselbe Größe wie vorher, und die Texturen
+belegen 20 MB weniger. UI-Sprites haben keine Mipmaps, und winzige Texturen wie die
+2×2-Paletten der Asteroiden 001 bis 015 hatte Unity von Half Res ausgenommen
+(`Texture2D.activeMipmapLimit` war 0). Der Editor nutzt dieselbe Stufe und zeigt
+dasselbe wie das Handy.
+
+**Kleiner importiert ist nicht bitgleich mit der halben Stufe.** Unity verkleinert
+beim Import in einem Schritt aus der Quelle (Resize Algorithm „Mitchell“), Mipmaps
+entstehen per Box-Filter aus der Stufe darüber. „Bilinear“ lag beim Sternenhimmel
+(Quelle 1920×1080) noch weiter weg. Gemessen in v1.4.12 im Play Mode in 1080×2400:
+Schiffe, Münzstaub und Explosion praktisch gleich (in 24 Bildern zusammen 35 Pixel
+über 8 Stufen), in der Rost-Struktur der Münzen feines Rauschen (0,3 % der Pixel,
+höchstens 38 Stufen), die Sterne minimal schwächer (0,2 %, höchstens 52).
+
+**Nicht größer importieren als gezeigt** (seit v1.4.12): Die Max-Size richtet sich
+danach, wie groß eine Textur höchstens auf dem Bildschirm erscheint. Gemessen in
+1080×2400:
+
+- `UI/Images/2020/CoinIcon.png` 512: Das Icon ist im Canvas höchstens 75 Einheiten groß,
+  auf einem 3200 px hohen Display rund 300 px. Im Bildvergleich blieb es gleich, die
+  Unterschiede zu 2000 px sind Rauschen in der Rost-Struktur.
+- Die neun Schiffspaletten 512 ohne Alphakanal, `Asteroid016To025Color.png` 256,
+  siehe Paletten.
+- `Textures/Coin/CoinColor.jpg` 512: Münzen auf der Strecke nutzen höchstens die
+  Mip-Stufe 256, eine Münze direkt vor der Kamera 512.
+- Explosion, Rauch und Münzstaub 1024, der Sternenhintergrund 1024×512. Das Handy
+  zeigt sie vergrößert: Ein Einzelbild des Feuers (6×6 Felder) hat 171 px, die
+  Partikel werden bis zu 480 px groß, der Hintergrund läuft überall auf Mip-Stufe 0.
+  Größer importiert wären sie schärfer, das gehört zum Remaster (v1.7.0).
+- Hangar und Raumhafen (`HangarColor`, `NerousColor`, je zwei) 512, aus der Explosion
+  `Debris` 128 und `shockwave` 256: nur halbiert, damit das Handy dieselbe Größe
+  zeigt wie mit Half Res. Ob weniger reicht, ist nicht gemessen.
+
+**Paletten** (Schiffe, Asteroiden-Atlas) sind Felder aus je einer Farbe, getrennt von
+dünnen Linien. Bei ihnen zählt nicht die Größe auf dem Bildschirm, sondern wie weit
+die UVs von der nächsten Farbgrenze entfernt liegen: Je kleiner die Textur, desto
+weiter verwischen bilineares Filtern und ETC2 die Grenzen. Stand v1.4.12 liegt kein
+Dreieck über einer Grenze, die Schiffe halten mindestens 40 Quellpixel (von 3000)
+Abstand, die Asteroiden 60. Im Hangar änderten sich mit 512 statt 1024 auf dem Handy
+höchstens 2 Pixel, mit 256 bis zu 21 an einer Kante. Flächen ohne UV-Abwicklung (UV
+0,0 an allen Ecken, etwa bei Aristocrat Skin 1 und den Vagor-Skins) nehmen die Farbe
+der vier Eckpixel an, also des schwarzen Rands. Bei kleinen Texturen mischt sich dort
+das angrenzende Feld hinein. Ohne Transparenz brauchen Paletten keinen Alphakanal
+(Alpha Source „None“), `ANIMO/BendWorld` liest ihn nicht.
+
+**Android-Format ist ETC2** (Player Settings), nicht ASTC: mit Alphakanal 1 Byte pro
+Pixel, ohne 0,5. Kantenlängen müssen durch 4 teilbar sein, sonst bleibt eine Textur
+unkomprimiert (RGBA32). Das trifft 35 UI-Bilder mit zusammen 10,4 MB (etwa 648×207),
+ein Sprite Atlas soll das in v1.5.1 lösen.
+
+**Messen:**
+
+- Größe im Android-Format über `TextureUtil.GetStorageMemorySizeLong` (intern, per
+  Reflection), alle Texturen der Szene über `AssetDatabase.GetDependencies` auf
+  `Game.unity`. Stand v1.4.12: 73 Texturen, 17,4 MB (vorher 62,6). Die Editor-Zahl
+  von `Profiler.GetRuntimeMemorySizeLong` liegt höher, der Editor hält Kopien.
+- Welche Mip-Stufe die GPU wählt: die Textur im Play Mode durch eine gleich große
+  ersetzen, deren Stufen verschiedene Farben haben (rot, gelb, grün …), mit
+  `ignoreMipmapLimit = true`, falls eine Qualitätsstufe die Auflösung senkt. Bei
+  geteilten Materialien per `MaterialPropertyBlock`, nie am Material-Asset. Dann je
+  ein Bild mit und ohne und die geänderten Pixel nach Farbton zählen.
+- Ob eine Textur nach einer Änderung gleich aussieht: die oberste Stufe, die die GPU
+  bekommt, per `Graphics.Blit` in eine Render Texture genau ihrer Größe kopieren und
+  auslesen (in halber Größe die Stufe darunter), vorher und nachher Pixel für Pixel
+  vergleichen. Das geht ohne Play Mode für alle Texturen auf einmal, so in v1.4.12 für
+  die 22 halbierten.
+- Partikelgrößen: die Zeit anhalten, den Effekt mit `ParticleSystem.Simulate`
+  vorspulen und pro Teilchen `GetCurrentSize` durch die Tiefe zur Kamera teilen. Eine
+  Aufzeichnung pro Frame verpasst die meisten Frames, wenn Unity im Hintergrund
+  läuft.
+- Bilder vorher und nachher wie unter „Render Pipeline: URP“. Für Objekte und Effekte
+  die Zeit anhalten, sie auf eine eigene Ebene legen und nur diese vor schwarzem Grund
+  rendern (`cullingMask`, `clearFlags`), Partikel mit festem `randomSeed` per
+  `Simulate` vorspulen. Die Explosion nur bis etwa 1 s vergleichen: Danach prallt ihr
+  Debris an den zufällig gespawnten Hindernissen ab, und die Bilder weichen auch ohne
+  Änderung ab.
+
+**`.meta` im alten Format** (Stand v1.4.12 noch 45 von 161 Texturen: 38 mit
+`serializedVersion: 11`, darunter Schiffe, Münze und Asteroiden, und 7 aus
+`Effects/EffectExamples` mit 4 und 5) per Text ändern wie Prefabs (siehe
+„Code-Stil“): Über den Importer gespeichert, schreibt Unity die ganze Datei im neuen
+Format, rund 60 Zeilen Diff ohne inhaltliche Änderung. Die Max-Size steht im Eintrag
+`DefaultTexturePlatform` (die gleichnamige Zeile weiter oben zieht Unity nicht mehr
+mit), der Alphakanal unter `alphaUsage`, 0 heißt None. Danach
+`AssetDatabase.ImportAsset` mit `ImportAssetOptions.ForceUpdate`: Unity importiert
+neu, schreibt die Datei aber nicht um.
 
 ## Sprache
 

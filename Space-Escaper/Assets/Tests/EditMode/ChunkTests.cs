@@ -18,7 +18,7 @@ namespace SpaceEscaper.Tests
         public void EverySolidColliderInAChunkIsAnObstacle()
         {
             List<string> untaggedColliders = new List<string>();
-            foreach (Collider collider in GetColliders(k_ChunkFolder))
+            foreach (Collider collider in GetComponentsInPrefabs<Collider>(k_ChunkFolder))
             {
                 if (!collider.isTrigger && !collider.CompareTag(k_ObstacleTag))
                 {
@@ -33,7 +33,7 @@ namespace SpaceEscaper.Tests
         public void EveryTriggerInAChunkIsACoin()
         {
             List<string> strayTriggers = new List<string>();
-            foreach (Collider collider in GetColliders(k_ChunkFolder))
+            foreach (Collider collider in GetComponentsInPrefabs<Collider>(k_ChunkFolder))
             {
                 bool isCoin = collider.CompareTag(k_CoinTag) && collider.GetComponent<Coin>() != null;
                 if (collider.isTrigger && !isCoin)
@@ -51,7 +51,7 @@ namespace SpaceEscaper.Tests
         public void AsteroidFieldsHaveNoColliders()
         {
             List<string> colliders = new List<string>();
-            foreach (Collider collider in GetColliders(k_AsteroidFieldFolder))
+            foreach (Collider collider in GetComponentsInPrefabs<Collider>(k_AsteroidFieldFolder))
             {
                 colliders.Add(GetPath(collider.transform));
             }
@@ -59,19 +59,36 @@ namespace SpaceEscaper.Tests
             Assert.That(colliders, Is.Empty);
         }
 
-        private static List<Collider> GetColliders(string folder)
+        // An animator costs time in every frame, even off screen. Asteroids and coins turn
+        // with a Spinner instead, and the SpinManager turns them all in one Update.
+        [Test]
+        public void ChunksAndAsteroidFieldsHaveNoAnimators()
+        {
+            List<string> animators = new List<string>();
+            foreach (string folder in new[] { k_ChunkFolder, k_AsteroidFieldFolder })
+            {
+                foreach (Animator animator in GetComponentsInPrefabs<Animator>(folder))
+                {
+                    animators.Add(GetPath(animator.transform));
+                }
+            }
+
+            Assert.That(animators, Is.Empty);
+        }
+
+        private static List<T> GetComponentsInPrefabs<T>(string folder) where T : Component
         {
             string[] prefabGuids = AssetDatabase.FindAssets("t:Prefab", new[] { folder });
             Assert.That(prefabGuids, Is.Not.Empty, "No prefabs in " + folder);
 
-            List<Collider> colliders = new List<Collider>();
+            List<T> components = new List<T>();
             foreach (string guid in prefabGuids)
             {
                 GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
-                colliders.AddRange(prefab.GetComponentsInChildren<Collider>(true));
+                components.AddRange(prefab.GetComponentsInChildren<T>(true));
             }
 
-            return colliders;
+            return components;
         }
 
         private static string GetPath(Transform transform)

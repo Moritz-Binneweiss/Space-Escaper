@@ -177,6 +177,14 @@ namespace SpaceEscaper.Tests
             Assert.That(knownScreens, Is.EquivalentTo(screens));
         }
 
+        // Asteroids and coins only turn while a SpinManager runs. They come with the tiles at
+        // runtime, so a missing manager would only show in the game.
+        [Test]
+        public void SceneHasOneSpinManager()
+        {
+            Assert.That(GetComponentsInScene<SpinManager>(), Has.Count.EqualTo(1));
+        }
+
         private static string FindProblem(SerializedProperty call)
         {
             Object target = call.FindPropertyRelative(k_CallTargetProperty).objectReferenceValue;
