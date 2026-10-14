@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.12 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.4.13 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -147,11 +147,11 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
-#### **v1.4.13** | Floating Origin _(------- --, 2026)_
+#### **v1.4.13** | Floating Origin _(October 14, 2026)_
 
 <small>
 
-- [x] Ship and world move back to the origin every few thousand units, so long runs stay precise
+- 🎯 Ship and world move back to the origin every few thousand units, so long runs stay precise
 
 </small>
 
