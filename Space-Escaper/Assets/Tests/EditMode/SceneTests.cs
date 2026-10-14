@@ -185,6 +185,14 @@ namespace SpaceEscaper.Tests
             Assert.That(GetComponentsInScene<SpinManager>(), Has.Count.EqualTo(1));
         }
 
+        // Without a FloatingOrigin the world never moves back, and nothing shows until a run
+        // gets very long.
+        [Test]
+        public void SceneHasOneFloatingOrigin()
+        {
+            Assert.That(GetComponentsInScene<FloatingOrigin>(), Has.Count.EqualTo(1));
+        }
+
         private static string FindProblem(SerializedProperty call)
         {
             Object target = call.FindPropertyRelative(k_CallTargetProperty).objectReferenceValue;

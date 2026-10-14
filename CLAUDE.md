@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 24 Skripte, ~2400 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 25 Skripte, ~2500 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
@@ -73,8 +73,13 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   mit `default`, Zeilen höchstens 120 Zeichen, UTF-8 ohne BOM, LF. Die
   `.editorconfig` im Repo-Root hält das für die IDE fest.
 - **Reihenfolge in der Klasse:** Konstanten, serialisierte Felder, private Felder,
-  Properties, Unity-Methoden (`Awake`, `Start`, `Update` …), öffentliche Methoden,
-  private Methoden.
+  Properties, Events, Unity-Methoden (`Awake`, `Start`, `Update` …), öffentliche
+  Methoden, private Methoden.
+- **Events** (seit v1.4.13, das erste ist `FloatingOrigin.WorldShifted`) wie im
+  Styleguide: `event Action<…>`, benannt als Verbphrase, im Partizip für „danach“
+  (`WorldShifted`). Ausgelöst wird es in einer Methode mit `On` davor
+  (`OnWorldShifted`), Handler heißen `Subjekt_Event`
+  (`FloatingOrigin_WorldShifted`). An- und abmelden in `OnEnable` und `OnDisable`.
 - **Kommentare** erklären das Warum, nicht das Was. `/// <summary>` nur an
   öffentlichen Membern, wo der Name nicht reicht, `[Tooltip]` statt Kommentar an
   serialisierten Feldern. Kein auskommentierter Code, keine `#region`, keine
@@ -127,14 +132,20 @@ fehlendes Skript, jeder Button-Aufruf findet Ziel, Methode und Argument, jede
 Referenz unserer Komponenten ist gesetzt (auch in Listen), jeder Screen unter `UI`
 hat `Canvas` und `GraphicRaycaster` und keinen Animator, und der `ScreenManager`
 kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem genau einen
-`SpinManager`.
+`SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
 zum ersten Hindernis, dann prüft er Todesbildschirm und Spielstand, tippt Revive
-und prüft, dass das Schiff 20 Einheiten weiterfliegt, ohne wieder zu crashen. Mit
+und prüft, dass das Schiff 25 Einheiten weiterfliegt, ohne wieder zu crashen. Mit
 dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
-„Bekannte Altlasten“).
+„Bekannte Altlasten“). Seit v1.4.13 rückt die Welt dabei alle 20 statt alle 4800
+Einheiten zurück (siehe „Floating Origin“ unter „Aufbau der Szene“), zweimal vor
+dem Crash und einmal kurz nach dem Revive, während die Explosion noch brennt. In
+jedem Frame prüft er, dass nichts springt: Das Schiff bleibt nahe am Ursprung,
+Schiff und Kamera bewegen sich stetig, alles andere behält seinen Platz in der
+Welt, die Gruppen der Szene bleiben im Ursprung, und die Abschnitte liegen
+lückenlos hintereinander bis zur nächsten Spawn-Position.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit
@@ -170,7 +181,8 @@ dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
   prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
   Der Tipp selbst kommt in `PreUpdate`, vor allen `Update()`, wie ein echter (siehe
   „Eingabe“). `Random.InitState` wählt immer dieselben Abschnitte, das Schiff
-  crasht also immer an derselben Stelle (derzeit bei z = 56,8 nach 4,4 s). Pausiert
+  crasht also immer an derselben Stelle (derzeit bei z = 56,8 nach 4,4 s, gezählt,
+  als wäre die Welt nie zurückgerückt). Pausiert
   ein Fokuswechsel im Editor den Run, tippt der Test Continue und vermerkt das in
   seiner Ausgabe.
 - **Am schnellsten testbar ist, was ohne laufende Szene geht.** Regeln gehören
@@ -218,7 +230,12 @@ dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
   mit Animator, das Hauptmenü doppelt im `ScreenManager` und ein fehlendes Skript.
   Der PlayMode-Test scheiterte mit `RespawnTiles` ohne das Ausschalten der alten
   Abschnitte im Frame des Revive. Tippte er dabei aus dem Test selbst, also nach
-  `Update()`, blieb er grün: So wäre der Bug durchgerutscht.
+  `Update()`, blieb er grün: So wäre der Bug durchgerutscht. In v1.4.13 fand er vier
+  eingebaute Fehler im Floating Origin: eine Spawn-Position, die nicht mitrückt,
+  Gruppen, die als Ganzes rücken, eine Welt, die nie zurückrückt, und Abschnitte
+  und Effekte, die stehen bleiben. Die Spawn-Position fiel erst mit dem Vergleich
+  zum letzten Abschnitt auf: Das Schiff kommt lokal nie weit genug, um einen
+  Abschnitt zu recyceln, eine Lücke entstand also nie.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -282,18 +299,20 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `EventSystem` |
+| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
-| `Playership` | bleibt im Root, weil es sich jeden Frame bewegt |
+| `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
 | `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen: `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings`, `Shop` (siehe „UI“) |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
-  Ursprung, sonst verschiebt sie alle Kinder mit.
+  Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
+  Transform): Daran erkennt der Floating Origin sie.
 - **Was sich ständig bewegt, bleibt flach.** Unity aktualisiert Transforms pro
   Hierarchie, bewegte Kinder in großen Hierarchien kosten mehr. Deshalb liegt
-  `Playership` im Root, und die Streckenabschnitte spawnen dort ebenfalls.
+  `Playership` mit dem Schiff im Root, und die Streckenabschnitte spawnen dort
+  ebenfalls.
 - **Spawning:** `Systems/TileManager` und `Systems/FieldManager` tragen dieselbe
   Komponente `TileManager` (seit v1.4.9, vorher zwei fast gleiche Klassen). Die
   eine legt die Streckenabschnitte vor das Schiff (`Chunk…`, 60 Einheiten lang, 4
@@ -301,6 +320,35 @@ behalten dadurch ihre Weltposition.
   lang, 8 auf einmal). Wann ein passierter Abschnitt nach vorn wandert, legt
   `m_recycleDistance` fest: 55 bei der Strecke, 50 bei den Feldern. Nur die Strecke
   setzt der Revive-Button neu, siehe „Bekannte Altlasten“.
+- **Floating Origin** (seit v1.4.13): Ist das Schiff 4800 Einheiten vom Ursprung
+  entfernt, rückt `Systems/FloatingOrigin` Schiff und Welt um genau diese Strecke
+  zurück, alles im selben Frame (`LateUpdate`), das Bild bleibt also gleich. `float`
+  rechnet umso gröber, je weiter vom Ursprung: Ohne Zurückrücken wäre das Schiff nach
+  10 Minuten (Tempo 37) bei rund 15.000 Einheiten und dort auf etwa ein Tausendstel
+  genau, so bleibt alles unter rund 5100 Einheiten. 4800 ist ein Vielfaches beider
+  Abschnittslängen (60 und 40). Die Strecke steht als `m_distance` im Inspector und
+  lässt sich zum Ausprobieren auch im Play Mode klein stellen.
+  - Es rücken alle Root-Objekte außer dem UI. Die Gruppen der Szene (`Systems`,
+    `Playership`, `Cameras`, `Environment`) bleiben dabei im Ursprung, ihre Kinder
+    rücken: Schiff und Kamera bewegen sich in ihrer Gruppe, ihre lokale Position
+    wüchse sonst mit der geflogenen Strecke, und die Genauigkeit wäre wieder weg.
+    Welche Objekte Gruppen sind, merkt sich `FloatingOrigin` in `Awake`, bevor der
+    erste Abschnitt spawnt, denn auch die Wurzeln der Abschnitte sind leer.
+  - Partikel, die im Weltraum simulieren, verschiebt es selbst (derzeit nur die
+    Rauchspuren am Debris der Explosion), danach gleicht `Physics.SyncTransforms()`
+    die Collider ab.
+  - Positionen, die nicht in einem Transform stehen, ziehen über das Event
+    `FloatingOrigin.WorldShifted` nach, derzeit nur die Spawn-Position im
+    `TileManager`. Neuer Code, der Positionen als Zahl speichert, meldet sich dort an.
+    Nicht betroffen: `BendWorld` krümmt relativ zur Kamera, der Sternenhimmel ist eine
+    Skybox, die Audio-Quellen sind 2D, und der Score hängt an der Zeit.
+  - Geprüft in v1.4.13: Ein Run mit festem Zufall spawnte mit Zurückrücken alle 120
+    Einheiten dieselben 46 Abschnitte an denselben Stellen wie ohne. Die Explosion
+    behielt beim Zurückrücken mitten im Effekt in jedem Frame ihre Partikelzahlen
+    (kein Schwall durch „Emit over Distance“). Ein Bild bei z = 4800 und dasselbe
+    nach dem Zurückrücken unterscheiden sich in 0,1 % der Pixel, einzeln und fast
+    alle in Partikeln: Das ist die Rechengenauigkeit bei 4800 selbst, und es betrifft
+    nur diesen einen Frame. Ein Zurückrücken dauert im Editor 0,2 bis 0,4 ms.
 - **Effekte** (Staub beim Einsammeln einer Münze, Explosion beim Crash) entstehen
   zur Laufzeit im Root und löschen sich selbst, der Staub nach 2 s, die Explosion
   nach 4 s (`k_DustLifetime` in `Coin`, `k_ExplosionLifetime` in `PlayerMotor`). Das
@@ -503,7 +551,9 @@ bei 8.
   unter PlayMode. Das Test-Menü liegt seit v1.4.11 in `SpaceEscaper.Editor`
   (`Editor/`, nur für den Editor). `Scripts/AssemblyInfo.cs` öffnet ihm und den
   PlayMode-Tests `internal` (`InternalsVisibleTo`), derzeit für
-  `SaveSystem.LoadFrom` und `SaveSystem.Delete`. Test-Assemblies kommen an
+  `SaveSystem.LoadFrom` und `SaveSystem.Delete`, den PlayMode-Tests seit v1.4.13
+  auch für `FloatingOrigin.Distance`, `TileManager.Tiles` und
+  `TileManager.NextSpawnZ`. Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
   v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
@@ -624,7 +674,10 @@ bei 8.
   Eine Auto-Pause verschiebt dabei nur die Bildnummern. Ein Run im Test schreibt
   beim Tod Münzen und Highscore in den Spielstand. Ihn direkt vor jedem Lauf sichern
   und danach genau diese Sicherung zurücklegen, keine ältere: Dazwischen kann jemand
-  im Editor gespielt haben (so ging in v1.4.9 ein Spielstand verloren).
+  im Editor gespielt haben (so ging in v1.4.9 ein Spielstand verloren). Seit v1.4.13
+  springt z alle 4800 Einheiten zurück (siehe „Floating Origin“). Wer über längere
+  Strecken misst, zählt die Verschiebungen über `FloatingOrigin.WorldShifted` mit, wie
+  `RunTests`.
 - **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
   Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
   `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus

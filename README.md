@@ -147,6 +147,14 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] Reworked and Refactored all Game Engine and Development related things
 
+#### **v1.4.13** | Floating Origin _(------- --, 2026)_
+
+<small>
+
+- [x] Ship and world move back to the origin every few thousand units, so long runs stay precise
+
+</small>
+
 #### **v1.4.12** | Performance & Assets _(October 14, 2026)_
 
 <small>
