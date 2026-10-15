@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -6,12 +7,13 @@ using UnityEngine.UI;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// Runs the main menu, the hangar shop, the score of a run and the death screen.
+    /// Holds the state of the game and changes it: main menu, hangar, run, pause and death. Until
+    /// they get classes of their own, it also runs the hangar shop, the score of a run and the
+    /// death screen.
     /// </summary>
     public class GameManager : MonoBehaviour
     {
         private const string k_GameSceneName = "Game";
-        private const string k_PlayerTag = "Player";
 
         private const float k_ScorePerSecond = 3f;
         private const int k_ScorePerCoin = 1;
@@ -53,8 +55,7 @@ namespace SpaceEscaper
         [SerializeField] private Text m_deathCoinText;
         [SerializeField] private GameObject m_reviveButton;
 
-        private PlayerMotor m_playerMotor;
-        private bool m_isGameStarted;
+        private GameState m_state;
 
         private float m_score;
         private int m_displayedScore;
@@ -70,22 +71,35 @@ namespace SpaceEscaper
         private GameObject m_engineFlame;
         private GameObject m_hangarModel;
 
-        private static readonly int s_familyCount = System.Enum.GetValues(typeof(ShipFamily)).Length;
+        private static readonly int s_familyCount = Enum.GetValues(typeof(ShipFamily)).Length;
 
         public static GameManager Instance { get; private set; }
 
         /// <summary>
-        /// True while a run is going on and the ship is alive - the only time a pause
-        /// makes sense. False in the menu, in the hangar and on the death screen.
+        /// Changed only here, by the methods the buttons call. A call that does not fit the
+        /// state, like a pause outside a run, does nothing.
         /// </summary>
-        public bool IsRunActive => m_isGameStarted && m_playerMotor.IsRunning;
+        public GameState State => m_state;
+
+        // For tests, which check that the score stands still on the death screen.
+        internal float Score => m_score;
+
+        // Raised right after the state has changed, in the same call. A tap reaches the buttons
+        // before any Update(), so on a revive the track is fresh before the ship flies on.
+        public static event Action RunStarted;
+        public static event Action HangarOpened;
+        public static event Action HangarClosed;
+        public static event Action RunPaused;
+        public static event Action RunResumed;
+        public static event Action ShipCrashed;
+        public static event Action ShipRevived;
 
         private void Awake()
         {
+            // "Exit" in the pause menu reloads the scene while the time stands still.
             Time.timeScale = 1f;
             Instance = this;
             m_scoreModifier = 1f;
-            m_playerMotor = GameObject.FindGameObjectWithTag(k_PlayerTag).GetComponent<PlayerMotor>();
 
             m_modifierText.text = FormatModifier(m_scoreModifier);
             m_coinText.text = m_runCoins.Count.ToString();
@@ -107,7 +121,7 @@ namespace SpaceEscaper
 
         private void Update()
         {
-            if (!m_isGameStarted)
+            if (m_state != GameState.Run)
             {
                 return;
             }
@@ -120,18 +134,66 @@ namespace SpaceEscaper
             }
         }
 
+        // A run must not go on while the player is away from the app, and must not
+        // start again by itself when they come back. Android reports a pulled-down
+        // notification shade only as lost focus, leaving the app as both. In the
+        // Editor, clicking any window other than the Game view counts as lost focus.
+        private void OnApplicationFocus(bool hasFocus)
+        {
+            if (!hasFocus)
+            {
+                Pause();
+            }
+        }
+
+        private void OnApplicationPause(bool isPaused)
+        {
+            if (isPaused)
+            {
+                Pause();
+            }
+        }
+
         /// <summary>
         /// Starts a run from the main menu.
         /// </summary>
         public void Play()
         {
-            m_isGameStarted = true;
-            AudioSystem.Instance.PlayGameMusic();
-            m_playerMotor.StartRunning();
-            FindAnyObjectByType<CameraMotor>().IsMoving = true;
-            m_screens.ShowGameMenu();
+            if (m_state != GameState.Menu)
+            {
+                return;
+            }
+
+            ChangeState(GameState.Run);
             m_engineFlame.SetActive(true);
             StartCoroutine(HideSpaceportAfterDelay());
+            OnRunStarted();
+        }
+
+        /// <summary>
+        /// Pauses the run. Called by the pause button, and by the game itself when the app loses
+        /// focus or goes to the background.
+        /// </summary>
+        public void Pause()
+        {
+            if (m_state != GameState.Run)
+            {
+                return;
+            }
+
+            ChangeState(GameState.Paused);
+            OnRunPaused();
+        }
+
+        public void Continue()
+        {
+            if (m_state != GameState.Paused)
+            {
+                return;
+            }
+
+            ChangeState(GameState.Run);
+            OnRunResumed();
         }
 
         public void CollectCoin()
@@ -158,22 +220,24 @@ namespace SpaceEscaper
         }
 
         /// <summary>
-        /// Shows the death screen, banks the coins of the run and saves a new
-        /// highscore.
+        /// Called by the ship when it crashes. Shows the death screen, banks the coins of the run
+        /// and saves a new highscore.
         /// </summary>
         public void HandleDeath()
         {
+            if (m_state != GameState.Run)
+            {
+                return;
+            }
+
+            ChangeState(GameState.Dead);
+
             // Shown and saved as the same whole number, so the death screen and the
             // highscore cannot disagree (rounding 41.7 shows 42, truncating saves 41).
             int finalScore = (int)m_score;
 
             m_deathScoreText.text = finalScore.ToString();
             m_deathCoinText.text = m_runCoins.Count.ToString();
-            m_screens.ShowDeathMenu();
-
-            // Paused, not stopped, so a revive continues the track where it was.
-            // Going back to the menu reloads the scene, which starts the menu music.
-            AudioSystem.Instance.PauseMusic();
 
             SaveData saveData = SaveSystem.Data;
             m_runCoins.BankInto(saveData);
@@ -185,6 +249,7 @@ namespace SpaceEscaper
 
             saveData.RecordScore(finalScore);
             SaveSystem.Save();
+            OnShipCrashed();
         }
 
         /// <summary>
@@ -192,20 +257,37 @@ namespace SpaceEscaper
         /// </summary>
         public void RequestRevive()
         {
+            if (m_state != GameState.Dead)
+            {
+                return;
+            }
+
             m_reviveButton.SetActive(false);
             Revive();
         }
 
         public void OpenShop()
         {
-            m_screens.ShowShop();
+            if (m_state != GameState.Menu)
+            {
+                return;
+            }
+
+            ChangeState(GameState.Hangar);
             m_hangar.SetActive(true);
+            OnHangarOpened();
         }
 
         public void CloseShop()
         {
-            m_screens.ShowMainMenu();
+            if (m_state != GameState.Hangar)
+            {
+                return;
+            }
+
+            ChangeState(GameState.Menu);
             m_hangar.SetActive(false);
+            OnHangarClosed();
         }
 
         public void ShowPreviousFamily()
@@ -262,13 +344,34 @@ namespace SpaceEscaper
 
         private void Revive()
         {
-            m_screens.ShowGameMenu();
+            ChangeState(GameState.Run);
             m_score = m_reviveScore;
             m_shipModel.SetActive(true);
             m_engineFlame.SetActive(true);
-            m_playerMotor.StartRunning();
-            AudioSystem.Instance.ResumeMusic();
+            OnShipRevived();
         }
+
+        // Every state has its own screen, and only the pause stops the time.
+        private void ChangeState(GameState state)
+        {
+            m_state = state;
+            m_screens.Show(state);
+            Time.timeScale = state == GameState.Paused ? 0f : 1f;
+        }
+
+        private static void OnRunStarted() => RunStarted?.Invoke();
+
+        private static void OnHangarOpened() => HangarOpened?.Invoke();
+
+        private static void OnHangarClosed() => HangarClosed?.Invoke();
+
+        private static void OnRunPaused() => RunPaused?.Invoke();
+
+        private static void OnRunResumed() => RunResumed?.Invoke();
+
+        private static void OnShipCrashed() => ShipCrashed?.Invoke();
+
+        private static void OnShipRevived() => ShipRevived?.Invoke();
 
         private void ShowFamily(ShipFamily family)
         {

@@ -15,19 +15,13 @@ namespace SpaceEscaper
         }
 
         /// <summary>
-        /// Goes back to where the settings were opened from: the pause menu during
-        /// a run, the main menu otherwise.
+        /// Goes back to where the settings were opened from. They leave the state of the game as
+        /// it is, so that is the screen of the state: the pause menu during a run, the main menu
+        /// otherwise.
         /// </summary>
         public void Close()
         {
-            if (PauseMenu.IsPaused)
-            {
-                m_screens.ShowPauseMenu();
-            }
-            else
-            {
-                m_screens.ShowMainMenu();
-            }
+            m_screens.Show(GameManager.Instance.State);
         }
     }
 }

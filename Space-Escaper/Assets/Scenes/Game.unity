@@ -546,18 +546,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1727939688}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: SwitchToMainCamera
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
       - m_Target: {fileID: 1727939685}
         m_TargetAssemblyTypeName: 
         m_MethodName: CloseShop
@@ -1657,18 +1645,6 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1727939688}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: SwitchToShopCamera
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
       - m_Target: {fileID: 1727939685}
         m_TargetAssemblyTypeName: 
         m_MethodName: OpenShop
@@ -2289,6 +2265,7 @@ MonoBehaviour:
   m_tileLength: 60
   m_numberOfTiles: 4
   m_recycleDistance: 55
+  m_respawnsOnRevive: 1
   m_player: {fileID: 521938649}
 --- !u!4 &560458633
 Transform:
@@ -3142,18 +3119,6 @@ MonoBehaviour:
       - m_Target: {fileID: 1727939685}
         m_TargetAssemblyTypeName: 
         m_MethodName: RequestRevive
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 560458632}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: RespawnTiles
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -4348,7 +4313,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1727939686}
+      - m_Target: {fileID: 1727939685}
         m_TargetAssemblyTypeName: 
         m_MethodName: Pause
         m_Mode: 1
@@ -4648,7 +4613,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 1727939686}
+      - m_Target: {fileID: 1727939685}
         m_TargetAssemblyTypeName: 
         m_MethodName: Continue
         m_Mode: 1
@@ -4657,7 +4622,7 @@ MonoBehaviour:
           m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
           m_IntArgument: 0
           m_FloatArgument: 0
-          m_StringArgument: PauseMenu.Continue
+          m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
 --- !u!114 &1238864882
@@ -6616,7 +6581,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1727939684}
   - component: {fileID: 1727939685}
-  - component: {fileID: 1727939686}
   - component: {fileID: 1727939687}
   - component: {fileID: 1727939688}
   m_Layer: 0
@@ -6672,19 +6636,6 @@ MonoBehaviour:
   m_deathScoreText: {fileID: 2099850776}
   m_deathCoinText: {fileID: 432122548}
   m_reviveButton: {fileID: 945269654}
---- !u!114 &1727939686
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1727939683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14548e6d7d89071459e43d889a2124e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_screens: {fileID: 1423978557}
 --- !u!114 &1727939687
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7045,6 +6996,7 @@ MonoBehaviour:
   m_tileLength: 40
   m_numberOfTiles: 8
   m_recycleDistance: 50
+  m_respawnsOnRevive: 0
   m_player: {fileID: 521938649}
 --- !u!4 &1803128863
 Transform:

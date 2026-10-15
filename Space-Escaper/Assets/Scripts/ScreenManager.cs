@@ -3,7 +3,8 @@ using UnityEngine;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// Shows one screen of the UI at a time and switches the others off.
+    /// Shows one screen of the UI at a time and switches the others off: the screen of the state
+    /// the game is in, or the settings over it.
     /// </summary>
     public class ScreenManager : MonoBehaviour
     {
@@ -22,22 +23,12 @@ namespace SpaceEscaper
 
             // The game starts in the main menu, whichever screen was left switched on
             // while editing the scene.
-            ShowMainMenu();
+            Show(GameState.Menu);
         }
 
-        public void ShowMainMenu()
+        public void Show(GameState state)
         {
-            Show(m_mainMenu);
-        }
-
-        public void ShowGameMenu()
-        {
-            Show(m_gameMenu);
-        }
-
-        public void ShowPauseMenu()
-        {
-            Show(m_pauseMenu);
+            Show(GetScreen(state));
         }
 
         public void ShowSettings()
@@ -45,14 +36,25 @@ namespace SpaceEscaper
             Show(m_settings);
         }
 
-        public void ShowShop()
+        private GameObject GetScreen(GameState state)
         {
-            Show(m_shop);
-        }
+            switch (state)
+            {
+                case GameState.Hangar:
+                    return m_shop;
 
-        public void ShowDeathMenu()
-        {
-            Show(m_deathMenu);
+                case GameState.Run:
+                    return m_gameMenu;
+
+                case GameState.Paused:
+                    return m_pauseMenu;
+
+                case GameState.Dead:
+                    return m_deathMenu;
+
+                default:
+                    return m_mainMenu;
+            }
         }
 
         private void Show(GameObject screen)

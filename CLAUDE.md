@@ -11,7 +11,7 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
 - `Space-Escaper/Assets/Scripts/` - 26 Skripte, ~2500 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
-  `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
+  `GameManager.cs` (Spielzustand, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
   `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
   (Schiffe).
@@ -59,11 +59,11 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 - **Namen:** private Felder `m_camelCase`, private statische Felder `s_camelCase`,
   Konstanten `k_PascalCase`, Typen, Methoden und Properties PascalCase, lokale
   Variablen und Parameter camelCase. Booleans beginnen mit einem Verb
-  (`m_isRunning`, `HasSwipedLeft`), Methoden auch (`OpenShop` statt `ShopOn`).
+  (`m_isMusicMuted`, `HasSwipedLeft`), Methoden auch (`OpenShop` statt `ShopOn`).
   Keine Abkürzungen außer in Mathe (`k_VolumeRangeDb`).
 - **Keine öffentlichen Felder.** Was im Inspector stehen soll, ist
   `[SerializeField] private` (Attribut in derselben Zeile), andere Klassen lesen
-  über Properties (`public bool IsRunning => m_isRunning;`).
+  über Properties (`public bool IsMusicMuted => m_isMusicMuted;`).
 - **Strings als Konstanten** oben in der Klasse: Animator-Trigger, Tags,
   Szenenname, Dateiname des Spielstands. Die Werte selbst sind Daten und bleiben,
   wie sie sind (etwa der Tag `Obstacle` oder `SaveData.json`), sonst brechen
@@ -97,11 +97,11 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   `Playership.prefab` kamen Modelle und Flammen in v1.4.8 deshalb per Text heraus.
 - **Methoden mit OnClick-Aufruf:** Die Szene speichert den Methodennamen als Text,
   ein umbenannter Button tut sonst einfach nichts. Betroffen sind
-  `GameManager.Play`, `ReturnToMenu`, `RequestRevive`, `OpenShop`, `CloseShop`,
-  `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(ShipData)` und `SelectOrBuyShownShip`,
-  `PauseMenu.Pause` und `Continue`, `SettingsManager.Open` und `Close`,
-  `CameraSwitch.SwitchToMainCamera` und `SwitchToShopCamera` sowie
-  `TileManager.RespawnTiles`. Beim Umbenennen `m_MethodName` in `Game.unity`
+  `GameManager.Play`, `Pause`, `Continue`, `ReturnToMenu`, `RequestRevive`, `OpenShop`,
+  `CloseShop`, `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(ShipData)` und
+  `SelectOrBuyShownShip` sowie `SettingsManager.Open` und `Close`. Kamera und Strecke
+  hören seit v1.5.0 auf den Spielzustand statt auf eigene OnClick-Aufrufe (siehe
+  „Spielzustand“). Beim Umbenennen `m_MethodName` in `Game.unity`
   mitziehen, am besten im Editor per `SerializedObject`. So wurden in v1.4.10
   `OpenFromMainMenu` und `OpenFromPauseMenu` zu einem `Open`. Einen Aufruf, der
   seine Methode nicht mehr findet, meldet `SceneTests`.
@@ -136,7 +136,8 @@ kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem genau einen
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
-zum ersten Hindernis, dann prüft er Todesbildschirm und Spielstand, tippt Revive
+zum ersten Hindernis, dann prüft er Todesbildschirm und Spielstand und seit v1.5.0,
+dass der Score dort eine Sekunde lang stehen bleibt. Dann tippt er Revive
 und prüft, dass das Schiff 25 Einheiten weiterfliegt, ohne wieder zu crashen. Mit
 dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
 „Bekannte Altlasten“). Seit v1.4.13 rückt die Welt dabei alle 20 statt alle 4800
@@ -181,7 +182,7 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
   Der Tipp selbst kommt in `PreUpdate`, vor allen `Update()`, wie ein echter (siehe
   „Eingabe“). `Random.InitState` wählt immer dieselben Abschnitte, das Schiff
-  crasht also immer an derselben Stelle (derzeit bei z = 56,8 nach 4,4 s, gezählt,
+  crasht also immer an derselben Stelle (derzeit bei z = 56,8 nach rund 4,4 s, gezählt,
   als wäre die Welt nie zurückgerückt). Pausiert
   ein Fokuswechsel im Editor den Run, tippt der Test Continue und vermerkt das in
   seiner Ausgabe.
@@ -235,7 +236,9 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   Gruppen, die als Ganzes rücken, eine Welt, die nie zurückrückt, und Abschnitte
   und Effekte, die stehen bleiben. Die Spawn-Position fiel erst mit dem Vergleich
   zum letzten Abschnitt auf: Das Schiff kommt lokal nie weit genug, um einen
-  Abschnitt zu recyceln, eine Lücke entstand also nie.
+  Abschnitt zu recyceln, eine Lücke entstand also nie. In v1.5.0 scheiterte die
+  Prüfung des Scores mit dem alten Code: nach einer Sekunde Todesbildschirm 16,13 statt
+  13,13.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -299,7 +302,7 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
+| `Systems` | `GameManager` (dazu `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
@@ -319,7 +322,7 @@ behalten dadurch ihre Weltposition.
   auf einmal), die andere die Asteroidenfelder im Hintergrund (`AsteroidField…`, 40
   lang, 8 auf einmal). Wann ein passierter Abschnitt nach vorn wandert, legt
   `m_recycleDistance` fest: 55 bei der Strecke, 50 bei den Feldern. Nur die Strecke
-  setzt der Revive-Button neu, siehe „Bekannte Altlasten“.
+  setzt ein Revive neu (`m_respawnsOnRevive`), siehe „Bekannte Altlasten“.
 - **Floating Origin** (seit v1.4.13): Ist das Schiff 4800 Einheiten vom Ursprung
   entfernt, rückt `Systems/FloatingOrigin` Schiff und Welt um genau diese Strecke
   zurück, alles im selben Frame (`LateUpdate`), das Bild bleibt also gleich. `float`
@@ -553,7 +556,7 @@ bei 8.
   PlayMode-Tests `internal` (`InternalsVisibleTo`), derzeit für
   `SaveSystem.LoadFrom` und `SaveSystem.Delete`, den PlayMode-Tests seit v1.4.13
   auch für `FloatingOrigin.Distance`, `TileManager.Tiles` und
-  `TileManager.NextSpawnZ`. Test-Assemblies kommen an
+  `TileManager.NextSpawnZ`, seit v1.5.0 für `GameManager.Score`. Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
   v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
@@ -755,9 +758,11 @@ bei 8.
   v1.4.3 ebenfalls `com.ANIMOGames.SpaceEscaper` (vorher das Tutorial-Überbleibsel
   `unity.DefaultCompany.FPS2`) und zieht mit dem neuen Paketnamen mit.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
-  ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
-  zusätzlich `RespawnTiles` am `TileManager` der Strecke (`Systems/TileManager`)
-  auf - diese Verbindung existiert nur in der Szene, nicht im Code. `RespawnTiles`
+  ruft `Revive()` ohne Gegenleistung durch. Danach setzt der `TileManager` der Strecke
+  (`Systems/TileManager`, `m_respawnsOnRevive` an) seine Abschnitte neu, er hört dafür
+  auf `GameManager.ShipRevived` (seit v1.5.0, bis dahin ein zweiter OnClick-Aufruf am
+  Revive-Button, der nur in der Szene stand). Das Ereignis kommt mit dem Tipp, also
+  vor allen `Update()`. `RespawnTiles`
   deaktiviert die alten Abschnitte, bevor es sie löscht: `Destroy` greift erst am
   Frame-Ende, das Schiff fliegt aber im selben Frame wieder los. Ohne das krachte es
   beim Revive sofort ins selbe Hindernis (zweite Explosion, Spiel-UI weg, Schiff
@@ -918,6 +923,55 @@ Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert i
 `2021/` und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
 entschieden wird beim UI Overhaul (v1.5.1) - bis dahin nicht löschen.
 
+## Spielzustand (GameState)
+
+Nicht zu verwechseln mit dem Spielstand (`SaveData`): Seit v1.5.0 hat das Spiel einen
+Zustand, `GameManager.State`, mit den Werten `Menu`, `Hangar`, `Run`, `Paused` und `Dead`
+(`GameState`). Bis v1.4.13 verteilte er sich auf vier Schalter (`m_isGameStarted` im
+`GameManager`, `PlayerMotor.IsRunning`, `CameraMotor.IsMoving` und
+`PauseMenu.IsPaused`). Weil der erste davon nach dem Tod an blieb, zählte der Score
+hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
+
+- **Nur der `GameManager` ändert ihn,** in den Methoden, die die Buttons aufrufen:
+  `Play` (Menu → Run), `OpenShop` und `CloseShop` (Menu ↔ Hangar), `Pause` und
+  `Continue` (Run ↔ Paused), `HandleDeath` beim Crash, gemeldet vom `PlayerMotor`
+  (Run → Dead), und `RequestRevive` (Dead → Run). Passt ein Aufruf nicht zum Zustand,
+  etwa eine Pause außerhalb des Runs, tut er nichts. `ReturnToMenu` lädt die Szene
+  neu, der Zustand beginnt dann wieder bei `Menu`.
+- **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
+  setzt `Time.timeScale`, 0 nur in der Pause.
+- **Die Settings sind kein Zustand,** sondern ein Screen über Hauptmenü oder Pause. Der
+  Zustand bleibt dabei stehen, und „Zurück“ zeigt wieder seinen Screen.
+- **Ereignisse,** statisch am `GameManager` wie `FloatingOrigin.WorldShifted`:
+  `RunStarted`, `HangarOpened`, `HangarClosed`, `RunPaused`, `RunResumed`, `ShipCrashed`
+  und `ShipRevived`. Sie kommen direkt nach dem Wechsel im selben Aufruf. Ein Tipp
+  erreicht die Buttons vor allen `Update()`, beim Revive ist die Strecke also neu,
+  bevor das Schiff in diesem Frame weiterfliegt. So braucht auch das `AudioSystem`, das
+  den Reload überlebt, keine Referenz in die Szene.
+
+| Wer | hört auf | und tut |
+|---|---|---|
+| `AudioSystem` | `RunStarted` | Spielmusik und Motor an |
+| | `RunPaused`, `RunResumed` | Motor aus und wieder an, die Musik läuft weiter (siehe „Pause“) |
+| | `ShipCrashed` | Musik anhalten, Motor aus (siehe „Audio-System“) |
+| | `ShipRevived` | Musik an derselben Stelle weiter, Motor an |
+| `CameraSwitch` | `HangarOpened`, `HangarClosed` | Hangar- oder Hauptkamera |
+| `TileManager` | `ShipRevived` | neue Abschnitte, nur mit `m_respawnsOnRevive` (die Strecke) |
+
+- **Den Zustand lesen** `PlayerMotor` (fliegt nur in `Run`), `CameraMotor` (folgt in
+  `Run`, bremst in `Dead`, steht sonst), `SettingsManager.Close`, der Score im
+  `GameManager` (zählt nur in `Run`) und `RunTests`.
+- **Neues, das auf den Spielverlauf reagiert,** meldet sich an einem Ereignis an (in
+  `OnEnable`, ab in `OnDisable`) oder liest `State`, statt einen eigenen Schalter zu
+  führen. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
+  `ChangeState`, dann das Ereignis auslösen.
+- **Geprüft in v1.5.0** mit einem Klick-Durchlauf über die echten Buttons, vorher und
+  nachher, mit festem Zufall und fester Bildrate: alle Übergänge, „Exit“ aus Pause und
+  Tod und die Auto-Pause in jedem Zustand, 32 Schritte. Screens, Kameras,
+  `Time.timeScale`, Musik, Motor, Hangar, Modell, Flamme, Revive und Crash-Stelle
+  blieben gleich. Anders sind nur der Score nach dem Tod (der Bug) und der Frame des
+  Pause-Tipps (siehe „Pause“).
+
 ## UI
 
 Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMenu`
@@ -926,9 +980,9 @@ Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMe
 `ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem Canvas, und sechs Animatoren
 schoben die gerade nicht gebrauchten aus dem Bild.
 
-- **Es ist immer genau ein Screen an.** `ScreenManager.ShowMainMenu()`,
-  `ShowGameMenu()`, `ShowPauseMenu()`, `ShowSettings()`, `ShowShop()` und
-  `ShowDeathMenu()` schalten ihn per `SetActive` ein und alle anderen aus, ohne
+- **Es ist immer genau ein Screen an.** `ScreenManager.Show(GameState)` zeigt den
+  Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings.
+  Beide schalten ihn per `SetActive` ein und alle anderen aus, ohne
   Übergang (Entscheidung Oktober 2026). Beim Start zeigt er das Hauptmenü, egal welcher
   Screen beim Bearbeiten an blieb. Gespeichert ist die Szene mit nur dem Hauptmenü an,
   so sieht sie im Editor aus wie beim Start. Zum Bearbeiten einen Screen einschalten,
@@ -944,8 +998,9 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   seit v1.4.10 keinen mehr, direkt unter ihm liegt nichts Klickbares.
 - **Ein neuer Screen:** Objekt unter `UI`, auf den ganzen Canvas gestreckt (Anker 0
   bis 1, Abstände 0), mit `Canvas` und `GraphicRaycaster`. Im `ScreenManager` bekommt
-  er ein Feld, eine `Show…`-Methode und einen Platz in `m_screens`. Dass beides
-  stimmt, prüft `SceneTests`.
+  er ein Feld und einen Platz in `m_screens`, dazu einen Fall in `GetScreen`, wenn er
+  zu einem Zustand gehört, sonst eine eigene `Show…`-Methode wie `ShowSettings`. Dass
+  Canvas, Raycaster und `m_screens` stimmen, prüft `SceneTests`.
 - **Keine Animatoren für Übergänge oder kurze Effekte.** Ein Animator am UI markiert
   seine Grafiken in jedem Frame neu, auch wenn sich nichts bewegt, und dann baut der
   ganze Canvas neu. In einem Screen fällt er außerdem bei jedem Einschalten auf seinen
@@ -1040,24 +1095,34 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
 
 ## Pause
 
-Seit v1.4.5 gibt es genau einen Pause-Zustand: `PauseMenu.IsPaused`, statisch
-und nur von `PauseMenu` gesetzt. `PauseMenu.Awake` setzt ihn zurück, sonst überlebt
-er den Szenen-Reload hinter „Exit“. Bis v1.4.4 gab es zwei Flags, und eines davon
-blieb nach „Exit“ aus der Pause auf `true` stehen.
+Seit v1.5.0 ist die Pause ein Zustand des Spiels, `GameState.Paused` (siehe
+„Spielzustand“). `GameManager.Pause()` wechselt aus dem Run hinein, `Continue()` zurück.
+Der Zustand gehört zum `GameManager` und beginnt nach dem Szenen-Reload hinter „Exit“
+wieder im Hauptmenü. Von v1.4.5 bis v1.4.13 war die Pause ein eigenes statisches Flag,
+`PauseMenu.IsPaused`. Bis v1.4.4 gab es zwei Flags, und eines davon blieb nach „Exit“
+aus der Pause auf `true` stehen.
 
 - `Pause()` und `Continue()` sind von überall gefahrlos aufrufbar, nicht nur von
-  den Buttons. `Pause()` greift nur bei `GameManager.IsRunActive` (Run gestartet
-  und Schiff lebt, also nicht im Menü, im Hangar oder auf dem Todesbildschirm) und
-  nur einmal, `Continue()` nur aus der Pause. Darauf baut die Auto-Pause auf.
-- **Auto-Pause** (seit v1.4.5): `PauseMenu` pausiert von selbst, sobald die App
+  den Buttons. `Pause()` greift nur im Run (also nicht im Menü, im Hangar oder auf
+  dem Todesbildschirm) und nur einmal, `Continue()` nur aus der Pause. Darauf baut
+  die Auto-Pause auf.
+- **Die Pause hält alles im Frame des Tipps an** (seit v1.5.0): Schiff, Kamera und
+  Score bewegen sich in diesem Frame nicht mehr. Bis v1.4.13 liefen sie noch einen
+  Frame weiter, weil Unity die Frame-Zeit schon vor dem Tipp berechnet hatte, erst
+  der nächste Frame stand still. Im Frame von „Continue“ bewegt sich weiterhin
+  nichts, seine Frame-Zeit entstand noch in der Pause. Wischer in der Pause wirken
+  nicht, der `PlayerMotor` liest sie nur im Run.
+- **Auto-Pause** (seit v1.4.5): Der `GameManager` (bis v1.4.13 das `PauseMenu`)
+  pausiert von selbst, sobald die App
   den Fokus verliert (`OnApplicationFocus(false)`) oder in den Hintergrund geht
   (`OnApplicationPause(true)`). Beim Verlassen der App meldet Android beides, eine
   heruntergezogene Benachrichtigungsleiste nur den Fokusverlust, und ohne Pause
   flöge das Schiff dabei weiter. Weiter geht es nur über „Continue“, nie von
   selbst. Im Editor zählt schon ein Klick außerhalb des Game-Fensters als
   Fokusverlust und pausiert den Run.
-- **Auto-Pause testen:** Im Editor die beiden Methoden per Reflection aufrufen,
-  in jedem Zustand (Menü, Run, Pause, Settings, Tod, nach Revive). Ein anderes
+- **Auto-Pause testen:** Im Editor die beiden Methoden des `GameManager` per
+  Reflection aufrufen, in jedem Zustand (Menü, Hangar, Run, Pause, Settings, Tod, nach
+  Revive). Ein anderes
   Editor-Fenster per `EditorWindow.FocusWindowIfItsOpen` zu fokussieren, löst
   zwar echt aus, aber verzögert, solange Unity selbst nicht im Vordergrund ist.
   Den echten App-Wechsel gibt es nur auf dem Handy.
@@ -1065,8 +1130,8 @@ blieb nach „Exit“ aus der Pause auf `true` stehen.
   Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Auch die
   Standardaktion „Cancel“ am `InputSystemUIInputModule`, die auf Escape lag, ist
   seit v1.4.5 abgehängt, weil kein UI-Element darauf reagierte.
-- `SettingsManager.Close()` liest den Zustand, um zu entscheiden, ob „Zurück“ ins
-  Pause- oder ins Hauptmenü führt.
+- `SettingsManager.Close()` zeigt den Screen des Zustands: Die Settings lassen ihn
+  stehen, „Zurück“ führt also ins Pause- oder ins Hauptmenü.
 - „Exit“ im Pause-Menü ruft `GameManager.ReturnToMenu`, also einen Szenen-Reload.
   `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
 - Die Musik läuft in der Pause bewusst weiter (Entscheidung Oktober 2026), so hört
@@ -1118,13 +1183,20 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
     das `AudioSettingsMenu`, nach dem Umschalten: Wer die SFX ausschaltet, hört
     keinen Klick, wer sie einschaltet, hört ihn. Vorher ergab sich das nur aus der
     Reihenfolge, in der die Listener dazukamen.
-- **Musik nicht an zwei Stellen steuern.** `PlayerMotor.StartRunning()` rief früher
-  zusätzlich einen Musik-Stopp auf und würgte damit die gerade gestartete
-  Spielmusik ab. Musik gehört ausschließlich in `GameManager`.
+  - Auf den Spielverlauf hört es über die statischen Ereignisse des `GameManager`
+    (seit v1.5.0, siehe „Spielzustand“). Die brauchen keine Referenz und überleben
+    den Reload. Die Kopie aus der neu geladenen Szene meldet sich gar nicht erst an.
+- **Musik und Motor regelt nur das AudioSystem,** nach dem Spielzustand (seit
+  v1.5.0). Die Methoden dafür sind privat, Musik oder Motor von anderswo zu steuern,
+  kompiliert also nicht. Bis v1.4.13 teilten sich `GameManager`,
+  `PlayerMotor` und `PauseMenu` diese Aufgabe, und ein Musik-Stopp in
+  `PlayerMotor.StartRunning()` würgte früher die gerade gestartete Spielmusik ab.
+  Einzelne Sounds (Explosion, Münze, Klicks, Kauf) spielt weiter, wer sie auslöst.
 - **Mute ist Pause, nicht Lautstärke 0.** Musik wird pausiert (Position bleibt
   erhalten, Dekodierung stoppt wirklich), SFX werden gar nicht erst abgespielt.
-  Seit v1.4.4 hält `GameManager.HandleDeath` die Musik beim Tod genauso an
-  (`PauseMusic`), ein Revive setzt sie an derselben Stelle fort (`ResumeMusic`).
+  Beim Tod hält das Spiel die Musik seit v1.4.4 genauso an (`PauseMusic`, heute bei
+  `ShipCrashed`), ein Revive setzt sie an derselben Stelle fort (`ResumeMusic` bei
+  `ShipRevived`).
   Ein eigenes Flag (`m_isMusicOnHold`) hält beides auseinander: Entstummen auf dem
   Todesbildschirm startet die Musik nicht, ein Revive startet keine
   stummgeschaltete. Zurück ins Menü hebt `PlayMenuMusic` den Hold auf.

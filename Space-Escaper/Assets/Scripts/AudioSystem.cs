@@ -7,7 +7,8 @@ namespace SpaceEscaper
     /// <summary>
     /// Central audio controller. Survives scene reloads via DontDestroyOnLoad and
     /// plays everything through three sources: one-shot SFX, the looping engine,
-    /// and music.
+    /// and music. Music and engine follow the state of the game by themselves,
+    /// single sounds come from whatever causes them.
     /// </summary>
     /// <remarks>
     /// Individual clips are not referenced here - they come from an
@@ -105,8 +106,32 @@ namespace SpaceEscaper
             LoadPreferences();
 
             m_engineSource.mute = m_isSfxMuted;
+        }
+
+        private void OnEnable()
+        {
+            // The copy is already on its way out, see Awake.
+            if (Instance != this)
+            {
+                return;
+            }
 
             SceneManager.sceneLoaded += SceneManager_SceneLoaded;
+            GameManager.RunStarted += GameManager_RunStarted;
+            GameManager.RunPaused += GameManager_RunPaused;
+            GameManager.RunResumed += GameManager_RunResumed;
+            GameManager.ShipCrashed += GameManager_ShipCrashed;
+            GameManager.ShipRevived += GameManager_ShipRevived;
+        }
+
+        private void OnDisable()
+        {
+            SceneManager.sceneLoaded -= SceneManager_SceneLoaded;
+            GameManager.RunStarted -= GameManager_RunStarted;
+            GameManager.RunPaused -= GameManager_RunPaused;
+            GameManager.RunResumed -= GameManager_RunResumed;
+            GameManager.ShipCrashed -= GameManager_ShipCrashed;
+            GameManager.ShipRevived -= GameManager_ShipRevived;
         }
 
         private void Start()
@@ -116,13 +141,10 @@ namespace SpaceEscaper
 
         private void OnDestroy()
         {
-            if (Instance != this)
+            if (Instance == this)
             {
-                return;
+                Instance = null;
             }
-
-            SceneManager.sceneLoaded -= SceneManager_SceneLoaded;
-            Instance = null;
         }
 
         private void OnApplicationPause(bool isPaused)
@@ -176,75 +198,6 @@ namespace SpaceEscaper
 
         public void PlayShipPurchase() => PlaySfx(PickClip(NewSounds.ShipPurchase, ClassicSounds.ShipPurchase));
 
-        public void StartEngine()
-        {
-            AudioClip clip = PickClip(NewSounds.Engine, ClassicSounds.Engine);
-            if (clip == null)
-            {
-                return;
-            }
-
-            if (m_engineSource.clip != clip)
-            {
-                m_engineSource.Stop();
-                m_engineSource.clip = clip;
-            }
-
-            m_engineSource.mute = m_isSfxMuted;
-            if (!m_engineSource.isPlaying)
-            {
-                m_engineSource.Play();
-            }
-        }
-
-        public void StopEngine()
-        {
-            if (m_engineSource.isPlaying)
-            {
-                m_engineSource.Stop();
-            }
-        }
-
-        public void PlayMenuMusic()
-        {
-            m_isMusicOnHold = false;
-            PlayTrack(Track.Menu);
-        }
-
-        public void PlayGameMusic()
-        {
-            m_isMusicOnHold = false;
-            PlayTrack(Track.Game);
-        }
-
-        /// <summary>
-        /// Holds the current track, e.g. on death. Unlike <see cref="StopMusic"/> the
-        /// position is kept, and unmuting does not end the hold - only
-        /// <see cref="ResumeMusic"/> or starting another track does.
-        /// </summary>
-        public void PauseMusic()
-        {
-            m_isMusicOnHold = true;
-            m_musicSource.Pause();
-        }
-
-        public void ResumeMusic()
-        {
-            m_isMusicOnHold = false;
-            PlayTrack(m_currentTrack);
-        }
-
-        /// <summary>
-        /// Stops music entirely. Use <see cref="PlayMenuMusic"/> or
-        /// <see cref="PlayGameMusic"/> to switch tracks - they handle the swap on
-        /// their own.
-        /// </summary>
-        public void StopMusic()
-        {
-            m_currentTrack = Track.None;
-            m_musicSource.Stop();
-        }
-
         /// <summary>
         /// Switches between the classic and the new sound set. Public so the style
         /// can also be changed from somewhere other than the toggle.
@@ -291,11 +244,97 @@ namespace SpaceEscaper
             }
         }
 
+        private void GameManager_RunStarted()
+        {
+            PlayGameMusic();
+            StartEngine();
+        }
+
+        // The music plays on in the pause, so the volume slider in the settings can be heard.
+        private void GameManager_RunPaused()
+        {
+            StopEngine();
+        }
+
+        private void GameManager_RunResumed()
+        {
+            StartEngine();
+        }
+
+        // Paused, not stopped, so a revive continues the track where it was.
+        // Going back to the menu reloads the scene, which starts the menu music.
+        private void GameManager_ShipCrashed()
+        {
+            PauseMusic();
+            StopEngine();
+        }
+
+        private void GameManager_ShipRevived()
+        {
+            ResumeMusic();
+            StartEngine();
+        }
+
         // The game only ever reloads back into the main menu, so reset to that state.
         private void SceneManager_SceneLoaded(Scene scene, LoadSceneMode mode)
         {
             StopEngine();
             PlayMenuMusic();
+        }
+
+        private void StartEngine()
+        {
+            AudioClip clip = PickClip(NewSounds.Engine, ClassicSounds.Engine);
+            if (clip == null)
+            {
+                return;
+            }
+
+            if (m_engineSource.clip != clip)
+            {
+                m_engineSource.Stop();
+                m_engineSource.clip = clip;
+            }
+
+            m_engineSource.mute = m_isSfxMuted;
+            if (!m_engineSource.isPlaying)
+            {
+                m_engineSource.Play();
+            }
+        }
+
+        private void StopEngine()
+        {
+            if (m_engineSource.isPlaying)
+            {
+                m_engineSource.Stop();
+            }
+        }
+
+        private void PlayMenuMusic()
+        {
+            m_isMusicOnHold = false;
+            PlayTrack(Track.Menu);
+        }
+
+        private void PlayGameMusic()
+        {
+            m_isMusicOnHold = false;
+            PlayTrack(Track.Game);
+        }
+
+        // Holds the current track. The position is kept, and unmuting does not end the
+        // hold - only ResumeMusic or starting another track does.
+        private void PauseMusic()
+        {
+            m_isMusicOnHold = true;
+            m_musicSource.Pause();
+        }
+
+        private void ResumeMusic()
+        {
+            m_isMusicOnHold = false;
+            PlayTrack(m_currentTrack);
         }
 
         private void CreateSources()
