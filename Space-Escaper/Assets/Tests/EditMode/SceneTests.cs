@@ -173,6 +173,25 @@ namespace SpaceEscaper.Tests
             Assert.That(knownScreens, Is.EquivalentTo(screens));
         }
 
+        // The game starts in the main menu, and the scene is saved that way. Another screen
+        // switched on would wake up with the scene, maybe before what it shows is ready, and
+        // only then would the ScreenManager switch it off.
+        [Test]
+        public void OnlyTheMainMenuIsSwitchedOn()
+        {
+            List<string> problems = new List<string>();
+            foreach (Transform screen in GetUiRoot().transform)
+            {
+                bool isMainMenu = screen.GetComponent<MainMenuScreen>() != null;
+                if (screen.gameObject.activeSelf != isMainMenu)
+                {
+                    problems.Add(screen.name + (isMainMenu ? " is off" : " is on"));
+                }
+            }
+
+            Assert.That(problems, Is.Empty);
+        }
+
         // Asteroids and coins only turn while a SpinManager runs. They come with the tiles at
         // runtime, so a missing manager would only show in the game.
         [Test]

@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5973768628127239485}
+  - component: {fileID: 3697530842923644549}
   m_Layer: 0
   m_Name: Spaceport
   m_TagString: Untagged
@@ -32,6 +33,18 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 90, z: 0}
+--- !u!114 &3697530842923644549
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7498119330060876098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 576b49dc575c8b64a9a3532b2a0a8333, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.Spaceport
 --- !u!1001 &583016807909845220
 PrefabInstance:
   m_ObjectHideFlags: 0

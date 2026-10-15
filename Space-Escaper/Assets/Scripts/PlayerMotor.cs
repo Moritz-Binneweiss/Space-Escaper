@@ -38,6 +38,11 @@ namespace SpaceEscaper
         /// </summary>
         public float Speed => m_speed;
 
+        /// <summary>
+        /// How much faster the ship flies than at the start of the run.
+        /// </summary>
+        public float SpeedGain => m_speed - k_StartSpeed;
+
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         /// <summary>
         /// For testing: the ship flies through obstacles instead of crashing. Only in the
@@ -108,7 +113,6 @@ namespace SpaceEscaper
 
             m_timeSinceSpeedIncrease -= k_SpeedIncreaseInterval;
             m_speed += k_SpeedIncreaseAmount;
-            GameManager.Instance.UpdateModifier(m_speed - k_StartSpeed);
         }
 
         private void ChangeLane(int direction)

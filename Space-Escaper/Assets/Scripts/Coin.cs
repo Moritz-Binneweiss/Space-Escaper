@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using UnityEngine;
 
@@ -16,6 +17,11 @@ namespace SpaceEscaper
 
         [SerializeField] private GameObject m_dustVfx;
 
+        /// <summary>
+        /// Raised for every coin the ship flies through.
+        /// </summary>
+        public static event Action Collected;
+
         private void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag(k_PlayerTag))
@@ -25,10 +31,15 @@ namespace SpaceEscaper
 
             GetComponent<CapsuleCollider>().enabled = false;
             AudioSystem.Instance.PlayCoinPickup();
-            GameManager.Instance.CollectCoin();
+            OnCollected();
             GameObject dust = Instantiate(m_dustVfx, transform.position, Quaternion.identity);
             Destroy(dust, k_DustLifetime);
             StartCoroutine(ShrinkAway());
+        }
+
+        private static void OnCollected()
+        {
+            Collected?.Invoke();
         }
 
         private IEnumerator ShrinkAway()

@@ -110,6 +110,7 @@ namespace SpaceEscaper.Tests
             yield return null;
 
             GameManager gameManager = GameManager.Instance;
+            RunScore runScore = Object.FindAnyObjectByType<RunScore>();
             m_ship = Object.FindAnyObjectByType<PlayerMotor>().transform;
             m_camera = Object.FindAnyObjectByType<CameraMotor>().transform;
             FloatingOrigin floatingOrigin = Object.FindAnyObjectByType<FloatingOrigin>();
@@ -142,9 +143,9 @@ namespace SpaceEscaper.Tests
             Assert.That(reviveButton.gameObject.activeInHierarchy, Is.True, "No death menu with the revive button");
             AssertDeathIsSaved();
 
-            float deathScore = gameManager.Score;
+            int deathScore = runScore.Score;
             yield return new WaitForSeconds(k_TimeOnDeathScreen);
-            Assert.That(gameManager.Score, Is.EqualTo(deathScore), "The score counted on after the crash");
+            Assert.That(runScore.Score, Is.EqualTo(deathScore), "The score counted on after the crash");
             int shiftsBeforeRevive = m_shiftCount;
             WatchFromHere();
             yield return Tap(reviveButton);

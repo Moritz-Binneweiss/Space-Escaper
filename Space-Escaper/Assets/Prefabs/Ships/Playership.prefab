@@ -43,6 +43,7 @@ GameObject:
   - component: {fileID: 7953459447228288590}
   - component: {fileID: 5676667254612968290}
   - component: {fileID: 2342508419539742620}
+  - component: {fileID: 4301632423632245129}
   m_Layer: 0
   m_Name: Ship
   m_TagString: Player
@@ -108,3 +109,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffa1aaa8abf154147aed57237cde5909, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &4301632423632245129
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6652494375119901555}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f59e8349d83517d4e9da8debd9b1505e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.PlayerShip
+  m_shipCatalog: {fileID: 11400000, guid: fe297234d385c7b439976fd733d7bc02, type: 2}

@@ -9,12 +9,13 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 31 Skripte, ~2800 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 34 Skripte, ~2900 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
-  `GameManager.cs` (Spielzustand, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
-  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
-  `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
-  (Schiffe).
+  `GameManager.cs` (Spielzustand), `RunScore.cs` (Score und Münzen eines Runs),
+  `PlayerMotor.cs` und `PlayerShip.cs` (das Schiff), je eine Komponente pro Screen
+  (`MainMenuScreen.cs` usw., siehe „UI“), `AudioSystem.cs`, `MobileInput.cs`,
+  `TileManager.cs` (Spawning), `SaveSystem.cs` / `SaveData.cs` (Spielstand),
+  `ShipData.cs` / `ShipCatalog.cs` (Schiffe).
 - `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, ein PlayMode-Test in
   `PlayMode/`, siehe „Tests“.
 - `Space-Escaper/Assets/Editor/` - das Test-Menü im Editor, siehe „Tests“.
@@ -192,8 +193,8 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
 - **Am schnellsten testbar ist, was ohne laufende Szene geht.** Regeln gehören
   deshalb in einfache Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours.
   `SceneTests` sieht nur, wie die Szene verdrahtet ist, nicht, was sie im Spiel tut.
-  Run, Tod und Revive spielt `RunTests` durch. Was sonst nur im Spiel geht (dass
-  `GameManager` nach einem Kauf sofort speichert, Wischer, Auto-Pause), bleibt beim
+  Run, Tod und Revive spielt `RunTests` durch. Was sonst nur im Spiel geht (dass der
+  `ShopScreen` nach einem Kauf sofort speichert, Wischer, Auto-Pause), bleibt beim
   Ausprobieren im Play Mode, siehe „Bewegung testen“ und „Eingabe“.
 - **Test-Menü** (seit v1.4.11): in der Menüleiste unter „Space Escaper“, der Code
   in `Editor/TestMenu.cs`.
@@ -241,7 +242,10 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   zum letzten Abschnitt auf: Das Schiff kommt lokal nie weit genug, um einen
   Abschnitt zu recyceln, eine Lücke entstand also nie. In v1.5.0 scheiterte die
   Prüfung des Scores mit dem alten Code: nach einer Sekunde Todesbildschirm 16,13 statt
-  13,13.
+  13,13, nach dem Aufteilen in ganzen Punkten des `RunScore` 16 statt 13. Seit v1.5.0
+  fand der Szenen-Test in der Szene des Commits davor alle 23 Button-Aufrufe, und
+  „nur das Hauptmenü ist an“ schlug an, sobald in einer Kopie der Szene der Shop an
+  oder das Hauptmenü aus war.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -280,8 +284,8 @@ nur Ordner.
   Texturen relativ im eigenen Ordner (siehe „Benennung von Dateien und
   Objekten“), deshalb liegen sie in
   `Models/` beieinander und nicht in `Textures/`.
-- `Scripts/` bleibt flach, solange es so wenige Skripte sind. Unterordner kommen
-  mit dem Aufteilen des GameManagers in v1.5.0.
+- `Scripts/` ist noch flach. Unterordner nach Bereich kommen gleich nach dem Aufteilen
+  des `GameManager` in v1.5.0 (Entscheidung Oktober 2026).
 - **UI-Bilder liegen nach Herkunft** (seit v1.4.12): `UI/Images/2020/` hat die 38
   Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hat die 39
   aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
@@ -305,9 +309,9 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager` (dazu `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
+| `Systems` | `GameManager`, `RunScore`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
-| `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`) und bewegt sich jeden Frame |
+| `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
 | `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Shop` (`ShopScreen`), siehe „UI“ |
@@ -559,7 +563,8 @@ bei 8.
   PlayMode-Tests `internal` (`InternalsVisibleTo`), derzeit für
   `SaveSystem.LoadFrom` und `SaveSystem.Delete`, den PlayMode-Tests seit v1.4.13
   auch für `FloatingOrigin.Distance`, `TileManager.Tiles` und
-  `TileManager.NextSpawnZ`, seit v1.5.0 für `GameManager.Score`. Test-Assemblies kommen an
+  `TileManager.NextSpawnZ`, seit v1.5.0 für die Buttons der Screens
+  (`MainMenuScreen.StartButton` usw.). Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
   v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
@@ -761,11 +766,12 @@ bei 8.
   v1.4.3 ebenfalls `com.ANIMOGames.SpaceEscaper` (vorher das Tutorial-Überbleibsel
   `unity.DefaultCompany.FPS2`) und zieht mit dem neuen Paketnamen mit.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
-  ruft `Revive()` ohne Gegenleistung durch. Danach setzt der `TileManager` der Strecke
-  (`Systems/TileManager`, `m_respawnsOnRevive` an) seine Abschnitte neu, er hört dafür
-  auf `GameManager.ShipRevived` (seit v1.5.0, bis dahin ein zweiter OnClick-Aufruf am
-  Revive-Button, der nur in der Szene stand). Das Ereignis kommt mit dem Tipp, also
-  vor allen `Update()`. `RespawnTiles`
+  ruft `Revive()` ohne Gegenleistung durch, einmal pro Run (`GameManager.CanRevive`,
+  seit v1.5.0, bis dahin nur über den danach ausgeblendeten Button). Danach setzt der
+  `TileManager` der Strecke (`Systems/TileManager`, `m_respawnsOnRevive` an) seine
+  Abschnitte neu, er hört dafür auf `GameManager.ShipRevived` (seit v1.5.0, bis dahin
+  ein zweiter OnClick-Aufruf am Revive-Button, der nur in der Szene stand). Das
+  Ereignis kommt mit dem Tipp, also vor allen `Update()`. `RespawnTiles`
   deaktiviert die alten Abschnitte, bevor es sie löscht: `Destroy` greift erst am
   Frame-Ende, das Schiff fliegt aber im selben Frame wieder los. Ohne das krachte es
   beim Revive sofort ins selbe Hindernis (zweite Explosion, Spiel-UI weg, Schiff
@@ -823,13 +829,13 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
   einem Wechsel wieder gesperrt.
 - Ein neuer Spielstand bekommt das Startschiff (`ShipCatalog.StarterShip`). Ist das
   gespeicherte Schiff unbekannt, fällt `SaveData.RepairShips` darauf zurück, die
-  bekannten IDs übergibt `GameManager.LoadShipSelection` aus dem `ShipCatalog`. Bis
+  bekannten IDs übergibt der `PlayerShip` beim Laden der Szene aus dem `ShipCatalog`. Bis
   v1.4.0 war der Default 0, das zeigte auf `FlameContainer` statt auf ein Schiff und
   ließ das Spiel beim Start und beim Tod abstürzen. Lokal fiel das nie auf, weil der
   Spielstand gesetzt war - **Neuinstallation gezielt testen** (siehe unten).
 - Ein Kauf (`SaveData.TryBuyShip`) zieht die Münzen ab und schaltet das Schiff frei,
-  beides oder nichts. Danach speichert `GameManager` sofort.
-- Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)m_score`),
+  beides oder nichts. Danach speichert der `ShopScreen` sofort.
+- Der Score wird überall abgeschnitten angezeigt und gespeichert (`RunScore.Score`),
   sonst weichen Todesbildschirm und Highscore voneinander ab.
 - Münzen werden bei jedem Tod gutgeschrieben, nach einem Revive aber nur die seitdem
   gesammelten (`RunCoins.BankInto`).
@@ -876,17 +882,18 @@ Bildern, einer Preisliste im `GameManager` und jedem Modell zweimal in Szene und
 Prefab.
 
 - **Der Hangar liest die Daten:** Jeder Skin-Button trägt einen `ShipButton` mit
-  seinem `ShipData` und meldet es beim Tipp, der `ShopScreen` zeigt dann dieses Schiff
-  (`GameManager.ShowShip`). Die Pfeile zeigen das erste Schiff der
+  seinem `ShipData` und meldet es beim Tipp, der `ShopScreen` zeigt dann dieses Schiff.
+  Die Pfeile zeigen das erste Schiff der
   Familie davor oder danach (`ShipCatalog.GetFirstShipOfFamily`). Ein einziger
   unsichtbarer Button, `UI/Shop/SelectOrBuyButton`, kauft oder wählt das gezeigte
   Schiff (`SelectOrBuyShownShip`). Sein Kind `Image` zeigt Select, Selected oder das
   Preisschild aus dem `ShipData` und lässt Klicks zum Button durch.
 - **Modelle sind Prefabs** in `Prefabs/Ships/` (`AristocratSkin1.prefab` …), mit
   ihrem Platz auf dem Schiff: Versatz und Skalierung stecken in der Wurzel. Der
-  `GameManager` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein,
-  das des gezeigten unter `Environment/ShopShips`, dort in der Mitte und auf
-  `ShipData.HangarScale`. Beim Tod schaltet er das Modell aus, beim Revive wieder an.
+  `PlayerShip` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein, der
+  `Hangar` das des gezeigten unter `Environment/ShopShips`, dort in der Mitte und auf
+  `ShipData.HangarScale`, beim ersten Öffnen des Hangars. Beim Tod schaltet der
+  `PlayerShip` das Modell aus, beim Revive wieder an.
   Die VAGOR-Skins haben eine etwas andere Skalierung als ihre Familie (Skin 1 2,6 ×
   3,2 × 3,2, Skin 2 und 3 2,7 × 3 × 3), so übernommen aus dem Stand vor v1.4.8.
 - **IDs:** Jedes `ShipData` hat eine ID (`AristocratSkin1` …), unter der der
@@ -901,14 +908,14 @@ Prefab.
   von selbst. Die `ShipCatalogTests` prüfen danach die Daten.
 - `m_skinButtonContainer` hat ein Kind pro Familie, in der Reihenfolge von
   `ShipFamily`.
-- `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar
-  *angesehene*. Flammen und alles im Spiel gehören an `m_currentShip` - die
-  Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
+- `PlayerShip.Ship` ist das *geflogene* Schiff, `m_shownShip` im `ShopScreen` das
+  gerade im Hangar *angesehene*. Flammen und alles im Spiel gehören zum geflogenen -
+  die Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
 
 **Antriebsflammen** sind Prefabs in `Prefabs/Ships/`: `FlameAristocrat`,
 `FlameFreeter` und `FlameVagor` mit den Düsen `FlameLeft` und `FlameRight`. Jedes
 `ShipData` verweist auf die Flamme seiner Familie, die Skins teilen sie sich. Der
-`GameManager` setzt sie neben das Modell unter `Playership/Ship` und schaltet sie
+`PlayerShip` setzt sie neben das Modell unter `Playership/Ship` und schaltet sie
 für jedes Schiff gleich, nur über das GameObject: aus im Menü und im Hangar, an vom
 Start des Runs bis zum Crash und wieder nach einem Revive. Die Emission bleibt
 immer an. Bis v1.4.7 lagen die Flammen im `Playership.prefab`, und
@@ -941,9 +948,11 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 - **Nur der `GameManager` ändert ihn,** in den Methoden, die die Buttons aufrufen:
   `Play` (Menu → Run), `OpenHangar` und `CloseHangar` (Menu ↔ Hangar), `Pause` und
   `Continue` (Run ↔ Paused), `HandleDeath` beim Crash, gemeldet vom `PlayerMotor`
-  (Run → Dead), und `RequestRevive` (Dead → Run). Passt ein Aufruf nicht zum Zustand,
-  etwa eine Pause außerhalb des Runs, tut er nichts. `ReturnToMenu` lädt die Szene
-  neu, der Zustand beginnt dann wieder bei `Menu`.
+  (Run → Dead), und `RequestRevive` (Dead → Run, einmal pro Run, siehe `CanRevive`).
+  Passt ein Aufruf nicht zum Zustand, etwa eine Pause außerhalb des Runs, tut er
+  nichts. `ReturnToMenu` lädt die Szene neu, der Zustand beginnt dann wieder bei
+  `Menu`. Mehr macht der `GameManager` seit dem Aufteilen in v1.5.0 nicht. Bis dahin
+  führte er auch den Shop, den Score und die Texte der Screens.
 - **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
   setzt `Time.timeScale`, 0 nur in der Pause.
 - **Die Settings sind kein Zustand,** sondern ein Screen über Hauptmenü oder Pause. Der
@@ -961,12 +970,22 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 | | `RunPaused`, `RunResumed` | Motor aus und wieder an, die Musik läuft weiter (siehe „Pause“) |
 | | `ShipCrashed` | Musik anhalten, Motor aus (siehe „Audio-System“) |
 | | `ShipRevived` | Musik an derselben Stelle weiter, Motor an |
-| `CameraSwitch` | `HangarOpened`, `HangarClosed` | Hangar- oder Hauptkamera |
+| `RunScore` | `ShipCrashed` | Münzen des Runs gutschreiben, Highscore, speichern |
+| `PlayerShip` | `RunStarted` | Flamme an |
+| | `ShipCrashed`, `ShipRevived` | Modell und Flamme aus und wieder an |
+| `Spaceport` | `RunStarted` | schaltet sich 3 s später aus |
+| `Hangar` | `HangarOpened`, `HangarClosed` | Hangar mit Hangar-Kamera oder Hauptkamera (bis v1.4.13 `CameraSwitch`, das Gebäude schaltete der `GameManager`) |
 | `TileManager` | `ShipRevived` | neue Abschnitte, nur mit `m_respawnsOnRevive` (die Strecke) |
 
 - **Den Zustand lesen** `PlayerMotor` (fliegt nur in `Run`), `CameraMotor` (folgt in
-  `Run`, bremst in `Dead`, steht sonst), der Zurück-Button im `SettingsScreen`, der
-  Score im `GameManager` (zählt nur in `Run`) und `RunTests`.
+  `Run`, bremst in `Dead`, steht sonst), `RunScore` (zählt nur in `Run`), der
+  Zurück-Button im `SettingsScreen` und `RunTests`. Die übrigen Screens brauchen ihn
+  nicht: Der `ScreenManager` schaltet sie ein, und sie zeigen beim Einschalten, was
+  gerade gilt (siehe „UI“).
+- **Münzen** melden sich über das statische Ereignis `Coin.Collected` (seit v1.5.0,
+  bis dahin `GameManager.CollectCoin`), `RunScore` zählt sie. Den Multiplikator rechnet
+  `RunScore` aus dem Tempo (`PlayerMotor.SpeedGain`), bis v1.4.13 schickte der
+  `PlayerMotor` ihn bei jeder Tempo-Stufe.
 - **Neues, das auf den Spielverlauf reagiert,** meldet sich an einem Ereignis an (in
   `OnEnable`, ab in `OnDisable`) oder liest `State`, statt einen eigenen Schalter zu
   führen. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
@@ -977,6 +996,15 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
   `Time.timeScale`, Musik, Motor, Hangar, Modell, Flamme, Revive und Crash-Stelle
   blieben gleich. Anders sind nur der Score nach dem Tod (der Bug) und der Frame des
   Pause-Tipps (siehe „Pause“).
+- **Das Aufteilen** prüfte ein erweiterter Durchlauf mit eigenem Spielstand (1000
+  Münzen, nur das Startschiff), 57 Schritte, auch durch den Shop (Familien, Skins,
+  Kaufen, zu teuer, Auswählen) und mit Münzen, nach jedem Schritt mit allen sichtbaren
+  Texten, Bildern, Modellen und dem Spielstand. Die Buttons findet er über ihren Pfad,
+  das ging mit altem und neuem Code. Anders sind nur zwei Stellen: Das Modell auf dem
+  Ständer entsteht erst beim ersten Öffnen des Hangars statt beim Laden, und eine
+  Münze, die erst nach dem Crash gemeldet wird, behält nach dem Revive ihren Punkt
+  (der Durchlauf hat das erzwungen, ob es beim Spielen vorkommt, ist nicht geprüft).
+  Bis dahin nahm der Revive den Punkt zurück, der Score-Text zeigte ihn aber weiter.
 
 ## UI
 
@@ -992,18 +1020,27 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   Übergang (Entscheidung Oktober 2026). Beim Start zeigt er das Hauptmenü, egal welcher
   Screen beim Bearbeiten an blieb. Gespeichert ist die Szene mit nur dem Hauptmenü an,
   so sieht sie im Editor aus wie beim Start. Zum Bearbeiten einen Screen einschalten,
-  vor dem Speichern wieder nur das Hauptmenü.
+  vor dem Speichern wieder nur das Hauptmenü. Das prüft seit v1.5.0 `SceneTests`: Ein
+  anderer Screen wachte sonst mit der Szene auf, vielleicht bevor bereit ist, was er
+  zeigt, etwa der `ShopScreen` vor dem `PlayerShip`, und erst danach schaltete der
+  `ScreenManager` ihn aus.
 - **Jeder Screen hat eine Komponente mit seinem Namen und `Screen` dahinter** (seit
   v1.5.0), etwa `MainMenuScreen` am `UI/MainMenu`. Sie verbindet die Buttons ihres
   Screens in `OnEnable` und löst sie in `OnDisable`, eine Zeile pro Button
   (`m_startButton.onClick.AddListener(m_gameManager.Play)`). Was ein Button tut, steht
   also in der Komponente seines Screens, im Inspector des Buttons steht nichts mehr.
-  Die Screens erreichen `GameManager` und `ScreenManager` über Referenzen im Inspector,
-  nicht über `GameManager.Instance`. So geht auch nichts schief, wenn die Szene mit
-  einem anderen Screen als dem Hauptmenü gespeichert wurde und er beim Laden vor dem
-  `GameManager` aufwacht. Die Skin-Buttons im Hangar tragen dazu je einen `ShipButton`
-  mit ihrem Schiff (siehe „Shop“). Ein neuer Button bekommt ein Feld in der Komponente
-  seines Screens und je eine Zeile in `OnEnable` und `OnDisable`.
+  Die Screens erreichen `GameManager`, `ScreenManager` und den Rest über Referenzen im
+  Inspector, wie die meisten Skripte hier. Die Skin-Buttons im Hangar tragen dazu je
+  einen `ShipButton` mit ihrem Schiff (siehe „Shop“). Ein neuer Button bekommt ein
+  Feld in der Komponente seines Screens und je eine Zeile in `OnEnable` und
+  `OnDisable`.
+- **Die Komponente zeigt auch, was auf ihrem Screen steht** (seit v1.5.0, bis dahin
+  setzte der `GameManager` alle Texte): Hauptmenü (Münzen, Highscore) und
+  Todesbildschirm (Score, Münzen, Revive-Button nur, solange der Run ihn noch hat)
+  setzen ihre Texte beim Einschalten, aus dem Spielstand und dem `RunScore`. Die
+  Spiel-UI folgt dem `RunScore` in `LateUpdate`, also mit dem Score dieses Frames, und
+  setzt einen Text nur, wenn sich seine Zahl ändert. Steigen die Münzen, poppt das
+  Icon. Der `ShopScreen` führt den Shop selbst (siehe „Shop“).
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
@@ -1159,7 +1196,7 @@ aus der Pause auf `true` stehen.
   erste Hindernis, und der Test landet auf dem Todesbildschirm. Den Run per Code
   starten und `PlayerMotor.m_speed` per Reflection auf 0 setzen: Der Run bleibt
   aktiv, das Schiff bewegt sich aber nicht. Der Punkte-Multiplikator wird dabei
-  nach 5 s negativ (Geschwindigkeit minus Startgeschwindigkeit), ein Testartefakt.
+  negativ (1 plus Geschwindigkeit minus Startgeschwindigkeit), ein Testartefakt.
 
 ## Audio-System
 

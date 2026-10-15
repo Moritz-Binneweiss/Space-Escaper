@@ -149,7 +149,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Audio settings menu connects itself to the audio system
 - [x] One game state for menu, hangar, run, pause and death
 - [x] Buttons connected in code instead of in the scene
-- [ ] GameManager split into smaller classes
+- [x] GameManager split into smaller classes
 - [ ] Performance measured on a phone
 
 #### **v1.4.13** | Floating Origin _(October 14, 2026)_
