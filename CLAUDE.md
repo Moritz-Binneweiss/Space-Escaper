@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 25 Skripte, ~2500 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 26 Skripte, ~2500 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
@@ -304,7 +304,7 @@ behalten dadurch ihre Weltposition.
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen: `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings`, `Shop` (siehe „UI“) |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen: `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings` (dazu das `AudioSettingsMenu`), `Shop` (siehe „UI“) |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
@@ -1098,21 +1098,26 @@ Bank wechseln. Wichtig für die Erweiterung:
 
 Vier Fallen, die hier schon einmal Bugs verursacht haben:
 
-- **UI-Referenzen und DontDestroyOnLoad.** Die Bedienelemente liegen unter
-  `UI/Settings` in der Szene (`NewSoundsToggle` „Use new Sound“, `VolumeSlider`,
-  `SfxButton`, `MusicButton`), das AudioSystem überlebt aber den Reload. Deshalb übergibt die
-  Szenenkopie in `Awake()` ihre frischen Referenzen an die überlebende Instanz
-  (`AdoptSceneReferencesFrom`), bevor sie sich zerstört. Ohne das sind Mute-Buttons
-  und Regler nach dem ersten Reload tot. **Neue UI-Elemente dort mit eintragen**,
-  sonst überleben sie den Szenenwechsel nicht. Seit v1.4.10 ist `Settings` aus, bis
-  jemand die Settings öffnet. `BindUi` und `RefreshUi` wirken trotzdem, Listener,
-  Bilder und Werte lassen sich auch an ausgeschalteten Objekten setzen (nach einem
-  Reload geprüft).
-  Aus demselben Grund **keine persistenten OnClick-Aufrufe ins AudioSystem**:
-  Klicksounds kommen von der Komponente `ButtonClickSound` am jeweiligen Button, die
-  über `AudioSystem.Instance` geht. Die alten Klick-Events zeigten seit Februar 2026
-  ins Leere. Kauf-Buttons haben bewusst keinen Klick, sie spielen eigene
-  Select-/Kauf-Sounds; der Start-Button hatte nie einen.
+- **Nichts in der Szene zeigt aufs AudioSystem.** Es überlebt den Reload per
+  `DontDestroyOnLoad`, die Kopie aus der neu geladenen Szene zerstört sich in
+  `Awake()`. Eine Inspector-Referenz oder ein persistenter OnClick-Aufruf darauf
+  zeigt nach dem ersten Reload ins Leere. Alles geht deshalb über
+  `AudioSystem.Instance`, und das AudioSystem selbst kennt nichts in der Szene:
+  - Die Bedienelemente unter `UI/Settings` (`NewSoundsToggle` „Use new Sound“,
+    `VolumeSlider`, `SfxButton`, `MusicButton`) verbindet seit v1.5.0 das
+    `AudioSettingsMenu` am selben Screen, in `OnEnable`, und zeigt dabei den Stand
+    des AudioSystem. Ein neues Bedienelement für den Ton kommt dorthin. Bis v1.4.13
+    hielt das AudioSystem die Referenzen selbst und übernahm sie nach jedem Reload
+    von seiner Szenenkopie (`AdoptSceneReferencesFrom`). Geprüft in v1.5.0 über die
+    echten Buttons: Öffnen aus Hauptmenü und Pause, alle vier Elemente umschalten,
+    Szene neu laden, der neue Stand ist zu sehen und lässt sich zurückschalten.
+  - Klicksounds kommen von der Komponente `ButtonClickSound` am jeweiligen Button.
+    Die alten Klick-Events zeigten seit Februar 2026 ins Leere. Kauf-Buttons haben
+    bewusst keinen Klick, sie spielen eigene Select-/Kauf-Sounds; der Start-Button
+    hatte nie einen. Die beiden Stumm-Schalter spielen ihren Klick seit v1.5.0 über
+    das `AudioSettingsMenu`, nach dem Umschalten: Wer die SFX ausschaltet, hört
+    keinen Klick, wer sie einschaltet, hört ihn. Vorher ergab sich das nur aus der
+    Reihenfolge, in der die Listener dazukamen.
 - **Musik nicht an zwei Stellen steuern.** `PlayerMotor.StartRunning()` rief früher
   zusätzlich einen Musik-Stopp auf und würgte damit die gerade gestartete
   Spielmusik ab. Musik gehört ausschließlich in `GameManager`.

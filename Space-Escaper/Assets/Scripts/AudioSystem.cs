@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Audio;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
 
 namespace SpaceEscaper
 {
@@ -44,16 +43,6 @@ namespace SpaceEscaper
         [SerializeField] private AudioMixerGroup m_musicGroup;
         [SerializeField] private AudioMixerGroup m_sfxGroup;
 
-        [Header("UI - lives in the scene, re-adopted on every scene load")]
-        [SerializeField] private Button m_sfxButton;
-        [SerializeField] private Sprite m_sfxOnSprite;
-        [SerializeField] private Sprite m_sfxOffSprite;
-        [SerializeField] private Button m_musicButton;
-        [SerializeField] private Sprite m_musicOnSprite;
-        [SerializeField] private Sprite m_musicOffSprite;
-        [SerializeField] private Toggle m_newSoundsToggle;
-        [SerializeField] private Slider m_volumeSlider;
-
         private AudioSource m_sfxSource;
         private AudioSource m_engineSource;
         private AudioSource m_musicSource;
@@ -73,6 +62,14 @@ namespace SpaceEscaper
         private bool m_isMusicOnHold;
 
         public static AudioSystem Instance { get; private set; }
+
+        public bool UseNewSounds => m_useNewSounds;
+
+        public bool IsMusicMuted => m_isMusicMuted;
+
+        public bool IsSfxMuted => m_isSfxMuted;
+
+        public float MasterVolume => m_masterVolume;
 
         private AudioBank EmptyBank
         {
@@ -95,12 +92,8 @@ namespace SpaceEscaper
         {
             if (Instance != null && Instance != this)
             {
-                // A reloaded scene brings its own copy of this object along. That
-                // copy's inspector references point at the NEW scene's buttons,
-                // while the surviving instance still points at the destroyed ones.
-                // Hand them over before throwing the copy away - otherwise the mute
-                // buttons and the style toggle stop working after the first reload.
-                Instance.AdoptSceneReferencesFrom(this);
+                // A reloaded scene brings its own copy of this object along. The
+                // first one lives on with everything set up, so the copy goes.
                 Destroy(gameObject);
                 return;
             }
@@ -112,7 +105,6 @@ namespace SpaceEscaper
             LoadPreferences();
 
             m_engineSource.mute = m_isSfxMuted;
-            BindUi();
 
             SceneManager.sceneLoaded += SceneManager_SceneLoaded;
         }
@@ -270,7 +262,6 @@ namespace SpaceEscaper
 
             SwapRunningMusicToCurrentStyle();
             SwapRunningEngineToCurrentStyle();
-            RefreshUi();
         }
 
         public void ToggleSfxMuted()
@@ -280,7 +271,6 @@ namespace SpaceEscaper
             SaveSystem.Save();
 
             m_engineSource.mute = m_isSfxMuted;
-            RefreshUi();
         }
 
         public void ToggleMusicMuted()
@@ -299,8 +289,6 @@ namespace SpaceEscaper
             {
                 PlayTrack(m_currentTrack);
             }
-
-            RefreshUi();
         }
 
         // The game only ever reloads back into the main menu, so reset to that state.
@@ -443,92 +431,6 @@ namespace SpaceEscaper
 
             m_engineSource.clip = clip;
             m_engineSource.Play();
-        }
-
-        private void BindUi()
-        {
-            if (m_newSoundsToggle != null)
-            {
-                m_newSoundsToggle.onValueChanged.RemoveListener(SetUseNewSounds);
-                m_newSoundsToggle.SetIsOnWithoutNotify(m_useNewSounds);
-                m_newSoundsToggle.onValueChanged.AddListener(SetUseNewSounds);
-            }
-
-            if (m_sfxButton != null)
-            {
-                m_sfxButton.onClick.RemoveListener(ToggleSfxMuted);
-                m_sfxButton.onClick.AddListener(ToggleSfxMuted);
-            }
-
-            if (m_musicButton != null)
-            {
-                m_musicButton.onClick.RemoveListener(ToggleMusicMuted);
-                m_musicButton.onClick.AddListener(ToggleMusicMuted);
-            }
-
-            if (m_volumeSlider != null)
-            {
-                m_volumeSlider.onValueChanged.RemoveListener(SetMasterVolume);
-                m_volumeSlider.SetValueWithoutNotify(m_masterVolume);
-                m_volumeSlider.onValueChanged.AddListener(SetMasterVolume);
-            }
-
-            RefreshUi();
-        }
-
-        // Called on the surviving instance when a reloaded scene brings a fresh copy.
-        private void AdoptSceneReferencesFrom(AudioSystem sceneCopy)
-        {
-            m_sfxButton = sceneCopy.m_sfxButton;
-            m_sfxOnSprite = sceneCopy.m_sfxOnSprite;
-            m_sfxOffSprite = sceneCopy.m_sfxOffSprite;
-            m_musicButton = sceneCopy.m_musicButton;
-            m_musicOnSprite = sceneCopy.m_musicOnSprite;
-            m_musicOffSprite = sceneCopy.m_musicOffSprite;
-            m_newSoundsToggle = sceneCopy.m_newSoundsToggle;
-            m_volumeSlider = sceneCopy.m_volumeSlider;
-
-            if (sceneCopy.m_classicBank != null)
-            {
-                m_classicBank = sceneCopy.m_classicBank;
-            }
-
-            if (sceneCopy.m_newBank != null)
-            {
-                m_newBank = sceneCopy.m_newBank;
-            }
-
-            BindUi();
-        }
-
-        private void RefreshUi()
-        {
-            ShowMuteState(m_sfxButton, m_sfxOnSprite, m_sfxOffSprite, m_isSfxMuted);
-            ShowMuteState(m_musicButton, m_musicOnSprite, m_musicOffSprite, m_isMusicMuted);
-
-            if (m_newSoundsToggle != null)
-            {
-                m_newSoundsToggle.SetIsOnWithoutNotify(m_useNewSounds);
-            }
-
-            if (m_volumeSlider != null)
-            {
-                m_volumeSlider.SetValueWithoutNotify(m_masterVolume);
-            }
-        }
-
-        private static void ShowMuteState(Button button, Sprite onSprite, Sprite offSprite, bool isMuted)
-        {
-            if (button == null || onSprite == null || offSprite == null)
-            {
-                return;
-            }
-
-            Image image = button.GetComponent<Image>();
-            if (image != null)
-            {
-                image.sprite = isMuted ? offSprite : onSprite;
-            }
         }
 
         private static float ConvertSliderToAmplitude(float sliderPosition)

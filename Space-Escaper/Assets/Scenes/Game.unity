@@ -2575,7 +2575,6 @@ GameObject:
   - component: {fileID: 748637066}
   - component: {fileID: 748637065}
   - component: {fileID: 748637064}
-  - component: {fileID: 748637068}
   m_Layer: 5
   m_Name: SfxButton
   m_TagString: Untagged
@@ -2684,18 +2683,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 90}
   m_SizeDelta: {x: 270, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &748637068
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 748637063}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
 --- !u!1 &762442800
 GameObject:
   m_ObjectHideFlags: 0
@@ -3489,14 +3476,6 @@ MonoBehaviour:
   m_newBank: {fileID: 11400000, guid: 71f0633b606c6e445824d2b81e6e152c, type: 2}
   m_musicGroup: {fileID: -2818333909563224602, guid: 4a4560b5319f89b47bb380832986cda4, type: 2}
   m_sfxGroup: {fileID: -3047560730045583044, guid: 4a4560b5319f89b47bb380832986cda4, type: 2}
-  m_sfxButton: {fileID: 748637064}
-  m_sfxOnSprite: {fileID: 21300000, guid: 88922a26b6d4aa24e882e1f53c257600, type: 3}
-  m_sfxOffSprite: {fileID: 21300000, guid: 339a22fdb953476488aff8380f5950e9, type: 3}
-  m_musicButton: {fileID: 2051524505}
-  m_musicOnSprite: {fileID: 21300000, guid: 4f9f62188ff399241b3423a4556adeff, type: 3}
-  m_musicOffSprite: {fileID: 21300000, guid: 4b127bf3d82e9eb42b1b32d7bcee2965, type: 3}
-  m_newSoundsToggle: {fileID: 993446568}
-  m_volumeSlider: {fileID: 1557535780}
 --- !u!1 &1005584817
 GameObject:
   m_ObjectHideFlags: 0
@@ -3735,6 +3714,7 @@ GameObject:
   - component: {fileID: 1074951826}
   - component: {fileID: 1074951829}
   - component: {fileID: 1074951828}
+  - component: {fileID: 1074951830}
   m_Layer: 5
   m_Name: Settings
   m_TagString: Untagged
@@ -3847,6 +3827,26 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1074951830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1074951823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 954dcc6f69927f7499b6582e09fe2547, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AudioSettingsMenu
+  m_sfxButton: {fileID: 748637064}
+  m_sfxOnSprite: {fileID: 21300000, guid: 88922a26b6d4aa24e882e1f53c257600, type: 3}
+  m_sfxOffSprite: {fileID: 21300000, guid: 339a22fdb953476488aff8380f5950e9, type: 3}
+  m_musicButton: {fileID: 2051524505}
+  m_musicOnSprite: {fileID: 21300000, guid: 4f9f62188ff399241b3423a4556adeff, type: 3}
+  m_musicOffSprite: {fileID: 21300000, guid: 4b127bf3d82e9eb42b1b32d7bcee2965, type: 3}
+  m_newSoundsToggle: {fileID: 993446568}
+  m_volumeSlider: {fileID: 1557535780}
 --- !u!1 &1102950296
 GameObject:
   m_ObjectHideFlags: 0
@@ -7926,7 +7926,6 @@ GameObject:
   - component: {fileID: 2051524507}
   - component: {fileID: 2051524506}
   - component: {fileID: 2051524505}
-  - component: {fileID: 2051524509}
   m_Layer: 5
   m_Name: MusicButton
   m_TagString: Untagged
@@ -8035,18 +8034,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 270, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2051524509
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2051524504}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
 --- !u!1 &2051611498
 GameObject:
   m_ObjectHideFlags: 0
