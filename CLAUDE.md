@@ -10,12 +10,14 @@ Arbeit passiert in unregelmäßigen Sessions.
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
 - `Space-Escaper/Assets/Scripts/` - 34 Skripte, ~2900 Zeilen, alle im Namespace
-  `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
-  `GameManager.cs` (Spielzustand), `RunScore.cs` (Score und Münzen eines Runs),
-  `PlayerMotor.cs` und `PlayerShip.cs` (das Schiff), je eine Komponente pro Screen
-  (`MainMenuScreen.cs` usw., siehe „UI“), `AudioSystem.cs`, `MobileInput.cs`,
-  `TileManager.cs` (Spawning), `SaveSystem.cs` / `SaveData.cs` (Spielstand),
-  `ShipData.cs` / `ShipCatalog.cs` (Schiffe).
+  `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
+  „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
+  `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
+  `Ship/PlayerShip.cs` (das Schiff), je eine Komponente pro Screen in `UI/`
+  (`MainMenuScreen.cs` usw., siehe „UI“), `Audio/AudioSystem.cs`,
+  `Ship/MobileInput.cs`, `World/TileManager.cs` (Spawning), `Save/SaveSystem.cs` /
+  `Save/SaveData.cs` (Spielstand), `Ship/ShipData.cs` / `Ship/ShipCatalog.cs`
+  (Schiffe).
 - `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, ein PlayMode-Test in
   `PlayMode/`, siehe „Tests“.
 - `Space-Escaper/Assets/Editor/` - das Test-Menü im Editor, siehe „Tests“.
@@ -212,7 +214,7 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
     Editor-Sitzung (`SessionState`), beim Start erinnert eine Zeile in der Konsole
     daran. Der PlayMode-Test schaltet es für seinen Lauf aus.
   - **Im Build** schaltet die Unverwundbarkeit ein Panel „Space Escaper“ im
-    Rendering Debugger (`Scripts/TestPanel.cs`), auf dem Handy per
+    Rendering Debugger (`Scripts/Game/TestPanel.cs`), auf dem Handy per
     Dreifinger-Doppeltipp. Im Editor steht es im Play Mode unter Window > Analysis
     > Rendering Debugger und gilt nur für den laufenden Play Mode.
   - **Nie im Release:** Schalter und Panel stehen unter
@@ -266,7 +268,7 @@ nur Ordner.
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
 | `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
 | `Scenes/` | `Game.unity` |
-| `Scripts/` | alle Skripte, flach, dazu `SpaceEscaper.asmdef` |
+| `Scripts/` | alle Skripte in Ordnern nach Bereich (siehe unten), im Root nur `SpaceEscaper.asmdef` und `AssemblyInfo.cs` |
 | `Settings/` | URP-Asset, Renderer, Global Settings, Volume Profile, Build Profiles |
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
@@ -284,8 +286,16 @@ nur Ordner.
   Texturen relativ im eigenen Ordner (siehe „Benennung von Dateien und
   Objekten“), deshalb liegen sie in
   `Models/` beieinander und nicht in `Textures/`.
-- `Scripts/` ist noch flach. Unterordner nach Bereich kommen gleich nach dem Aufteilen
-  des `GameManager` in v1.5.0 (Entscheidung Oktober 2026).
+- **Skripte liegen nach Bereich** (seit v1.5.0, bis dahin flach, Entscheidung Oktober
+  2026): `Audio/` (`AudioSystem`, `AudioBank`), `Game/` (Spielzustand, Score, Bildrate,
+  Test-Panel), `Save/` (Spielstand), `Ship/` (das Schiff, seine Eingabe und die
+  Schiffsdaten), `UI/` (die Screens und ihre Bausteine) und `World/` (Strecke,
+  Floating Origin, Drehen, Münze, Raumhafen, Hangar, Kamera). Ein neues Skript kommt in
+  den Ordner seines Bereichs, die Assembly `SpaceEscaper.asmdef` im Root gilt für alle
+  Ordner darunter. Verschieben nur über Unity, siehe „Benennung von Dateien und
+  Objekten“. Ordner, die zwischen `AssetDatabase.StartAssetEditing` und
+  `StopAssetEditing` entstehen, kennt Unity erst danach, ein `MoveAsset` hinein
+  scheitert vorher. Also erst die Ordner anlegen, dann gebündelt verschieben.
 - **UI-Bilder liegen nach Herkunft** (seit v1.4.12): `UI/Images/2020/` hat die 38
   Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hat die 39
   aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
