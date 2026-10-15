@@ -117,12 +117,12 @@ namespace SpaceEscaper.Tests
             floatingOrigin.Distance = k_FloatingOriginDistance;
             FindTileManagersAndGroups();
 
-            Button playButton = FindButtonCalling<GameManager>(nameof(GameManager.Play));
-            Button pauseButton = FindButtonCalling<GameManager>(nameof(GameManager.Pause));
-            Button reviveButton = FindButtonCalling<GameManager>(nameof(GameManager.RequestRevive));
-            m_continueButton = FindButtonCalling<GameManager>(nameof(GameManager.Continue));
+            Button startButton = FindScreen<MainMenuScreen>().StartButton;
+            Button pauseButton = FindScreen<GameMenuScreen>().PauseButton;
+            Button reviveButton = FindScreen<DeathMenuScreen>().ReviveButton;
+            m_continueButton = FindScreen<PauseMenuScreen>().ContinueButton;
 
-            yield return Tap(playButton);
+            yield return Tap(startButton);
             Assert.That(gameManager.State, Is.EqualTo(GameState.Run), "Play did not start a run");
             Assert.That(pauseButton.gameObject.activeInHierarchy, Is.True, "No game menu during the run");
 
@@ -165,25 +165,12 @@ namespace SpaceEscaper.Tests
                 "The world did not move back after the revive");
         }
 
-        private static Button FindButtonCalling<T>(string methodName) where T : Object
+        // Every screen but the main menu is switched off until the game gets there.
+        private static T FindScreen<T>() where T : Object
         {
-            foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
-            {
-                foreach (Button button in root.GetComponentsInChildren<Button>(true))
-                {
-                    for (int i = 0; i < button.onClick.GetPersistentEventCount(); i++)
-                    {
-                        if (button.onClick.GetPersistentTarget(i) is T
-                            && button.onClick.GetPersistentMethodName(i) == methodName)
-                        {
-                            return button;
-                        }
-                    }
-                }
-            }
-
-            Assert.Fail($"No button calls {typeof(T).Name}.{methodName}");
-            return null;
+            T screen = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
+            Assert.That(screen, Is.Not.Null, $"No {typeof(T).Name} in the scene");
+            return screen;
         }
 
         // Taps the middle of the button at the start of the next frame, before any

@@ -4,11 +4,15 @@ using UnityEngine.UI;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// The audio controls on the settings screen. Connects itself to <see cref="AudioSystem"/>, which
-    /// survives scene reloads, so the audio system needs no references into the scene.
+    /// The settings, opened from the main menu or the pause menu. Connects its audio controls to
+    /// <see cref="AudioSystem"/>, which survives scene reloads, so the audio system needs no references
+    /// into the scene.
     /// </summary>
-    public class AudioSettingsMenu : MonoBehaviour
+    public class SettingsScreen : MonoBehaviour
     {
+        [SerializeField] private GameManager m_gameManager;
+        [SerializeField] private ScreenManager m_screens;
+        [SerializeField] private Button m_backButton;
         [SerializeField] private Button m_sfxButton;
         [SerializeField] private Sprite m_sfxOnSprite;
         [SerializeField] private Sprite m_sfxOffSprite;
@@ -20,6 +24,7 @@ namespace SpaceEscaper
 
         private void OnEnable()
         {
+            m_backButton.onClick.AddListener(BackButton_Clicked);
             m_sfxButton.onClick.AddListener(SfxButton_Clicked);
             m_musicButton.onClick.AddListener(MusicButton_Clicked);
             m_newSoundsToggle.onValueChanged.AddListener(NewSoundsToggle_ValueChanged);
@@ -29,10 +34,18 @@ namespace SpaceEscaper
 
         private void OnDisable()
         {
+            m_backButton.onClick.RemoveListener(BackButton_Clicked);
             m_sfxButton.onClick.RemoveListener(SfxButton_Clicked);
             m_musicButton.onClick.RemoveListener(MusicButton_Clicked);
             m_newSoundsToggle.onValueChanged.RemoveListener(NewSoundsToggle_ValueChanged);
             m_volumeSlider.onValueChanged.RemoveListener(VolumeSlider_ValueChanged);
+        }
+
+        // The settings leave the state of the game as it is, so going back shows the screen of the state:
+        // the pause menu during a run, the main menu otherwise.
+        private void BackButton_Clicked()
+        {
+            m_screens.Show(m_gameManager.State);
         }
 
         // The click comes after the switch, so it is heard when the sound effects come back on and

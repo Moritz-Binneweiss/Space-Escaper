@@ -266,7 +266,7 @@ namespace SpaceEscaper
             Revive();
         }
 
-        public void OpenShop()
+        public void OpenHangar()
         {
             if (m_state != GameState.Menu)
             {
@@ -278,7 +278,7 @@ namespace SpaceEscaper
             OnHangarOpened();
         }
 
-        public void CloseShop()
+        public void CloseHangar()
         {
             if (m_state != GameState.Hangar)
             {

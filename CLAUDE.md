@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 26 Skripte, ~2500 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 31 Skripte, ~2800 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
   `GameManager.cs` (Spielzustand, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
   `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
@@ -59,7 +59,7 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 - **Namen:** private Felder `m_camelCase`, private statische Felder `s_camelCase`,
   Konstanten `k_PascalCase`, Typen, Methoden und Properties PascalCase, lokale
   Variablen und Parameter camelCase. Booleans beginnen mit einem Verb
-  (`m_isMusicMuted`, `HasSwipedLeft`), Methoden auch (`OpenShop` statt `ShopOn`).
+  (`m_isMusicMuted`, `HasSwipedLeft`), Methoden auch (`OpenHangar` statt `HangarOn`).
   Keine Abkürzungen außer in Mathe (`k_VolumeRangeDb`).
 - **Keine öffentlichen Felder.** Was im Inspector stehen soll, ist
   `[SerializeField] private` (Attribut in derselben Zeile), andere Klassen lesen
@@ -95,23 +95,23 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   lieber per Text anpassen: Unity 6.6 schreibt ältere Prefabs beim Speichern
   komplett im neuen Format, das gibt große Diffs ohne inhaltliche Änderung. Aus dem
   `Playership.prefab` kamen Modelle und Flammen in v1.4.8 deshalb per Text heraus.
-- **Methoden mit OnClick-Aufruf:** Die Szene speichert den Methodennamen als Text,
-  ein umbenannter Button tut sonst einfach nichts. Betroffen sind
-  `GameManager.Play`, `Pause`, `Continue`, `ReturnToMenu`, `RequestRevive`, `OpenShop`,
-  `CloseShop`, `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(ShipData)` und
-  `SelectOrBuyShownShip` sowie `SettingsManager.Open` und `Close`. Kamera und Strecke
-  hören seit v1.5.0 auf den Spielzustand statt auf eigene OnClick-Aufrufe (siehe
-  „Spielzustand“). Beim Umbenennen `m_MethodName` in `Game.unity`
-  mitziehen, am besten im Editor per `SerializedObject`. So wurden in v1.4.10
-  `OpenFromMainMenu` und `OpenFromPauseMenu` zu einem `Open`. Einen Aufruf, der
-  seine Methode nicht mehr findet, meldet `SceneTests`.
+- **Buttons hängen seit v1.5.0 nicht mehr am Namen:** Jeder Screen verbindet seine
+  Buttons im Code (siehe „UI“), ein Umbenennen prüft also der Compiler. Bis v1.4.13
+  standen 23 OnClick-Aufrufe als Methodenname in `Game.unity`, ein umbenannter Button
+  tat dann einfach nichts. Steht doch wieder ein Aufruf in der Szene, meldet ihn
+  `SceneTests`, er liefe zusätzlich zum Code.
+- **Klassen von Komponenten:** Datei und Klasse heißen gleich. Umbenennen über
+  `AssetDatabase.RenameAsset`, dann bleibt die GUID, und jede Komponente in Szene und
+  Prefabs findet ihr Skript. Den Eintrag `m_EditorClassIdentifier`
+  (`SpaceEscaper::SpaceEscaper.Klasse`) schreibt Unity 6.6 an vorhandenen Komponenten
+  dabei nicht neu, er behält den alten Namen. Per `SerializedObject` nachziehen, so in
+  v1.5.0 beim Umbenennen von `AudioSettingsMenu` in `SettingsScreen`.
 - **Felder in `SaveData`:** Ihre Namen sind die Schlüssel in der Spielstand-Datei,
   siehe „Spielstand“.
-- **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
-  dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich. Seit
-  v1.4.11 findet `SceneTests` fehlende Skripte, leere Referenzen und Aufrufe ohne
-  Methode von selbst. Ob die Werte gleich geblieben sind, zeigt weiter nur der
-  Vergleich.
+- **Absichern:** vor dem Umbau alle serialisierten Werte dumpen und hinterher
+  vergleichen. So lief v1.4.5: 627 Werte, alle gleich. Seit v1.4.11 findet
+  `SceneTests` fehlende Skripte und leere Referenzen von selbst. Ob die Werte gleich
+  geblieben sind, zeigt weiter nur der Vergleich.
 
 ## Tests
 
@@ -128,11 +128,13 @@ Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponent
 `Coin`), und die Asteroidenfelder haben keine Collider. Seit v1.4.12 haben Chunks
 und Asteroidenfelder auch keine Animatoren (siehe „Drehen ohne Animator“ unter
 „Aufbau der Szene“). Seit v1.4.11 prüft `SceneTests` die Szene `Game.unity`: kein
-fehlendes Skript, jeder Button-Aufruf findet Ziel, Methode und Argument, jede
-Referenz unserer Komponenten ist gesetzt (auch in Listen), jeder Screen unter `UI`
-hat `Canvas` und `GraphicRaycaster` und keinen Animator, und der `ScreenManager`
-kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem genau einen
-`SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`.
+fehlendes Skript, jede Referenz unserer Komponenten ist gesetzt (auch in Listen),
+jeder Screen unter `UI` hat `Canvas` und `GraphicRaycaster` und keinen Animator, und
+der `ScreenManager` kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem
+genau einen `SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`. Seit v1.5.0
+steht in der Szene kein Aufruf mehr, den ein Button oder ein anderes Bedienelement
+auslöst. Bis dahin prüfte der Test, dass jeder Button-Aufruf Ziel, Methode und
+Argument findet.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
@@ -178,8 +180,9 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   `AudioSystem.OnApplicationQuit` noch einmal und überschriebe den zurückgelegten
   Stand. Die Umleitung gilt deshalb bis zum Ende des Play Mode, der nächste Start
   lädt wieder den echten Spielstand.
-- **Tippen wie ein Finger:** Der Test tippt jeden Button an seiner Mitte. Vorher
-  prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
+- **Tippen wie ein Finger:** Der Test tippt jeden Button an seiner Mitte. Die Buttons
+  reichen ihm die Screens (`MainMenuScreen.StartButton` usw., nur für Tests sichtbar).
+  Vorher prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
   Der Tipp selbst kommt in `PreUpdate`, vor allen `Update()`, wie ein echter (siehe
   „Eingabe“). `Random.InitState` wählt immer dieselben Abschnitte, das Schiff
   crasht also immer an derselben Stelle (derzeit bei z = 56,8 nach rund 4,4 s, gezählt,
@@ -302,12 +305,12 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager` (dazu `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
+| `Systems` | `GameManager` (dazu `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen: `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings` (dazu das `AudioSettingsMenu`), `Shop` (siehe „UI“) |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Shop` (`ShopScreen`), siehe „UI“ |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
@@ -771,7 +774,8 @@ bei 8.
   Highscore im Spielstand. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
-  existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
+  existierende Methode und ist entfernt, auch der `MainMenuScreen` verbindet ihn mit
+  nichts. Der Button spielt nur den Klicksound.
 
 ## Spielstand (SaveData)
 
@@ -871,8 +875,9 @@ Startschiff vorn. Bis v1.4.7 hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 
 Bildern, einer Preisliste im `GameManager` und jedem Modell zweimal in Szene und
 Prefab.
 
-- **Der Hangar liest die Daten:** Die Skin-Buttons übergeben per OnClick ihr
-  `ShipData` an `GameManager.ShowShip`, die Pfeile zeigen das erste Schiff der
+- **Der Hangar liest die Daten:** Jeder Skin-Button trägt einen `ShipButton` mit
+  seinem `ShipData` und meldet es beim Tipp, der `ShopScreen` zeigt dann dieses Schiff
+  (`GameManager.ShowShip`). Die Pfeile zeigen das erste Schiff der
   Familie davor oder danach (`ShipCatalog.GetFirstShipOfFamily`). Ein einziger
   unsichtbarer Button, `UI/Shop/SelectOrBuyButton`, kauft oder wählt das gezeigte
   Schiff (`SelectOrBuyShownShip`). Sein Kind `Image` zeigt Select, Selected oder das
@@ -891,8 +896,9 @@ Prefab.
 - **Ein neues Schiff:** Modell-Prefab in `Prefabs/Ships/` anlegen, ein `ShipData` in
   `Data/Ships/` mit ID, Familie, Preis, Preisschild-Bild, Modell, Hangar-Größe und
   Flamme, das `ShipData` in den `ShipCatalog` eintragen und einen Skin-Button mit
-  OnClick `GameManager.ShowShip` und dem `ShipData` in die Gruppe der Familie legen.
-  Die `ShipCatalogTests` prüfen danach die Daten.
+  `ShipButton` und dem `ShipData` in die Gruppe der Familie legen, am einfachsten einen
+  vorhandenen duplizieren. Der `ShopScreen` findet ihn beim ersten Öffnen des Hangars
+  von selbst. Die `ShipCatalogTests` prüfen danach die Daten.
 - `m_skinButtonContainer` hat ein Kind pro Familie, in der Reihenfolge von
   `ShipFamily`.
 - `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar
@@ -933,7 +939,7 @@ Zustand, `GameManager.State`, mit den Werten `Menu`, `Hangar`, `Run`, `Paused` u
 hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 
 - **Nur der `GameManager` ändert ihn,** in den Methoden, die die Buttons aufrufen:
-  `Play` (Menu → Run), `OpenShop` und `CloseShop` (Menu ↔ Hangar), `Pause` und
+  `Play` (Menu → Run), `OpenHangar` und `CloseHangar` (Menu ↔ Hangar), `Pause` und
   `Continue` (Run ↔ Paused), `HandleDeath` beim Crash, gemeldet vom `PlayerMotor`
   (Run → Dead), und `RequestRevive` (Dead → Run). Passt ein Aufruf nicht zum Zustand,
   etwa eine Pause außerhalb des Runs, tut er nichts. `ReturnToMenu` lädt die Szene
@@ -959,8 +965,8 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 | `TileManager` | `ShipRevived` | neue Abschnitte, nur mit `m_respawnsOnRevive` (die Strecke) |
 
 - **Den Zustand lesen** `PlayerMotor` (fliegt nur in `Run`), `CameraMotor` (folgt in
-  `Run`, bremst in `Dead`, steht sonst), `SettingsManager.Close`, der Score im
-  `GameManager` (zählt nur in `Run`) und `RunTests`.
+  `Run`, bremst in `Dead`, steht sonst), der Zurück-Button im `SettingsScreen`, der
+  Score im `GameManager` (zählt nur in `Run`) und `RunTests`.
 - **Neues, das auf den Spielverlauf reagiert,** meldet sich an einem Ereignis an (in
   `OnEnable`, ab in `OnDisable`) oder liest `State`, statt einen eigenen Schalter zu
   führen. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
@@ -987,6 +993,17 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   Screen beim Bearbeiten an blieb. Gespeichert ist die Szene mit nur dem Hauptmenü an,
   so sieht sie im Editor aus wie beim Start. Zum Bearbeiten einen Screen einschalten,
   vor dem Speichern wieder nur das Hauptmenü.
+- **Jeder Screen hat eine Komponente mit seinem Namen und `Screen` dahinter** (seit
+  v1.5.0), etwa `MainMenuScreen` am `UI/MainMenu`. Sie verbindet die Buttons ihres
+  Screens in `OnEnable` und löst sie in `OnDisable`, eine Zeile pro Button
+  (`m_startButton.onClick.AddListener(m_gameManager.Play)`). Was ein Button tut, steht
+  also in der Komponente seines Screens, im Inspector des Buttons steht nichts mehr.
+  Die Screens erreichen `GameManager` und `ScreenManager` über Referenzen im Inspector,
+  nicht über `GameManager.Instance`. So geht auch nichts schief, wenn die Szene mit
+  einem anderen Screen als dem Hauptmenü gespeichert wurde und er beim Laden vor dem
+  `GameManager` aufwacht. Die Skin-Buttons im Hangar tragen dazu je einen `ShipButton`
+  mit ihrem Schiff (siehe „Shop“). Ein neuer Button bekommt ein Feld in der Komponente
+  seines Screens und je eine Zeile in `OnEnable` und `OnDisable`.
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
@@ -997,7 +1014,8 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   die Grafiken seines Canvas, ohne ihn reagiert kein Button des Screens. Der Root hat
   seit v1.4.10 keinen mehr, direkt unter ihm liegt nichts Klickbares.
 - **Ein neuer Screen:** Objekt unter `UI`, auf den ganzen Canvas gestreckt (Anker 0
-  bis 1, Abstände 0), mit `Canvas` und `GraphicRaycaster`. Im `ScreenManager` bekommt
+  bis 1, Abstände 0), mit `Canvas`, `GraphicRaycaster` und seiner eigenen
+  `…Screen`-Komponente für die Buttons. Im `ScreenManager` bekommt
   er ein Feld und einen Platz in `m_screens`, dazu einen Fall in `GetScreen`, wenn er
   zu einem Zustand gehört, sonst eine eigene `Show…`-Methode wie `ShowSettings`. Dass
   Canvas, Raycaster und `m_screens` stimmen, prüft `SceneTests`.
@@ -1130,8 +1148,8 @@ aus der Pause auf `true` stehen.
   Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Auch die
   Standardaktion „Cancel“ am `InputSystemUIInputModule`, die auf Escape lag, ist
   seit v1.4.5 abgehängt, weil kein UI-Element darauf reagierte.
-- `SettingsManager.Close()` zeigt den Screen des Zustands: Die Settings lassen ihn
-  stehen, „Zurück“ führt also ins Pause- oder ins Hauptmenü.
+- „Zurück“ in den Settings (`SettingsScreen`) zeigt den Screen des Zustands: Die
+  Settings lassen ihn stehen, „Zurück“ führt also ins Pause- oder ins Hauptmenü.
 - „Exit“ im Pause-Menü ruft `GameManager.ReturnToMenu`, also einen Szenen-Reload.
   `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
 - Die Musik läuft in der Pause bewusst weiter (Entscheidung Oktober 2026), so hört
@@ -1169,8 +1187,8 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   zeigt nach dem ersten Reload ins Leere. Alles geht deshalb über
   `AudioSystem.Instance`, und das AudioSystem selbst kennt nichts in der Szene:
   - Die Bedienelemente unter `UI/Settings` (`NewSoundsToggle` „Use new Sound“,
-    `VolumeSlider`, `SfxButton`, `MusicButton`) verbindet seit v1.5.0 das
-    `AudioSettingsMenu` am selben Screen, in `OnEnable`, und zeigt dabei den Stand
+    `VolumeSlider`, `SfxButton`, `MusicButton`) verbindet seit v1.5.0 der
+    `SettingsScreen` am selben Screen, in `OnEnable`, und zeigt dabei den Stand
     des AudioSystem. Ein neues Bedienelement für den Ton kommt dorthin. Bis v1.4.13
     hielt das AudioSystem die Referenzen selbst und übernahm sie nach jedem Reload
     von seiner Szenenkopie (`AdoptSceneReferencesFrom`). Geprüft in v1.5.0 über die
@@ -1180,7 +1198,7 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
     Die alten Klick-Events zeigten seit Februar 2026 ins Leere. Kauf-Buttons haben
     bewusst keinen Klick, sie spielen eigene Select-/Kauf-Sounds; der Start-Button
     hatte nie einen. Die beiden Stumm-Schalter spielen ihren Klick seit v1.5.0 über
-    das `AudioSettingsMenu`, nach dem Umschalten: Wer die SFX ausschaltet, hört
+    den `SettingsScreen`, nach dem Umschalten: Wer die SFX ausschaltet, hört
     keinen Klick, wer sie einschaltet, hört ihn. Vorher ergab sich das nur aus der
     Reihenfolge, in der die Listener dazukamen.
   - Auf den Spielverlauf hört es über die statischen Ereignisse des `GameManager`
