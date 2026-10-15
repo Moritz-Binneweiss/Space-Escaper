@@ -606,6 +606,25 @@ bei 8.
   ein voller Durchlauf kann darüber liegen und ruckeln. Wie oft der GC überhaupt
   läuft, hängt daran, wie viel das Spiel pro Frame neu anlegt. Das zeigt die
   Messung am Ende von v1.5.0.
+- **Auto Sync Transforms bleibt an** (Project Settings > Physics, Entscheidung
+  Oktober 2026), anders als in neuen Unity-Projekten. Unity gleicht bewegte Collider
+  damit vor jeder Physik-Abfrage ab, auch vor jedem `CharacterController.Move`. Aus
+  brachte in v1.5.0 zu wenig für seine Nachteile:
+  - Im Spiel änderte es nichts (Runs mit festem Zufall bei 30, 60 und 144 FPS Frame
+    für Frame gleich, Crash und Münzen gleich) und sparte im Editor nur rund 6 µs pro
+    Frame beim Abgleich.
+  - Dafür übernähme der `CharacterController` eine direkt gesetzte Position erst nach
+    dem nächsten Physik-Schritt (bei 120 FPS ging sie in 7 von 12 Frames verloren),
+    und die Flugbahn hinge in der Rundung am Takt der Physik (bis 0,0003 Einheiten in
+    15 s).
+  - Der Floating Origin ruft `Physics.SyncTransforms()` trotzdem selbst auf und
+    funktioniert auch mit aus. Neu prüfen, falls pro Frame viele Physik-Abfragen
+    zwischen bewegten Collidern dazukommen.
+  - **Physik-Einstellungen per Text ändern:** `ProjectSettings/DynamicsManager.asset`
+    steht noch im alten Format (`serializedVersion: 3`, ohne die meisten heutigen
+    Felder). Über das Physik-Fenster gespeichert, schriebe Unity die Datei komplett
+    neu. Nach einer Änderung übernimmt Unity den Wert mit `AssetDatabase.Refresh()`,
+    ohne Neustart.
 - **Spiellogik an die Zeit binden, nicht an Frames:** Bewegung mit
   `Time.deltaTime`, Abläufe mit `Time.time`. Vorsicht bei Glättungen, die pro
   Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
@@ -671,6 +690,8 @@ bei 8.
   144 FPS gemessen. Für einen Vergleich vor und nach einem Umbau `Random.InitState`
   vor einem Szenen-Reload und noch einmal beim Start des Runs setzen, dann spawnen
   die `TileManager` dieselben Abschnitte (so in v1.4.9: alle 62 Ereignisse gleich).
+  Mit fester Bildrate fliegt das Schiff dann bitgleich, Münzen zählen aber je nach
+  Takt der Physik-Schritte einen Frame früher oder später (geprüft in v1.5.0).
   Eine Auto-Pause verschiebt dabei nur die Bildnummern. Ein Run im Test schreibt
   beim Tod Münzen und Highscore in den Spielstand. Ihn direkt vor jedem Lauf sichern
   und danach genau diese Sicherung zurücklegen, keine ältere: Dazwischen kann jemand
