@@ -89,6 +89,15 @@ namespace SpaceEscaper
             s_data = new SaveData();
         }
 
+        // The editor starts Play Mode without a domain reload, so static fields would keep their
+        // values from the last one. Load fills these two again right after.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            s_data = null;
+            s_directory = null;
+        }
+
         // Before the first scene loads, so every Awake can read the save.
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Load()

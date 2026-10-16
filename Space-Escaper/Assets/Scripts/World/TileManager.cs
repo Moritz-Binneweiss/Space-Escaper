@@ -22,6 +22,8 @@ namespace SpaceEscaper
         [SerializeField] private int m_numberOfTiles = 4;
         [Tooltip("How far the ship flies past the start of the oldest tile before that tile is recycled ahead.")]
         [SerializeField] private float m_recycleDistance = 55f;
+        [Tooltip("Replaces all tiles on a revive, so the ship does not hit what killed it. Only the track needs it.")]
+        [SerializeField] private bool m_respawnsOnRevive;
         [SerializeField] private Transform m_player;
 
         private readonly List<GameObject> m_activeTiles = new List<GameObject>();
@@ -33,11 +35,13 @@ namespace SpaceEscaper
         private void OnEnable()
         {
             FloatingOrigin.WorldShifted += FloatingOrigin_WorldShifted;
+            GameManager.ShipRevived += GameManager_ShipRevived;
         }
 
         private void OnDisable()
         {
             FloatingOrigin.WorldShifted -= FloatingOrigin_WorldShifted;
+            GameManager.ShipRevived -= GameManager_ShipRevived;
         }
 
         private void Start()
@@ -59,11 +63,7 @@ namespace SpaceEscaper
             }
         }
 
-        /// <summary>
-        /// Replaces all tiles with fresh ones. The revive button calls it for the
-        /// track, right after the ship starts running again.
-        /// </summary>
-        public void RespawnTiles()
+        private void RespawnTiles()
         {
             // Destroy only takes effect at the end of the frame. Without
             // deactivating first, the ship would hit the obstacle that just killed
@@ -108,6 +108,15 @@ namespace SpaceEscaper
         private void FloatingOrigin_WorldShifted(Vector3 offset)
         {
             m_nextSpawnZ += offset.z;
+        }
+
+        // Comes with the tap on the revive button, before the ship flies on in that frame.
+        private void GameManager_ShipRevived()
+        {
+            if (m_respawnsOnRevive)
+            {
+                RespawnTiles();
+            }
         }
     }
 }

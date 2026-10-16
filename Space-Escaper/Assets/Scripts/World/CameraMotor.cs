@@ -22,8 +22,6 @@ namespace SpaceEscaper
 
         private PlayerMotor m_ship;
 
-        public bool IsMoving { get; set; }
-
         private void Awake()
         {
             m_ship = m_target.GetComponent<PlayerMotor>();
@@ -31,19 +29,26 @@ namespace SpaceEscaper
 
         private void LateUpdate()
         {
-            // Nothing moves while the game is paused, and FollowShip divides by the blend.
-            if (!IsMoving || Time.deltaTime <= 0f)
+            // FollowShip divides by the blend, which is zero while no time passes: in the pause
+            // and in the frame that ends it.
+            if (Time.deltaTime <= 0f)
             {
                 return;
             }
 
-            if (m_ship.IsRunning)
+            switch (GameManager.Instance.State)
             {
-                FollowShip();
-            }
-            else
-            {
-                BrakeBehindWreck();
+                case GameState.Run:
+                    FollowShip();
+                    break;
+
+                case GameState.Dead:
+                    BrakeBehindWreck();
+                    break;
+
+                default:
+                    // In the main menu and in the hangar, the camera stays where the scene puts it.
+                    break;
             }
         }
 

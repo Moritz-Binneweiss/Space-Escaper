@@ -29,15 +29,11 @@ namespace SpaceEscaper.Editor
             ? PlayerMotor.IsInvincible
             : SessionState.GetBool(k_InvincibleKey, false);
 
-        // Entering Play Mode reloads all scripts, which resets the switch in PlayerMotor.
-        // So it is kept in the editor session and set again after every reload.
+        // PlayerMotor switches the ship back to normal whenever Play Mode starts. So the menu
+        // switch is kept in the editor session and set again each time.
         static TestMenu()
         {
-            PlayerMotor.IsInvincible = SessionState.GetBool(k_InvincibleKey, false);
-            if (PlayerMotor.IsInvincible && EditorApplication.isPlayingOrWillChangePlaymode)
-            {
-                Debug.Log($"Invincible: the ship flies through obstacles ({k_InvincibleItem}).");
-            }
+            EditorApplication.playModeStateChanged += EditorApplication_PlayModeStateChanged;
         }
 
         [MenuItem(k_ResetSaveItem, false, 0)]
@@ -117,6 +113,20 @@ namespace SpaceEscaper.Editor
             if (EditorApplication.isPlaying && GameManager.Instance != null)
             {
                 GameManager.Instance.ReturnToMenu();
+            }
+        }
+
+        private static void EditorApplication_PlayModeStateChanged(PlayModeStateChange change)
+        {
+            if (change != PlayModeStateChange.EnteredPlayMode)
+            {
+                return;
+            }
+
+            PlayerMotor.IsInvincible = SessionState.GetBool(k_InvincibleKey, false);
+            if (PlayerMotor.IsInvincible)
+            {
+                Debug.Log($"Invincible: the ship flies through obstacles ({k_InvincibleItem}).");
             }
         }
 

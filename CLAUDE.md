@@ -9,14 +9,18 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 25 Skripte, ~2500 Zeilen, alle im Namespace
-  `SpaceEscaper` (Stil siehe „Code-Stil“). Einstiegspunkte:
-  `GameManager.cs` (Menü, Shop, Score, Death - macht sehr viel), `PlayerMotor.cs`,
-  `AudioSystem.cs`, `MobileInput.cs`, `TileManager.cs` (Spawning),
-  `SaveSystem.cs` / `SaveData.cs` (Spielstand), `ShipData.cs` / `ShipCatalog.cs`
+- `Space-Escaper/Assets/Scripts/` - 34 Skripte, ~3000 Zeilen, alle im Namespace
+  `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
+  „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
+  `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
+  `Ship/PlayerShip.cs` (das Schiff), je eine Komponente pro Screen in `UI/`
+  (`MainMenuScreen.cs` usw., siehe „UI“), `Audio/AudioSystem.cs`,
+  `Ship/MobileInput.cs`, `World/TileManager.cs` (Spawning), `Save/SaveSystem.cs` /
+  `Save/SaveData.cs` (Spielstand), `Ship/ShipData.cs` / `Ship/ShipCatalog.cs`
   (Schiffe).
 - `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, ein PlayMode-Test in
-  `PlayMode/`, siehe „Tests“.
+  `PlayMode/`, siehe „Tests“. Dort liegt auch `TestFrameworkFix`, siehe „Play Mode
+  ohne Domain Reload“ unter „Unity-Besonderheiten“.
 - `Space-Escaper/Assets/Editor/` - das Test-Menü im Editor, siehe „Tests“.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
@@ -59,11 +63,11 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
 - **Namen:** private Felder `m_camelCase`, private statische Felder `s_camelCase`,
   Konstanten `k_PascalCase`, Typen, Methoden und Properties PascalCase, lokale
   Variablen und Parameter camelCase. Booleans beginnen mit einem Verb
-  (`m_isRunning`, `HasSwipedLeft`), Methoden auch (`OpenShop` statt `ShopOn`).
+  (`m_isMusicMuted`, `HasSwipedLeft`), Methoden auch (`OpenHangar` statt `HangarOn`).
   Keine Abkürzungen außer in Mathe (`k_VolumeRangeDb`).
 - **Keine öffentlichen Felder.** Was im Inspector stehen soll, ist
   `[SerializeField] private` (Attribut in derselben Zeile), andere Klassen lesen
-  über Properties (`public bool IsRunning => m_isRunning;`).
+  über Properties (`public bool IsMusicMuted => m_isMusicMuted;`).
 - **Strings als Konstanten** oben in der Klasse: Animator-Trigger, Tags,
   Szenenname, Dateiname des Spielstands. Die Werte selbst sind Daten und bleiben,
   wie sie sind (etwa der Tag `Obstacle` oder `SaveData.json`), sonst brechen
@@ -80,6 +84,15 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   (`WorldShifted`). Ausgelöst wird es in einer Methode mit `On` davor
   (`OnWorldShifted`), Handler heißen `Subjekt_Event`
   (`FloatingOrigin_WorldShifted`). An- und abmelden in `OnEnable` und `OnDisable`.
+- **Statische Felder setzen sich selbst zurück** (seit v1.5.0), denn der Editor startet
+  den Play Mode ohne Domain Reload (siehe „Play Mode ohne Domain Reload“ unter
+  „Unity-Besonderheiten“). Jede Klasse leert ihre statischen Felder, Events und
+  Properties in einer Methode `ResetStaticState` mit
+  `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]`,
+  in Komponenten vor `Awake`. Die ruft Unity beim Start des Play Mode als Erstes auf,
+  vor dem Laden der Szene. Konstanten und `static readonly`-Werte bleiben, wie sie
+  sind, eine `static readonly`-Liste wird geleert (`SpinManager`). Ein neues
+  statisches Feld gehört mit hinein, sonst meldet es `StaticFieldTests`.
 - **Kommentare** erklären das Warum, nicht das Was. `/// <summary>` nur an
   öffentlichen Membern, wo der Name nicht reicht, `[Tooltip]` statt Kommentar an
   serialisierten Feldern. Kein auskommentierter Code, keine `#region`, keine
@@ -95,23 +108,23 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   lieber per Text anpassen: Unity 6.6 schreibt ältere Prefabs beim Speichern
   komplett im neuen Format, das gibt große Diffs ohne inhaltliche Änderung. Aus dem
   `Playership.prefab` kamen Modelle und Flammen in v1.4.8 deshalb per Text heraus.
-- **Methoden mit OnClick-Aufruf:** Die Szene speichert den Methodennamen als Text,
-  ein umbenannter Button tut sonst einfach nichts. Betroffen sind
-  `GameManager.Play`, `ReturnToMenu`, `RequestRevive`, `OpenShop`, `CloseShop`,
-  `ShowPreviousFamily`, `ShowNextFamily`, `ShowShip(ShipData)` und `SelectOrBuyShownShip`,
-  `PauseMenu.Pause` und `Continue`, `SettingsManager.Open` und `Close`,
-  `CameraSwitch.SwitchToMainCamera` und `SwitchToShopCamera` sowie
-  `TileManager.RespawnTiles`. Beim Umbenennen `m_MethodName` in `Game.unity`
-  mitziehen, am besten im Editor per `SerializedObject`. So wurden in v1.4.10
-  `OpenFromMainMenu` und `OpenFromPauseMenu` zu einem `Open`. Einen Aufruf, der
-  seine Methode nicht mehr findet, meldet `SceneTests`.
+- **Buttons hängen seit v1.5.0 nicht mehr am Namen:** Jeder Screen verbindet seine
+  Buttons im Code (siehe „UI“), ein Umbenennen prüft also der Compiler. Bis v1.4.13
+  standen 23 OnClick-Aufrufe als Methodenname in `Game.unity`, ein umbenannter Button
+  tat dann einfach nichts. Steht doch wieder ein Aufruf in der Szene, meldet ihn
+  `SceneTests`, er liefe zusätzlich zum Code.
+- **Klassen von Komponenten:** Datei und Klasse heißen gleich. Umbenennen über
+  `AssetDatabase.RenameAsset`, dann bleibt die GUID, und jede Komponente in Szene und
+  Prefabs findet ihr Skript. Den Eintrag `m_EditorClassIdentifier`
+  (`SpaceEscaper::SpaceEscaper.Klasse`) schreibt Unity 6.6 an vorhandenen Komponenten
+  dabei nicht neu, er behält den alten Namen. Per `SerializedObject` nachziehen, so in
+  v1.5.0 beim Umbenennen von `AudioSettingsMenu` in `SettingsScreen`.
 - **Felder in `SaveData`:** Ihre Namen sind die Schlüssel in der Spielstand-Datei,
   siehe „Spielstand“.
-- **Absichern:** vor dem Umbau alle serialisierten Werte und OnClick-Aufrufe
-  dumpen und hinterher vergleichen. So lief v1.4.5: 627 Werte, alle gleich. Seit
-  v1.4.11 findet `SceneTests` fehlende Skripte, leere Referenzen und Aufrufe ohne
-  Methode von selbst. Ob die Werte gleich geblieben sind, zeigt weiter nur der
-  Vergleich.
+- **Absichern:** vor dem Umbau alle serialisierten Werte dumpen und hinterher
+  vergleichen. So lief v1.4.5: 627 Werte, alle gleich. Seit v1.4.11 findet
+  `SceneTests` fehlende Skripte und leere Referenzen von selbst. Ob die Werte gleich
+  geblieben sind, zeigt weiter nur der Vergleich.
 
 ## Tests
 
@@ -128,15 +141,21 @@ Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponent
 `Coin`), und die Asteroidenfelder haben keine Collider. Seit v1.4.12 haben Chunks
 und Asteroidenfelder auch keine Animatoren (siehe „Drehen ohne Animator“ unter
 „Aufbau der Szene“). Seit v1.4.11 prüft `SceneTests` die Szene `Game.unity`: kein
-fehlendes Skript, jeder Button-Aufruf findet Ziel, Methode und Argument, jede
-Referenz unserer Komponenten ist gesetzt (auch in Listen), jeder Screen unter `UI`
-hat `Canvas` und `GraphicRaycaster` und keinen Animator, und der `ScreenManager`
-kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem genau einen
-`SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`.
+fehlendes Skript, jede Referenz unserer Komponenten ist gesetzt (auch in Listen),
+jeder Screen unter `UI` hat `Canvas` und `GraphicRaycaster` und keinen Animator, und
+der `ScreenManager` kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außerdem
+genau einen `SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`. Seit v1.5.0
+steht in der Szene kein Aufruf mehr, den ein Button oder ein anderes Bedienelement
+auslöst. Bis dahin prüfte der Test, dass jeder Button-Aufruf Ziel, Methode und
+Argument findet. Seit v1.5.0 prüft `StaticFieldTests`, dass sich jedes statische Feld
+des Spiels beim Start des Play Mode zurücksetzt (siehe „Code-Stil“): Der Test füllt
+alle, ruft die Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
+wieder leer. Danach stellt er die alten Werte wieder her, der Editor liest sie auch.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
-zum ersten Hindernis, dann prüft er Todesbildschirm und Spielstand, tippt Revive
+zum ersten Hindernis, dann prüft er Todesbildschirm und Spielstand und seit v1.5.0,
+dass der Score dort eine Sekunde lang stehen bleibt. Dann tippt er Revive
 und prüft, dass das Schiff 25 Einheiten weiterfliegt, ohne wieder zu crashen. Mit
 dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
 „Bekannte Altlasten“). Seit v1.4.13 rückt die Welt dabei alle 20 statt alle 4800
@@ -157,8 +176,10 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten. Synchron führt
   das Test Framework nur EditMode-Tests aus, die in einem Frame fertig sind, und
   die CLI meldet 0/0. `--mode all` startet asynchron gar nichts, also beide Modi
-  einzeln. Mit dem Wechsel in den Play Mode dauert er knapp 20 s, also
-  vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Die CLI legt eine
+  einzeln. Mit dem Wechsel in den Play Mode dauert er rund 12 s, also
+  vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Meldet ein asynchroner
+  PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
+  ohne Domain Reload“ unter „Unity-Besonderheiten“). Die CLI legt eine
   `TestResults.xml` neben den Spielstand, die darf weg. Ist die offene Szene
   ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie speichern soll.
   Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
@@ -176,20 +197,22 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   Sichern und zurücklegen ginge nicht sauber: Beim Verlassen des Play Mode speichert
   `AudioSystem.OnApplicationQuit` noch einmal und überschriebe den zurückgelegten
   Stand. Die Umleitung gilt deshalb bis zum Ende des Play Mode, der nächste Start
-  lädt wieder den echten Spielstand.
-- **Tippen wie ein Finger:** Der Test tippt jeden Button an seiner Mitte. Vorher
-  prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
+  lädt wieder den echten Spielstand, auch ohne Domain Reload: `SaveSystem` lädt bei
+  jedem Start des Play Mode neu.
+- **Tippen wie ein Finger:** Der Test tippt jeden Button an seiner Mitte. Die Buttons
+  reichen ihm die Screens (`MainMenuScreen.StartButton` usw., nur für Tests sichtbar).
+  Vorher prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
   Der Tipp selbst kommt in `PreUpdate`, vor allen `Update()`, wie ein echter (siehe
   „Eingabe“). `Random.InitState` wählt immer dieselben Abschnitte, das Schiff
-  crasht also immer an derselben Stelle (derzeit bei z = 56,8 nach 4,4 s, gezählt,
+  crasht also immer an derselben Stelle (derzeit bei z = 56,8 nach rund 4,4 s, gezählt,
   als wäre die Welt nie zurückgerückt). Pausiert
   ein Fokuswechsel im Editor den Run, tippt der Test Continue und vermerkt das in
   seiner Ausgabe.
 - **Am schnellsten testbar ist, was ohne laufende Szene geht.** Regeln gehören
   deshalb in einfache Klassen wie `SaveData` und `RunCoins`, nicht in MonoBehaviours.
   `SceneTests` sieht nur, wie die Szene verdrahtet ist, nicht, was sie im Spiel tut.
-  Run, Tod und Revive spielt `RunTests` durch. Was sonst nur im Spiel geht (dass
-  `GameManager` nach einem Kauf sofort speichert, Wischer, Auto-Pause), bleibt beim
+  Run, Tod und Revive spielt `RunTests` durch. Was sonst nur im Spiel geht (dass der
+  `ShopScreen` nach einem Kauf sofort speichert, Wischer, Auto-Pause), bleibt beim
   Ausprobieren im Play Mode, siehe „Bewegung testen“ und „Eingabe“.
 - **Test-Menü** (seit v1.4.11): in der Menüleiste unter „Space Escaper“, der Code
   in `Editor/TestMenu.cs`.
@@ -204,21 +227,29 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
     ignoriert ein getroffenes Hindernis per `Physics.IgnoreCollision`, statt zu
     crashen, und sammelt weiter Münzen. Am Hindernis hängt es dabei einen Frame
     (gemessen: 3 Frames in 25 s Flug). Der Haken gilt für jeden Play Mode der
-    Editor-Sitzung (`SessionState`), beim Start erinnert eine Zeile in der Konsole
-    daran. Der PlayMode-Test schaltet es für seinen Lauf aus.
+    Editor-Sitzung (`SessionState`): `PlayerMotor` schaltet die Unverwundbarkeit beim
+    Start des Play Mode aus, das Test-Menü bei `EnteredPlayMode` wieder ein, und eine
+    Zeile in der Konsole erinnert daran. Der PlayMode-Test schaltet sie für seinen Lauf
+    aus, auch bei gesetztem Haken (geprüft in v1.5.0).
   - **Im Build** schaltet die Unverwundbarkeit ein Panel „Space Escaper“ im
-    Rendering Debugger (`Scripts/TestPanel.cs`), auf dem Handy per
+    Rendering Debugger (`Scripts/Game/TestPanel.cs`), auf dem Handy per
     Dreifinger-Doppeltipp. Im Editor steht es im Play Mode unter Window > Analysis
     > Rendering Debugger und gilt nur für den laufenden Play Mode.
-  - **Nie im Release:** Schalter und Panel stehen unter
+  - **In den Settings** steht seit v1.5.0 dafür auch ein Haken „Invincible“ unter dem
+    Zurück-Button. Der `SettingsScreen` legt ihn in `Awake` als Kopie von „Use new
+    Sound“ an, in der Szene steht er nicht. Auf dem Handy ist er leichter zu treffen
+    als der Dreifinger-Doppeltipp, der auf dem Pixel 9 Pro nicht immer klappte, und er
+    braucht den Rendering Debugger nicht. Der ist in URP 17.6 mit UI Toolkit gebaut:
+    Sein erstes Öffnen kostete dort einen Frame von 561 ms und 10 MB, danach legt er
+    in jedem Frame weiter Speicher an, auch geschlossen.
+  - **Nie im Release:** Schalter, Panel und Haken stehen unter
     `#if UNITY_EDITOR || UNITY_ENABLE_CHECKS`. `UNITY_ENABLE_CHECKS` setzen die
     Managed Code Variants „Checked“ und „Debug“, also genau die Builds, in denen
     es auch den Rendering Debugger gibt. `DEVELOPMENT_BUILD` meldet der
     Unity-Analyzer in Unity 6.6 als veraltet (UAC0009). Der Haken „Development
     Build“ allein setzt keine Variante, für Android steht sie in den Player
     Settings auf Release: Ein solcher Build hat weder Panel noch Rendering Debugger
-    (geprüft in v1.4.12). Auf dem Handy ist das Panel noch nicht ausprobiert, das
-    kommt mit dem Messen am Ende von v1.5.0.
+    (geprüft in v1.4.12).
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
@@ -235,7 +266,14 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   Gruppen, die als Ganzes rücken, eine Welt, die nie zurückrückt, und Abschnitte
   und Effekte, die stehen bleiben. Die Spawn-Position fiel erst mit dem Vergleich
   zum letzten Abschnitt auf: Das Schiff kommt lokal nie weit genug, um einen
-  Abschnitt zu recyceln, eine Lücke entstand also nie.
+  Abschnitt zu recyceln, eine Lücke entstand also nie. In v1.5.0 scheiterte die
+  Prüfung des Scores mit dem alten Code: nach einer Sekunde Todesbildschirm 16,13 statt
+  13,13, nach dem Aufteilen in ganzen Punkten des `RunScore` 16 statt 13. Seit v1.5.0
+  fand der Szenen-Test in der Szene des Commits davor alle 23 Button-Aufrufe, und
+  „nur das Hauptmenü ist an“ schlug an, sobald in einer Kopie der Szene der Shop an
+  oder das Hauptmenü aus war. `StaticFieldTests` fand im Code davor alle 16 statischen
+  Felder und ohne die Zeilen für `Coin.Collected` und die Liste des `SpinManager` genau
+  diese beiden.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -256,7 +294,7 @@ nur Ordner.
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
 | `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
 | `Scenes/` | `Game.unity` |
-| `Scripts/` | alle Skripte, flach, dazu `SpaceEscaper.asmdef` |
+| `Scripts/` | alle Skripte in Ordnern nach Bereich (siehe unten), im Root nur `SpaceEscaper.asmdef` und `AssemblyInfo.cs` |
 | `Settings/` | URP-Asset, Renderer, Global Settings, Volume Profile, Build Profiles |
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
@@ -274,8 +312,16 @@ nur Ordner.
   Texturen relativ im eigenen Ordner (siehe „Benennung von Dateien und
   Objekten“), deshalb liegen sie in
   `Models/` beieinander und nicht in `Textures/`.
-- `Scripts/` bleibt flach, solange es so wenige Skripte sind. Unterordner kommen
-  mit dem Aufteilen des GameManagers in v1.5.0.
+- **Skripte liegen nach Bereich** (seit v1.5.0, bis dahin flach, Entscheidung Oktober
+  2026): `Audio/` (`AudioSystem`, `AudioBank`), `Game/` (Spielzustand, Score, Bildrate,
+  Test-Panel), `Save/` (Spielstand), `Ship/` (das Schiff, seine Eingabe und die
+  Schiffsdaten), `UI/` (die Screens und ihre Bausteine) und `World/` (Strecke,
+  Floating Origin, Drehen, Münze, Raumhafen, Hangar, Kamera). Ein neues Skript kommt in
+  den Ordner seines Bereichs, die Assembly `SpaceEscaper.asmdef` im Root gilt für alle
+  Ordner darunter. Verschieben nur über Unity, siehe „Benennung von Dateien und
+  Objekten“. Ordner, die zwischen `AssetDatabase.StartAssetEditing` und
+  `StopAssetEditing` entstehen, kennt Unity erst danach, ein `MoveAsset` hinein
+  scheitert vorher. Also erst die Ordner anlegen, dann gebündelt verschieben.
 - **UI-Bilder liegen nach Herkunft** (seit v1.4.12): `UI/Images/2020/` hat die 38
   Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hat die 39
   aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
@@ -299,12 +345,12 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager` (dazu `PauseMenu`, `SettingsManager`, `CameraSwitch`), `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
+| `Systems` | `GameManager`, `RunScore`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
-| `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`) und bewegt sich jeden Frame |
+| `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen: `DeathMenu`, `MainMenu`, `GameMenu`, `PauseMenu`, `Settings`, `Shop` (siehe „UI“) |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Shop` (`ShopScreen`), siehe „UI“ |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
@@ -319,7 +365,7 @@ behalten dadurch ihre Weltposition.
   auf einmal), die andere die Asteroidenfelder im Hintergrund (`AsteroidField…`, 40
   lang, 8 auf einmal). Wann ein passierter Abschnitt nach vorn wandert, legt
   `m_recycleDistance` fest: 55 bei der Strecke, 50 bei den Feldern. Nur die Strecke
-  setzt der Revive-Button neu, siehe „Bekannte Altlasten“.
+  setzt ein Revive neu (`m_respawnsOnRevive`), siehe „Bekannte Altlasten“.
 - **Floating Origin** (seit v1.4.13): Ist das Schiff 4800 Einheiten vom Ursprung
   entfernt, rückt `Systems/FloatingOrigin` Schiff und Welt um genau diese Strecke
   zurück, alles im selben Frame (`LateUpdate`), das Bild bleibt also gleich. `float`
@@ -553,7 +599,8 @@ bei 8.
   PlayMode-Tests `internal` (`InternalsVisibleTo`), derzeit für
   `SaveSystem.LoadFrom` und `SaveSystem.Delete`, den PlayMode-Tests seit v1.4.13
   auch für `FloatingOrigin.Distance`, `TileManager.Tiles` und
-  `TileManager.NextSpawnZ`. Test-Assemblies kommen an
+  `TileManager.NextSpawnZ`, seit v1.5.0 für die Buttons der Screens
+  (`MainMenuScreen.StartButton` usw.). Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
   v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
@@ -586,6 +633,40 @@ bei 8.
   - Die Analyzer liegen im Ordner der VS-Code-Erweiterung, ihr Pfad enthält deren
     Version. Nach einem Update der Erweiterung stimmt er erst wieder, wenn Unity die
     Projektdateien neu schreibt.
+- **Play Mode ohne Domain Reload** (seit v1.5.0): Project Settings > Editor, „When
+  entering Play Mode“ steht auf „Reload Scene only“ (`m_EnterPlayModeOptions: 1` in
+  `ProjectSettings/EditorSettings.asset`). Beim Start des Play Mode lädt Unity nur die
+  Szene neu, alle Skripte nur noch nach dem Kompilieren. Gemessen in v1.5.0 im Editor:
+  vom Start bis zum ersten Frame 0,07 statt 0,87 s, und die ersten gut 4 s liefen mit
+  60 statt rund 19 FPS, vermutlich weil nach einem Domain Reload der Code erst neu
+  übersetzt wird (JIT).
+  - **Statisches überlebt dafür den Start des Play Mode** und bleibt bis zum nächsten
+    Kompilieren stehen: statische Felder und Events, Handler an statischen Ereignissen
+    von Unity und vom Editor, `AppDomain`-Daten und Änderungen an der Player Loop (die
+    letzten beiden geprüft in v1.5.0). Unsere Klassen setzen ihre statischen Felder
+    deshalb selbst zurück (siehe „Code-Stil“), sonst liefe etwa ein Handler aus dem
+    letzten Play Mode weiter. Wer zum Testen die Player Loop oder Ereignisse von Unity
+    ändert, stellt sie danach wieder her, wie `RunTests` in `TearDown`.
+  - **Editor-Code mit `[InitializeOnLoad]`** läuft nur noch nach dem Kompilieren, nicht
+    bei jedem Start des Play Mode. Was bei jedem Start passieren soll, hängt an
+    `EditorApplication.playModeStateChanged`: `EnteredPlayMode` kommt im ersten Frame,
+    nach den `Awake` der Szene. So setzt das Test-Menü den Haken „Invincible“, bis
+    v1.4.13 tat es das im statischen Konstruktor.
+  - **Fehler im Test Framework 1.8.0** (neueste Version, Oktober 2026): Ohne Domain
+    Reload laufen PlayMode-Tests nur einmal pro Kompilieren, jeder weitere Lauf findet
+    keinen Test und meldet 0 von 0, auch im Test-Runner-Fenster.
+    `PlayerTestAssemblyProvider` hält die geladenen Test-Assemblies in einer
+    statischen Liste und leert sie beim Start des Play Mode, lädt aber nur nach,
+    solange es gar keine Liste gibt. `Tests/PlayMode/TestFrameworkFix.cs` verwirft die
+    Liste beim Start jedes Play Mode wie ein Domain Reload und warnt in der Konsole,
+    wenn es das Feld nicht mehr findet. Gefunden in v1.5.0, als schon der zweite
+    `RunTests`-Lauf hintereinander 0 von 0 meldete, mit dem Umweg liefen fünf
+    hintereinander grün. Behebt Unity den Fehler, kommt die Datei weg.
+  - Die CLI meldet sich bei jedem Testlauf für die Ergebnisse an und bleibt ohne Domain
+    Reload angemeldet. Die Konsole zeigt dann mehrfach „Run started“ und „Ignoring
+    duplicate RunFinished“, das Ergebnis stimmt trotzdem.
+  - Mit Domain Reload läuft der Code genauso, die Einstellung lässt sich jederzeit
+    zurückstellen.
 - **UI-Texte nicht über die Skalierung vergrößern.** Legacy-`Text` wird in seiner
   Schriftgröße gerastert und dann hochgezogen, das wird unscharf. Größer heißt:
   Schriftgröße und Rect-Größe erhöhen, Skalierung 1 lassen. Der Toggle „Use new
@@ -596,16 +677,37 @@ bei 8.
   `Application.targetFrameRate = 60` einmal beim Start, vor der ersten Szene
   (`RuntimeInitializeOnLoadMethod`). Ohne Ziel rendert Android fest mit 30 FPS,
   vSync ignoriert es dort. Passt 60 nicht glatt in die Bildwiederholrate des
-  Displays, rundet Unity: 90 Hz ergibt 45 FPS, 144 Hz 72 FPS. „Optimized Frame
-  Pacing“ ist aus, damit würde Unity immer abrunden. Im Editor gilt das Ziel nur
-  fürs Game-Fenster.
+  Displays, rundet Unity laut Doku ab, auf die nächste Rate, die glatt hineinpasst:
+  90 Hz ergibt 45 FPS, 144 Hz 48 FPS. Gemessen ist bisher nur ein Display mit 60 und
+  120 Hz, da passt 60 glatt (siehe „Messen auf dem Handy“). „Optimized Frame Pacing“
+  bleibt aus, siehe dort. Im Editor gilt das Ziel nur fürs Game-Fenster.
 - **Garbage Collection inkrementell** seit v1.4.12 (Player Settings > Other
   Settings > „Use incremental GC“, Unitys Standard für neue Projekte, hier war es
   aus). Der GC räumt dann in kleinen Schritten über mehrere Frames auf, statt das
   Spiel für einen ganzen Durchlauf anzuhalten. Bei 60 FPS hat ein Frame 16,7 ms,
   ein voller Durchlauf kann darüber liegen und ruckeln. Wie oft der GC überhaupt
-  läuft, hängt daran, wie viel das Spiel pro Frame neu anlegt. Das zeigt die
-  Messung am Ende von v1.5.0.
+  läuft, hängt daran, wie viel das Spiel pro Frame neu anlegt. Gemessen in v1.5.0
+  auf dem Handy: 48 bis 134 Byte pro Frame, im Run ein Durchlauf pro Minute, keiner
+  über 3 ms (siehe „Messen auf dem Handy“).
+- **Auto Sync Transforms bleibt an** (Project Settings > Physics, Entscheidung
+  Oktober 2026), anders als in neuen Unity-Projekten. Unity gleicht bewegte Collider
+  damit vor jeder Physik-Abfrage ab, auch vor jedem `CharacterController.Move`. Aus
+  brachte in v1.5.0 zu wenig für seine Nachteile:
+  - Im Spiel änderte es nichts (Runs mit festem Zufall bei 30, 60 und 144 FPS Frame
+    für Frame gleich, Crash und Münzen gleich) und sparte im Editor nur rund 6 µs pro
+    Frame beim Abgleich.
+  - Dafür übernähme der `CharacterController` eine direkt gesetzte Position erst nach
+    dem nächsten Physik-Schritt (bei 120 FPS ging sie in 7 von 12 Frames verloren),
+    und die Flugbahn hinge in der Rundung am Takt der Physik (bis 0,0003 Einheiten in
+    15 s).
+  - Der Floating Origin ruft `Physics.SyncTransforms()` trotzdem selbst auf und
+    funktioniert auch mit aus. Neu prüfen, falls pro Frame viele Physik-Abfragen
+    zwischen bewegten Collidern dazukommen.
+  - **Physik-Einstellungen per Text ändern:** `ProjectSettings/DynamicsManager.asset`
+    steht noch im alten Format (`serializedVersion: 3`, ohne die meisten heutigen
+    Felder). Über das Physik-Fenster gespeichert, schriebe Unity die Datei komplett
+    neu. Nach einer Änderung übernimmt Unity den Wert mit `AssetDatabase.Refresh()`,
+    ohne Neustart.
 - **Spiellogik an die Zeit binden, nicht an Frames:** Bewegung mit
   `Time.deltaTime`, Abläufe mit `Time.time`. Vorsicht bei Glättungen, die pro
   Frame den Anteil `k × Time.deltaTime` der Reststrecke schließen: Sie hängen
@@ -671,6 +773,8 @@ bei 8.
   144 FPS gemessen. Für einen Vergleich vor und nach einem Umbau `Random.InitState`
   vor einem Szenen-Reload und noch einmal beim Start des Runs setzen, dann spawnen
   die `TileManager` dieselben Abschnitte (so in v1.4.9: alle 62 Ereignisse gleich).
+  Mit fester Bildrate fliegt das Schiff dann bitgleich, Münzen zählen aber je nach
+  Takt der Physik-Schritte einen Frame früher oder später (geprüft in v1.5.0).
   Eine Auto-Pause verschiebt dabei nur die Bildnummern. Ein Run im Test schreibt
   beim Tod Münzen und Highscore in den Spielstand. Ihn direkt vor jedem Lauf sichern
   und danach genau diese Sicherung zurücklegen, keine ältere: Dazwischen kann jemand
@@ -685,6 +789,7 @@ bei 8.
   dauert rund 6 Minuten. `Space-Escaper/Builds/` ist von Git ignoriert, der Ordner
   `…_BackUpThisFolder_ButDontShipItWithYourGame` neben der APK enthält nur
   Debug-Symbole. Ein Build ändert zwei URP-Assets, siehe „Render Pipeline: URP“.
+  Messbuilds und wie man auf dem Handy misst, stehen unter „Messen auf dem Handy“.
 - **App-Icon auf Android:** Unity 6 nimmt dafür nur die Android-Icons der Player
   Settings, nicht das Default Icon. Fehlen sie, steckt das Unity-Logo in der APK, so
   vom Wechsel auf Unity 6 bis v1.4.4. Bei `minSdkVersion` 26 gibt es nur noch adaptive
@@ -702,7 +807,9 @@ bei 8.
   Android Extension Pack bringt Geometrie- und Tessellation-Shader, kein Shader im
   Projekt nutzt sie. Die Pflicht stand trotzdem im Manifest
   (`android.hardware.opengles.aep`, required), und der Play Store bietet eine App dann
-  nur Geräten mit AEP an. Ob Vulkan dazukommt, zeigt die Messung am Ende von v1.5.0.
+  nur Geräten mit AEP an. Vulkan kommt vorerst nicht dazu: In v1.5.0 zeigte es auf
+  dem Handy das Bild fehlerfrei, brachte es aber einen Frame später aufs Display
+  (siehe „Messen auf dem Handy“).
 - **Keine Define-Symbole** in den Player Settings (seit v1.4.12). Bis dahin standen
   dort für 19 Plattformen Überbleibsel entfernter Pakete, für Android
   `CROSS_PLATFORM_INPUT` und `MOBILE_INPUT` (Standard Assets),
@@ -734,9 +841,12 @@ bei 8.
   v1.4.3 ebenfalls `com.ANIMOGames.SpaceEscaper` (vorher das Tutorial-Überbleibsel
   `unity.DefaultCompany.FPS2`) und zieht mit dem neuen Paketnamen mit.
 - Revive-Mechanik ist funktionslos, seit Unity Ads entfernt wurde: `RequestRevive()`
-  ruft `Revive()` ohne Gegenleistung durch. Der Revive-Button ruft per OnClick
-  zusätzlich `RespawnTiles` am `TileManager` der Strecke (`Systems/TileManager`)
-  auf - diese Verbindung existiert nur in der Szene, nicht im Code. `RespawnTiles`
+  ruft `Revive()` ohne Gegenleistung durch, einmal pro Run (`GameManager.CanRevive`,
+  seit v1.5.0, bis dahin nur über den danach ausgeblendeten Button). Danach setzt der
+  `TileManager` der Strecke (`Systems/TileManager`, `m_respawnsOnRevive` an) seine
+  Abschnitte neu, er hört dafür auf `GameManager.ShipRevived` (seit v1.5.0, bis dahin
+  ein zweiter OnClick-Aufruf am Revive-Button, der nur in der Szene stand). Das
+  Ereignis kommt mit dem Tipp, also vor allen `Update()`. `RespawnTiles`
   deaktiviert die alten Abschnitte, bevor es sie löscht: `Destroy` greift erst am
   Frame-Ende, das Schiff fliegt aber im selben Frame wieder los. Ohne das krachte es
   beim Revive sofort ins selbe Hindernis (zweite Explosion, Spiel-UI weg, Schiff
@@ -745,7 +855,13 @@ bei 8.
   Highscore im Spielstand. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
   trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
-  existierende Methode und ist entfernt; der Button spielt nur den Klicksound.
+  existierende Methode und ist entfernt, auch der `MainMenuScreen` verbindet ihn mit
+  nichts. Der Button spielt nur den Klicksound.
+- **Angeschnittene Texte auf schmalen Displays** (gesehen in v1.5.0 auf dem Pixel 9
+  Pro, 20:9): In den Settings zeigt „Use new Sound“ nur „Use new“, die Titel
+  „SETTINGS“ und „PAUSED“ sind links angeschnitten. Vermutlich, weil der Canvas nach
+  der Höhe skaliert (siehe „UI“): Auf 20:9 bleiben rund 360 Einheiten Breite, auf
+  16:9 sind es 450. Gehört zum UI Overhaul (v1.5.1).
 
 ## Spielstand (SaveData)
 
@@ -793,13 +909,13 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
   einem Wechsel wieder gesperrt.
 - Ein neuer Spielstand bekommt das Startschiff (`ShipCatalog.StarterShip`). Ist das
   gespeicherte Schiff unbekannt, fällt `SaveData.RepairShips` darauf zurück, die
-  bekannten IDs übergibt `GameManager.LoadShipSelection` aus dem `ShipCatalog`. Bis
+  bekannten IDs übergibt der `PlayerShip` beim Laden der Szene aus dem `ShipCatalog`. Bis
   v1.4.0 war der Default 0, das zeigte auf `FlameContainer` statt auf ein Schiff und
   ließ das Spiel beim Start und beim Tod abstürzen. Lokal fiel das nie auf, weil der
   Spielstand gesetzt war - **Neuinstallation gezielt testen** (siehe unten).
 - Ein Kauf (`SaveData.TryBuyShip`) zieht die Münzen ab und schaltet das Schiff frei,
-  beides oder nichts. Danach speichert `GameManager` sofort.
-- Der Score wird überall abgeschnitten angezeigt und gespeichert (`(int)m_score`),
+  beides oder nichts. Danach speichert der `ShopScreen` sofort.
+- Der Score wird überall abgeschnitten angezeigt und gespeichert (`RunScore.Score`),
   sonst weichen Todesbildschirm und Highscore voneinander ab.
 - Münzen werden bei jedem Tod gutgeschrieben, nach einem Revive aber nur die seitdem
   gesammelten (`RunCoins.BankInto`).
@@ -845,17 +961,19 @@ Startschiff vorn. Bis v1.4.7 hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 
 Bildern, einer Preisliste im `GameManager` und jedem Modell zweimal in Szene und
 Prefab.
 
-- **Der Hangar liest die Daten:** Die Skin-Buttons übergeben per OnClick ihr
-  `ShipData` an `GameManager.ShowShip`, die Pfeile zeigen das erste Schiff der
+- **Der Hangar liest die Daten:** Jeder Skin-Button trägt einen `ShipButton` mit
+  seinem `ShipData` und meldet es beim Tipp, der `ShopScreen` zeigt dann dieses Schiff.
+  Die Pfeile zeigen das erste Schiff der
   Familie davor oder danach (`ShipCatalog.GetFirstShipOfFamily`). Ein einziger
   unsichtbarer Button, `UI/Shop/SelectOrBuyButton`, kauft oder wählt das gezeigte
   Schiff (`SelectOrBuyShownShip`). Sein Kind `Image` zeigt Select, Selected oder das
   Preisschild aus dem `ShipData` und lässt Klicks zum Button durch.
 - **Modelle sind Prefabs** in `Prefabs/Ships/` (`AristocratSkin1.prefab` …), mit
   ihrem Platz auf dem Schiff: Versatz und Skalierung stecken in der Wurzel. Der
-  `GameManager` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein,
-  das des gezeigten unter `Environment/ShopShips`, dort in der Mitte und auf
-  `ShipData.HangarScale`. Beim Tod schaltet er das Modell aus, beim Revive wieder an.
+  `PlayerShip` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein, der
+  `Hangar` das des gezeigten unter `Environment/ShopShips`, dort in der Mitte und auf
+  `ShipData.HangarScale`, beim ersten Öffnen des Hangars. Beim Tod schaltet der
+  `PlayerShip` das Modell aus, beim Revive wieder an.
   Die VAGOR-Skins haben eine etwas andere Skalierung als ihre Familie (Skin 1 2,6 ×
   3,2 × 3,2, Skin 2 und 3 2,7 × 3 × 3), so übernommen aus dem Stand vor v1.4.8.
 - **IDs:** Jedes `ShipData` hat eine ID (`AristocratSkin1` …), unter der der
@@ -865,18 +983,19 @@ Prefab.
 - **Ein neues Schiff:** Modell-Prefab in `Prefabs/Ships/` anlegen, ein `ShipData` in
   `Data/Ships/` mit ID, Familie, Preis, Preisschild-Bild, Modell, Hangar-Größe und
   Flamme, das `ShipData` in den `ShipCatalog` eintragen und einen Skin-Button mit
-  OnClick `GameManager.ShowShip` und dem `ShipData` in die Gruppe der Familie legen.
-  Die `ShipCatalogTests` prüfen danach die Daten.
+  `ShipButton` und dem `ShipData` in die Gruppe der Familie legen, am einfachsten einen
+  vorhandenen duplizieren. Der `ShopScreen` findet ihn beim ersten Öffnen des Hangars
+  von selbst. Die `ShipCatalogTests` prüfen danach die Daten.
 - `m_skinButtonContainer` hat ein Kind pro Familie, in der Reihenfolge von
   `ShipFamily`.
-- `m_currentShip` ist das *geflogene* Schiff, `m_shownShip` das gerade im Hangar
-  *angesehene*. Flammen und alles im Spiel gehören an `m_currentShip` - die
-  Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
+- `PlayerShip.Ship` ist das *geflogene* Schiff, `m_shownShip` im `ShopScreen` das
+  gerade im Hangar *angesehene*. Flammen und alles im Spiel gehören zum geflogenen -
+  die Verwechslung zeigte früher eine falsche, neben dem Schiff schwebende Flamme.
 
 **Antriebsflammen** sind Prefabs in `Prefabs/Ships/`: `FlameAristocrat`,
 `FlameFreeter` und `FlameVagor` mit den Düsen `FlameLeft` und `FlameRight`. Jedes
 `ShipData` verweist auf die Flamme seiner Familie, die Skins teilen sie sich. Der
-`GameManager` setzt sie neben das Modell unter `Playership/Ship` und schaltet sie
+`PlayerShip` setzt sie neben das Modell unter `Playership/Ship` und schaltet sie
 für jedes Schiff gleich, nur über das GameObject: aus im Menü und im Hangar, an vom
 Start des Runs bis zum Crash und wieder nach einem Revive. Die Emission bleibt
 immer an. Bis v1.4.7 lagen die Flammen im `Playership.prefab`, und
@@ -897,6 +1016,76 @@ Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert i
 `2021/` und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
 entschieden wird beim UI Overhaul (v1.5.1) - bis dahin nicht löschen.
 
+## Spielzustand (GameState)
+
+Nicht zu verwechseln mit dem Spielstand (`SaveData`): Seit v1.5.0 hat das Spiel einen
+Zustand, `GameManager.State`, mit den Werten `Menu`, `Hangar`, `Run`, `Paused` und `Dead`
+(`GameState`). Bis v1.4.13 verteilte er sich auf vier Schalter (`m_isGameStarted` im
+`GameManager`, `PlayerMotor.IsRunning`, `CameraMotor.IsMoving` und
+`PauseMenu.IsPaused`). Weil der erste davon nach dem Tod an blieb, zählte der Score
+hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
+
+- **Nur der `GameManager` ändert ihn,** in den Methoden, die die Buttons aufrufen:
+  `Play` (Menu → Run), `OpenHangar` und `CloseHangar` (Menu ↔ Hangar), `Pause` und
+  `Continue` (Run ↔ Paused), `HandleDeath` beim Crash, gemeldet vom `PlayerMotor`
+  (Run → Dead), und `RequestRevive` (Dead → Run, einmal pro Run, siehe `CanRevive`).
+  Passt ein Aufruf nicht zum Zustand, etwa eine Pause außerhalb des Runs, tut er
+  nichts. `ReturnToMenu` lädt die Szene neu, der Zustand beginnt dann wieder bei
+  `Menu`. Mehr macht der `GameManager` seit dem Aufteilen in v1.5.0 nicht. Bis dahin
+  führte er auch den Shop, den Score und die Texte der Screens.
+- **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
+  setzt `Time.timeScale`, 0 nur in der Pause.
+- **Die Settings sind kein Zustand,** sondern ein Screen über Hauptmenü oder Pause. Der
+  Zustand bleibt dabei stehen, und „Zurück“ zeigt wieder seinen Screen.
+- **Ereignisse,** statisch am `GameManager` wie `FloatingOrigin.WorldShifted`:
+  `RunStarted`, `HangarOpened`, `HangarClosed`, `RunPaused`, `RunResumed`, `ShipCrashed`
+  und `ShipRevived`. Sie kommen direkt nach dem Wechsel im selben Aufruf. Ein Tipp
+  erreicht die Buttons vor allen `Update()`, beim Revive ist die Strecke also neu,
+  bevor das Schiff in diesem Frame weiterfliegt. So braucht auch das `AudioSystem`, das
+  den Reload überlebt, keine Referenz in die Szene.
+
+| Wer | hört auf | und tut |
+|---|---|---|
+| `AudioSystem` | `RunStarted` | Spielmusik und Motor an |
+| | `RunPaused`, `RunResumed` | Motor aus und wieder an, die Musik läuft weiter (siehe „Pause“) |
+| | `ShipCrashed` | Musik anhalten, Motor aus (siehe „Audio-System“) |
+| | `ShipRevived` | Musik an derselben Stelle weiter, Motor an |
+| `RunScore` | `ShipCrashed` | Münzen des Runs gutschreiben, Highscore, speichern |
+| `PlayerShip` | `RunStarted` | Flamme an |
+| | `ShipCrashed`, `ShipRevived` | Modell und Flamme aus und wieder an |
+| `Spaceport` | `RunStarted` | schaltet sich 3 s später aus |
+| `Hangar` | `HangarOpened`, `HangarClosed` | Hangar mit Hangar-Kamera oder Hauptkamera (bis v1.4.13 `CameraSwitch`, das Gebäude schaltete der `GameManager`) |
+| `TileManager` | `ShipRevived` | neue Abschnitte, nur mit `m_respawnsOnRevive` (die Strecke) |
+
+- **Den Zustand lesen** `PlayerMotor` (fliegt nur in `Run`), `CameraMotor` (folgt in
+  `Run`, bremst in `Dead`, steht sonst), `RunScore` (zählt nur in `Run`), der
+  Zurück-Button im `SettingsScreen` und `RunTests`. Die übrigen Screens brauchen ihn
+  nicht: Der `ScreenManager` schaltet sie ein, und sie zeigen beim Einschalten, was
+  gerade gilt (siehe „UI“).
+- **Münzen** melden sich über das statische Ereignis `Coin.Collected` (seit v1.5.0,
+  bis dahin `GameManager.CollectCoin`), `RunScore` zählt sie. Den Multiplikator rechnet
+  `RunScore` aus dem Tempo (`PlayerMotor.SpeedGain`), bis v1.4.13 schickte der
+  `PlayerMotor` ihn bei jeder Tempo-Stufe.
+- **Neues, das auf den Spielverlauf reagiert,** meldet sich an einem Ereignis an (in
+  `OnEnable`, ab in `OnDisable`) oder liest `State`, statt einen eigenen Schalter zu
+  führen. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
+  `ChangeState`, dann das Ereignis auslösen.
+- **Geprüft in v1.5.0** mit einem Klick-Durchlauf über die echten Buttons, vorher und
+  nachher, mit festem Zufall und fester Bildrate: alle Übergänge, „Exit“ aus Pause und
+  Tod und die Auto-Pause in jedem Zustand, 32 Schritte. Screens, Kameras,
+  `Time.timeScale`, Musik, Motor, Hangar, Modell, Flamme, Revive und Crash-Stelle
+  blieben gleich. Anders sind nur der Score nach dem Tod (der Bug) und der Frame des
+  Pause-Tipps (siehe „Pause“).
+- **Das Aufteilen** prüfte ein erweiterter Durchlauf mit eigenem Spielstand (1000
+  Münzen, nur das Startschiff), 57 Schritte, auch durch den Shop (Familien, Skins,
+  Kaufen, zu teuer, Auswählen) und mit Münzen, nach jedem Schritt mit allen sichtbaren
+  Texten, Bildern, Modellen und dem Spielstand. Die Buttons findet er über ihren Pfad,
+  das ging mit altem und neuem Code. Anders sind nur zwei Stellen: Das Modell auf dem
+  Ständer entsteht erst beim ersten Öffnen des Hangars statt beim Laden, und eine
+  Münze, die erst nach dem Crash gemeldet wird, behält nach dem Revive ihren Punkt
+  (der Durchlauf hat das erzwungen, ob es beim Spielen vorkommt, ist nicht geprüft).
+  Bis dahin nahm der Revive den Punkt zurück, der Score-Text zeigte ihn aber weiter.
+
 ## UI
 
 Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMenu`
@@ -905,13 +1094,33 @@ Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMe
 `ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem Canvas, und sechs Animatoren
 schoben die gerade nicht gebrauchten aus dem Bild.
 
-- **Es ist immer genau ein Screen an.** `ScreenManager.ShowMainMenu()`,
-  `ShowGameMenu()`, `ShowPauseMenu()`, `ShowSettings()`, `ShowShop()` und
-  `ShowDeathMenu()` schalten ihn per `SetActive` ein und alle anderen aus, ohne
+- **Es ist immer genau ein Screen an.** `ScreenManager.Show(GameState)` zeigt den
+  Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings.
+  Beide schalten ihn per `SetActive` ein und alle anderen aus, ohne
   Übergang (Entscheidung Oktober 2026). Beim Start zeigt er das Hauptmenü, egal welcher
   Screen beim Bearbeiten an blieb. Gespeichert ist die Szene mit nur dem Hauptmenü an,
   so sieht sie im Editor aus wie beim Start. Zum Bearbeiten einen Screen einschalten,
-  vor dem Speichern wieder nur das Hauptmenü.
+  vor dem Speichern wieder nur das Hauptmenü. Das prüft seit v1.5.0 `SceneTests`: Ein
+  anderer Screen wachte sonst mit der Szene auf, vielleicht bevor bereit ist, was er
+  zeigt, etwa der `ShopScreen` vor dem `PlayerShip`, und erst danach schaltete der
+  `ScreenManager` ihn aus.
+- **Jeder Screen hat eine Komponente mit seinem Namen und `Screen` dahinter** (seit
+  v1.5.0), etwa `MainMenuScreen` am `UI/MainMenu`. Sie verbindet die Buttons ihres
+  Screens in `OnEnable` und löst sie in `OnDisable`, eine Zeile pro Button
+  (`m_startButton.onClick.AddListener(m_gameManager.Play)`). Was ein Button tut, steht
+  also in der Komponente seines Screens, im Inspector des Buttons steht nichts mehr.
+  Die Screens erreichen `GameManager`, `ScreenManager` und den Rest über Referenzen im
+  Inspector, wie die meisten Skripte hier. Die Skin-Buttons im Hangar tragen dazu je
+  einen `ShipButton` mit ihrem Schiff (siehe „Shop“). Ein neuer Button bekommt ein
+  Feld in der Komponente seines Screens und je eine Zeile in `OnEnable` und
+  `OnDisable`.
+- **Die Komponente zeigt auch, was auf ihrem Screen steht** (seit v1.5.0, bis dahin
+  setzte der `GameManager` alle Texte): Hauptmenü (Münzen, Highscore) und
+  Todesbildschirm (Score, Münzen, Revive-Button nur, solange der Run ihn noch hat)
+  setzen ihre Texte beim Einschalten, aus dem Spielstand und dem `RunScore`. Die
+  Spiel-UI folgt dem `RunScore` in `LateUpdate`, also mit dem Score dieses Frames, und
+  setzt einen Text nur, wenn sich seine Zahl ändert. Steigen die Münzen, poppt das
+  Icon. Der `ShopScreen` führt den Shop selbst (siehe „Shop“).
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
@@ -922,9 +1131,11 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   die Grafiken seines Canvas, ohne ihn reagiert kein Button des Screens. Der Root hat
   seit v1.4.10 keinen mehr, direkt unter ihm liegt nichts Klickbares.
 - **Ein neuer Screen:** Objekt unter `UI`, auf den ganzen Canvas gestreckt (Anker 0
-  bis 1, Abstände 0), mit `Canvas` und `GraphicRaycaster`. Im `ScreenManager` bekommt
-  er ein Feld, eine `Show…`-Methode und einen Platz in `m_screens`. Dass beides
-  stimmt, prüft `SceneTests`.
+  bis 1, Abstände 0), mit `Canvas`, `GraphicRaycaster` und seiner eigenen
+  `…Screen`-Komponente für die Buttons. Im `ScreenManager` bekommt
+  er ein Feld und einen Platz in `m_screens`, dazu einen Fall in `GetScreen`, wenn er
+  zu einem Zustand gehört, sonst eine eigene `Show…`-Methode wie `ShowSettings`. Dass
+  Canvas, Raycaster und `m_screens` stimmen, prüft `SceneTests`.
 - **Keine Animatoren für Übergänge oder kurze Effekte.** Ein Animator am UI markiert
   seine Grafiken in jedem Frame neu, auch wenn sich nichts bewegt, und dann baut der
   ganze Canvas neu. In einem Screen fällt er außerdem bei jedem Einschalten auf seinen
@@ -1019,24 +1230,34 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
 
 ## Pause
 
-Seit v1.4.5 gibt es genau einen Pause-Zustand: `PauseMenu.IsPaused`, statisch
-und nur von `PauseMenu` gesetzt. `PauseMenu.Awake` setzt ihn zurück, sonst überlebt
-er den Szenen-Reload hinter „Exit“. Bis v1.4.4 gab es zwei Flags, und eines davon
-blieb nach „Exit“ aus der Pause auf `true` stehen.
+Seit v1.5.0 ist die Pause ein Zustand des Spiels, `GameState.Paused` (siehe
+„Spielzustand“). `GameManager.Pause()` wechselt aus dem Run hinein, `Continue()` zurück.
+Der Zustand gehört zum `GameManager` und beginnt nach dem Szenen-Reload hinter „Exit“
+wieder im Hauptmenü. Von v1.4.5 bis v1.4.13 war die Pause ein eigenes statisches Flag,
+`PauseMenu.IsPaused`. Bis v1.4.4 gab es zwei Flags, und eines davon blieb nach „Exit“
+aus der Pause auf `true` stehen.
 
 - `Pause()` und `Continue()` sind von überall gefahrlos aufrufbar, nicht nur von
-  den Buttons. `Pause()` greift nur bei `GameManager.IsRunActive` (Run gestartet
-  und Schiff lebt, also nicht im Menü, im Hangar oder auf dem Todesbildschirm) und
-  nur einmal, `Continue()` nur aus der Pause. Darauf baut die Auto-Pause auf.
-- **Auto-Pause** (seit v1.4.5): `PauseMenu` pausiert von selbst, sobald die App
+  den Buttons. `Pause()` greift nur im Run (also nicht im Menü, im Hangar oder auf
+  dem Todesbildschirm) und nur einmal, `Continue()` nur aus der Pause. Darauf baut
+  die Auto-Pause auf.
+- **Die Pause hält alles im Frame des Tipps an** (seit v1.5.0): Schiff, Kamera und
+  Score bewegen sich in diesem Frame nicht mehr. Bis v1.4.13 liefen sie noch einen
+  Frame weiter, weil Unity die Frame-Zeit schon vor dem Tipp berechnet hatte, erst
+  der nächste Frame stand still. Im Frame von „Continue“ bewegt sich weiterhin
+  nichts, seine Frame-Zeit entstand noch in der Pause. Wischer in der Pause wirken
+  nicht, der `PlayerMotor` liest sie nur im Run.
+- **Auto-Pause** (seit v1.4.5): Der `GameManager` (bis v1.4.13 das `PauseMenu`)
+  pausiert von selbst, sobald die App
   den Fokus verliert (`OnApplicationFocus(false)`) oder in den Hintergrund geht
   (`OnApplicationPause(true)`). Beim Verlassen der App meldet Android beides, eine
   heruntergezogene Benachrichtigungsleiste nur den Fokusverlust, und ohne Pause
   flöge das Schiff dabei weiter. Weiter geht es nur über „Continue“, nie von
   selbst. Im Editor zählt schon ein Klick außerhalb des Game-Fensters als
   Fokusverlust und pausiert den Run.
-- **Auto-Pause testen:** Im Editor die beiden Methoden per Reflection aufrufen,
-  in jedem Zustand (Menü, Run, Pause, Settings, Tod, nach Revive). Ein anderes
+- **Auto-Pause testen:** Im Editor die beiden Methoden des `GameManager` per
+  Reflection aufrufen, in jedem Zustand (Menü, Hangar, Run, Pause, Settings, Tod, nach
+  Revive). Ein anderes
   Editor-Fenster per `EditorWindow.FocusWindowIfItsOpen` zu fokussieren, löst
   zwar echt aus, aber verzögert, solange Unity selbst nicht im Vordergrund ist.
   Den echten App-Wechsel gibt es nur auf dem Handy.
@@ -1044,8 +1265,8 @@ blieb nach „Exit“ aus der Pause auf `true` stehen.
   Escape am PC gibt es bewusst nicht (Entscheidung Oktober 2026). Auch die
   Standardaktion „Cancel“ am `InputSystemUIInputModule`, die auf Escape lag, ist
   seit v1.4.5 abgehängt, weil kein UI-Element darauf reagierte.
-- `SettingsManager.Close()` liest den Zustand, um zu entscheiden, ob „Zurück“ ins
-  Pause- oder ins Hauptmenü führt.
+- „Zurück“ in den Settings (`SettingsScreen`) zeigt den Screen des Zustands: Die
+  Settings lassen ihn stehen, „Zurück“ führt also ins Pause- oder ins Hauptmenü.
 - „Exit“ im Pause-Menü ruft `GameManager.ReturnToMenu`, also einen Szenen-Reload.
   `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
 - Die Musik läuft in der Pause bewusst weiter (Entscheidung Oktober 2026), so hört
@@ -1055,7 +1276,7 @@ blieb nach „Exit“ aus der Pause auf `true` stehen.
   erste Hindernis, und der Test landet auf dem Todesbildschirm. Den Run per Code
   starten und `PlayerMotor.m_speed` per Reflection auf 0 setzen: Der Run bleibt
   aktiv, das Schiff bewegt sich aber nicht. Der Punkte-Multiplikator wird dabei
-  nach 5 s negativ (Geschwindigkeit minus Startgeschwindigkeit), ein Testartefakt.
+  negativ (1 plus Geschwindigkeit minus Startgeschwindigkeit), ein Testartefakt.
 
 ## Audio-System
 
@@ -1077,28 +1298,40 @@ Bank wechseln. Wichtig für die Erweiterung:
 
 Vier Fallen, die hier schon einmal Bugs verursacht haben:
 
-- **UI-Referenzen und DontDestroyOnLoad.** Die Bedienelemente liegen unter
-  `UI/Settings` in der Szene (`NewSoundsToggle` „Use new Sound“, `VolumeSlider`,
-  `SfxButton`, `MusicButton`), das AudioSystem überlebt aber den Reload. Deshalb übergibt die
-  Szenenkopie in `Awake()` ihre frischen Referenzen an die überlebende Instanz
-  (`AdoptSceneReferencesFrom`), bevor sie sich zerstört. Ohne das sind Mute-Buttons
-  und Regler nach dem ersten Reload tot. **Neue UI-Elemente dort mit eintragen**,
-  sonst überleben sie den Szenenwechsel nicht. Seit v1.4.10 ist `Settings` aus, bis
-  jemand die Settings öffnet. `BindUi` und `RefreshUi` wirken trotzdem, Listener,
-  Bilder und Werte lassen sich auch an ausgeschalteten Objekten setzen (nach einem
-  Reload geprüft).
-  Aus demselben Grund **keine persistenten OnClick-Aufrufe ins AudioSystem**:
-  Klicksounds kommen von der Komponente `ButtonClickSound` am jeweiligen Button, die
-  über `AudioSystem.Instance` geht. Die alten Klick-Events zeigten seit Februar 2026
-  ins Leere. Kauf-Buttons haben bewusst keinen Klick, sie spielen eigene
-  Select-/Kauf-Sounds; der Start-Button hatte nie einen.
-- **Musik nicht an zwei Stellen steuern.** `PlayerMotor.StartRunning()` rief früher
-  zusätzlich einen Musik-Stopp auf und würgte damit die gerade gestartete
-  Spielmusik ab. Musik gehört ausschließlich in `GameManager`.
+- **Nichts in der Szene zeigt aufs AudioSystem.** Es überlebt den Reload per
+  `DontDestroyOnLoad`, die Kopie aus der neu geladenen Szene zerstört sich in
+  `Awake()`. Eine Inspector-Referenz oder ein persistenter OnClick-Aufruf darauf
+  zeigt nach dem ersten Reload ins Leere. Alles geht deshalb über
+  `AudioSystem.Instance`, und das AudioSystem selbst kennt nichts in der Szene:
+  - Die Bedienelemente unter `UI/Settings` (`NewSoundsToggle` „Use new Sound“,
+    `VolumeSlider`, `SfxButton`, `MusicButton`) verbindet seit v1.5.0 der
+    `SettingsScreen` am selben Screen, in `OnEnable`, und zeigt dabei den Stand
+    des AudioSystem. Ein neues Bedienelement für den Ton kommt dorthin. Bis v1.4.13
+    hielt das AudioSystem die Referenzen selbst und übernahm sie nach jedem Reload
+    von seiner Szenenkopie (`AdoptSceneReferencesFrom`). Geprüft in v1.5.0 über die
+    echten Buttons: Öffnen aus Hauptmenü und Pause, alle vier Elemente umschalten,
+    Szene neu laden, der neue Stand ist zu sehen und lässt sich zurückschalten.
+  - Klicksounds kommen von der Komponente `ButtonClickSound` am jeweiligen Button.
+    Die alten Klick-Events zeigten seit Februar 2026 ins Leere. Kauf-Buttons haben
+    bewusst keinen Klick, sie spielen eigene Select-/Kauf-Sounds; der Start-Button
+    hatte nie einen. Die beiden Stumm-Schalter spielen ihren Klick seit v1.5.0 über
+    den `SettingsScreen`, nach dem Umschalten: Wer die SFX ausschaltet, hört
+    keinen Klick, wer sie einschaltet, hört ihn. Vorher ergab sich das nur aus der
+    Reihenfolge, in der die Listener dazukamen.
+  - Auf den Spielverlauf hört es über die statischen Ereignisse des `GameManager`
+    (seit v1.5.0, siehe „Spielzustand“). Die brauchen keine Referenz und überleben
+    den Reload. Die Kopie aus der neu geladenen Szene meldet sich gar nicht erst an.
+- **Musik und Motor regelt nur das AudioSystem,** nach dem Spielzustand (seit
+  v1.5.0). Die Methoden dafür sind privat, Musik oder Motor von anderswo zu steuern,
+  kompiliert also nicht. Bis v1.4.13 teilten sich `GameManager`,
+  `PlayerMotor` und `PauseMenu` diese Aufgabe, und ein Musik-Stopp in
+  `PlayerMotor.StartRunning()` würgte früher die gerade gestartete Spielmusik ab.
+  Einzelne Sounds (Explosion, Münze, Klicks, Kauf) spielt weiter, wer sie auslöst.
 - **Mute ist Pause, nicht Lautstärke 0.** Musik wird pausiert (Position bleibt
   erhalten, Dekodierung stoppt wirklich), SFX werden gar nicht erst abgespielt.
-  Seit v1.4.4 hält `GameManager.HandleDeath` die Musik beim Tod genauso an
-  (`PauseMusic`), ein Revive setzt sie an derselben Stelle fort (`ResumeMusic`).
+  Beim Tod hält das Spiel die Musik seit v1.4.4 genauso an (`PauseMusic`, heute bei
+  `ShipCrashed`), ein Revive setzt sie an derselben Stelle fort (`ResumeMusic` bei
+  `ShipRevived`).
   Ein eigenes Flag (`m_isMusicOnHold`) hält beides auseinander: Entstummen auf dem
   Todesbildschirm startet die Musik nicht, ein Revive startet keine
   stummgeschaltete. Zurück ins Menü hebt `PlayMenuMusic` den Hold auf.
@@ -1196,9 +1429,11 @@ Für ein Licht ohne Schatten rendert URP eine leere Shadow Map und schaltet
 `_MAIN_LIGHT_SHADOWS` trotzdem ein, so kommt es mit weniger Shader-Varianten aus.
 `_ADDITIONAL_LIGHTS` startete in jedem Pixel eine Schleife über null Lichter. Jetzt
 sind beide Schlüsselwörter aus (nach einem Kamera-Render ausgelesen), Haupt- und
-Hangar-Kamera rendern bitgleich wie vorher. Wie viel das auf dem Handy spart, zeigt
-erst die Messung am Ende von v1.5.0. Der nächste Build schreibt dazu neue
-`m_Prefilter…`-Werte ins Asset (siehe unten). Kommen im Remaster (v1.7.0) Schatten
+Hangar-Kamera rendern bitgleich wie vorher. Wie viel das auf dem Handy spart, ist
+nicht einzeln gemessen, in v1.5.0 brauchte die GPU dort 5,5 bis 7 ms pro Frame (siehe
+„Messen auf dem Handy“). Der erste Build danach schrieb neue `m_Prefilter…`-Werte ins
+Asset, seit v1.5.0 im Repo: Builds lassen die Shader-Varianten für Schatten und
+zusätzliche Lichter jetzt weg (siehe unten). Kommen im Remaster (v1.7.0) Schatten
 oder weitere Lichter dazu, beides hier wieder einschalten, sonst bleiben sie
 unsichtbar.
 
@@ -1364,6 +1599,107 @@ Format, rund 60 Zeilen Diff ohne inhaltliche Änderung. Die Max-Size steht im Ei
 mit), der Alphakanal unter `alphaUsage`, 0 heißt None. Danach
 `AssetDatabase.ImportAsset` mit `ImportAssetOptions.ForceUpdate`: Unity importiert
 neu, schreibt die Datei aber nicht um.
+
+## Messen auf dem Handy
+
+Seit v1.5.0 gibt es Messwerte vom Handy, bisher von einem Gerät: Pixel 9 Pro (Android
+17, Tensor G4 mit Mali-G715), 960×2142 bei „High resolution“, Display mit 60 bis 120
+Hz. Mehr Handys kommen mit den Tests vor v2.0 (siehe „Arbeitsweise“).
+
+**Stand v1.5.0** (Messbuild, Menü, Hangar und Run, dazu ein Run über 10 Minuten):
+
+- 60,0 FPS überall. Am Display kamen 0 bis 0,03 % der Frames zu spät an.
+- Der Main Thread arbeitet in Menü und Hangar 5,5 ms, im Run 6,2 bis 7,3 ms, mit dem
+  Tempo steigend, von 16,7 ms pro Frame. Die GPU braucht 5,5 bis 7 ms (abgelesen in
+  den Läufen mit Vulkan und mit Multithreaded Rendering, siehe unten). Draw Calls:
+  Menü 11, Hangar 12, Run 195.
+- GC: 48 bis 134 Byte pro Frame, im Run ein inkrementeller Durchlauf pro Minute,
+  keiner über 3 ms, Heap höchstens 4,5 MB. Am meisten legt das Input System selbst an,
+  dann der `TileManager` (jeder Abschnitt per `Instantiate`, der alte per `Destroy`,
+  kein Pool), der Münzstaub und der Score-Text.
+- Speicher über 10 Minuten ohne Anstieg. Der Release-Build belegt 313 bis 316 MB
+  (PSS), v1.4.5 belegte 365 bis 373 MB, vor allem wegen der Texturen aus v1.4.12. Die
+  APK hat 68,2 statt 73,0 MB.
+- Nach 10 Minuten GPU 42 bis 43 °C, Gehäuse 34 °C, keine Drosselung.
+- Die Font-Textur baut sich im Run bei fast jeder neuen Score-Zahl neu auf, bis 8-mal
+  pro Sekunde, je 0,2 bis 0,4 ms (`Font.CacheFontForText`), im Menü nie. Mit TextMesh
+  Pro im UI Overhaul (v1.5.1) fällt das weg.
+
+**Die Bildausgabe hat zwei Phasen.** Zeitweise wartet der Main Thread in jedem Frame
+2 bis 3,5 ms im Blit auf einen freien Bildpuffer statt in `WaitForTargetFPS`, und ein
+Bild braucht vom Abschicken bis aufs Display rund 37 statt 24 ms. FPS bleiben 60. In
+den Messungen war das 22 bis 41 % der Zeit so, eingeleitet von einem Frame mit langem
+Blit. Frame-Zeiten deshalb nicht direkt vergleichen, sondern die Arbeit: PlayerLoop
+minus `WaitForTargetFPS` minus `Graphics.PresentAndSync`.
+
+**Entschieden in v1.5.0** (Oktober 2026), jede Einstellung einzeln gegen denselben
+Messbuild gemessen:
+
+| Einstellung | bleibt | gemessen |
+|---|---|---|
+| Blit Type | „Always“ | „Auto“ spart den Blit, aber das Warten wandert in den Render von URP, und die Bildfolge wird unruhig: 0,56 % der Frames kamen zu spät aufs Display |
+| Optimized Frame Pacing | aus | hält die Bildausgabe gleichmäßig bei 25 ms. Unitys Frame-Zeiten und damit `Time.deltaTime` schwanken dafür stärker (99 % unter 22 bis 25 statt 18 ms), ob man das sieht, ist nicht geprüft |
+| Multithreaded Rendering | aus | Main Thread im Run 6,4 statt 7,9 ms beschäftigt, aber jedes Bild kommt einen Frame später aufs Display (über 30 statt 24 ms). Zusammen mit Frame Pacing wieder 25 ms |
+| Grafik-API | nur OpenGL ES 3 | Vulkan zeigte das Bild fehlerfrei, Main Thread 7,0 statt 7,9 ms, aber wie Multithreaded Rendering einen Frame später (rund 36 ms) |
+| Run In Background | an | aus rendert das Spiel bei heruntergezogener Leiste nicht mehr (an: 60 FPS hinter der Leiste), die Auto-Pause greift trotzdem. Gilt aber auch im Editor, siehe unten |
+| Frame Timing Stats | an | brauchen der Rendering Debugger („Display Stats“) und die Messung, vor v2.0 entscheiden |
+
+- Frame Pacing, Multithreaded Rendering und Vulkan kommen mit den Tests auf mehr Handys
+  vor v2.0 wieder auf den Tisch, am ehesten zusammen. Für Displays mit 90 Hz spricht
+  eher etwas für Frame Pacing: Laut einem Unity-Mitarbeiter (2021) schaltet es
+  Displays, die das können, auf 60 Hz um. Multithreaded Rendering war für Android
+  schon im ersten Stand des Repos aus (`mobileMTRendering` nennt nur iPhone und tvOS),
+  Unity hat es in neuen Projekten an.
+- **„Run In Background“** steht in den Player Settings für alle Plattformen, auch für
+  den Editor: Laut Unity-Forum hält der Editor den Play Mode dann an, sobald er den
+  Fokus verliert, und die CLI-Tests laufen oft mit Unity im Hintergrund. Geprüft ist
+  das nicht, beim Versuch in v1.5.0 hatte Unity den Fokus, und beide Einstellungen
+  liefen gleich. Nur fürs Handy ginge es im Code (`Application.runInBackground`), ob
+  Android den Wert zur Laufzeit übernimmt, ist nicht geprüft.
+
+**So misst man** (Stand v1.5.0):
+
+- **Messbuild:** Development Build mit Autoconnect Profiler und der Managed Code
+  Variant „Checked“, sonst fehlen Test-Panel und der Haken „Invincible“ (siehe
+  „Tests“). Damit die Player Settings auf Release bleiben, ein eigenes Build-Profil
+  als Kopie des Android-Profils anlegen, mit einem Player-Settings-Override und darin
+  „Checked“. Per `eval` geht das über `BuildProfileDataSource.DuplicateAsset`,
+  `BuildProfileModuleUtil.CreatePlayerSettingsFromGlobal` und
+  `SerializePlayerSettings` (alle intern, per Reflection,
+  `BuildProfile.CreateBuildProfile` scheitert aus `eval`), dann bei aktivem Profil
+  `PlayerSettings.SetManagedCodeVariant`, das schreibt in den Override. Bauen mit
+  `unity command build --outputPath Builds/<Name>.apk --profileName <Name> --options
+  '["Development","ConnectWithProfiler"]' --confirm true`: Das Kommando aktiviert das
+  Profil, nimmt Development und Profiler aber nur aus `--options`, als JSON-Array.
+- **Danach aufräumen:** `BuildProfile.SetActiveBuildProfile(null)`, das Profil löschen
+  und die URP Global Settings zurücksetzen. Der Override ist eine vollständige Kopie
+  der Player Settings und veraltet mit der nächsten Änderung dort, etwa der
+  `bundleVersion`. Mess-Builds schreiben außerdem `RenderingDebuggerRuntimeResources`
+  in die Global Settings, das gehört nicht ins Repo.
+- **Profiler über USB:** `adb forward tcp:34999
+  localabstract:Unity-com.ANIMOGames.SpaceEscaper`, dann im Editor
+  `ProfilerDriver.DirectIPConnect("127.0.0.1:34999")`. `adb` liegt im Android-SDK des
+  Editors (`…/PlaybackEngines/AndroidPlayer/SDK/platform-tools/`).
+- **Android misst selbst,** auch in Release-Builds: `dumpsys SurfaceFlinger --timestats`
+  (wann jedes Bild am Display ankam), `dumpsys meminfo com.ANIMOGames.SpaceEscaper`
+  (Speicher als PSS) und `dumpsys thermalservice` (Temperaturen, Drosselung).
+- **APK-Größe** aus den Einträgen der APK zählen, nicht aus der Dateigröße:
+  Inkrementelle Builds lassen bis 20 MB Lücken in der Datei. Ein Messbuild (123 MB) ist
+  nicht mit der Release-APK vergleichbar.
+- **Spielen per adb:** `adb shell input tap x y` auf Punkte, die man pro Handy und
+  Auflösung aus einem Screenshot abliest (`adb exec-out screencap -p`). Für Runs über
+  Minuten den Haken „Invincible“ setzen und in den Entwickleroptionen „Wach bleiben“
+  an, das Spiel setzt kein `Screen.sleepTimeout`. Eine Benachrichtigung oben fängt
+  Taps ab, vorher `adb shell cmd statusbar collapse`. Ob ein Tap ankam, per Screenshot
+  prüfen: In v1.5.0 ging einmal auch ohne Benachrichtigung einer verloren.
+- **Vergleichen:** Varianten erst messen, wenn das Handy wieder auf Ruhetemperatur ist
+  (am Ladekabel GPU rund 43 °C), und die Basis zur Gegenprobe noch einmal. Die GPU-Zeit
+  aus Frame Timing taugt nicht als absolute Zahl: Die GPU taktet herunter, bis ihre
+  Arbeit gerade in den Frame passt (im Basis-Build 16 bis 20 ms).
+- **Im Log** (`adb logcat -s Unity`) steht beim Start ein `ClassNotFoundException` für
+  `com.google.android.play.core.assetpacks.AssetPackManager`: Unity sucht Play Asset
+  Delivery, das Spiel nutzt es nicht. Ähnliches meldeten laut Unity auch leere
+  Projekte, das Spiel läuft danach normal.
 
 ## Sprache
 

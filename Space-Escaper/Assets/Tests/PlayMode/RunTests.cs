@@ -97,10 +97,11 @@ namespace SpaceEscaper.Tests
             FloatingOrigin.WorldShifted -= FloatingOrigin_WorldShifted;
         }
 
-        // Start, crash and revive through the buttons of the game. The revive must not
-        // crash the ship again: the obstacle that killed it is only destroyed at the end
-        // of the frame, and the ship flies on in that same frame. All along, the world
-        // moves back to the origin every few units, and nothing on screen may jump.
+        // Start, crash and revive through the buttons of the game. The score stands still on
+        // the death screen, and the revive must not crash the ship again: the obstacle that
+        // killed it is only destroyed at the end of the frame, and the ship flies on in that
+        // same frame. All along, the world moves back to the origin every few units, and
+        // nothing on screen may jump.
         [UnityTest]
         public IEnumerator ShipCrashesAndFliesOnAfterRevive()
         {
@@ -109,6 +110,7 @@ namespace SpaceEscaper.Tests
             yield return null;
 
             GameManager gameManager = GameManager.Instance;
+            RunScore runScore = Object.FindAnyObjectByType<RunScore>();
             m_ship = Object.FindAnyObjectByType<PlayerMotor>().transform;
             m_camera = Object.FindAnyObjectByType<CameraMotor>().transform;
             FloatingOrigin floatingOrigin = Object.FindAnyObjectByType<FloatingOrigin>();
@@ -116,19 +118,19 @@ namespace SpaceEscaper.Tests
             floatingOrigin.Distance = k_FloatingOriginDistance;
             FindTileManagersAndGroups();
 
-            Button playButton = FindButtonCalling<GameManager>(nameof(GameManager.Play));
-            Button pauseButton = FindButtonCalling<PauseMenu>(nameof(PauseMenu.Pause));
-            Button reviveButton = FindButtonCalling<GameManager>(nameof(GameManager.RequestRevive));
-            m_continueButton = FindButtonCalling<PauseMenu>(nameof(PauseMenu.Continue));
+            Button startButton = FindScreen<MainMenuScreen>().StartButton;
+            Button pauseButton = FindScreen<GameMenuScreen>().PauseButton;
+            Button reviveButton = FindScreen<DeathMenuScreen>().ReviveButton;
+            m_continueButton = FindScreen<PauseMenuScreen>().ContinueButton;
 
-            yield return Tap(playButton);
-            Assert.That(gameManager.IsRunActive, Is.True, "Play did not start a run");
+            yield return Tap(startButton);
+            Assert.That(gameManager.State, Is.EqualTo(GameState.Run), "Play did not start a run");
             Assert.That(pauseButton.gameObject.activeInHierarchy, Is.True, "No game menu during the run");
 
             // Straight down the middle lane until the first obstacle.
             float startTime = Time.time;
             WatchFromHere();
-            while (gameManager.IsRunActive)
+            while (gameManager.State != GameState.Dead)
             {
                 Assert.That(Time.time - startTime, Is.LessThan(k_MaxTimeToCrash), "No crash flying straight");
                 AssertNothingJumped();
@@ -141,7 +143,9 @@ namespace SpaceEscaper.Tests
             Assert.That(reviveButton.gameObject.activeInHierarchy, Is.True, "No death menu with the revive button");
             AssertDeathIsSaved();
 
+            int deathScore = runScore.Score;
             yield return new WaitForSeconds(k_TimeOnDeathScreen);
+            Assert.That(runScore.Score, Is.EqualTo(deathScore), "The score counted on after the crash");
             int shiftsBeforeRevive = m_shiftCount;
             WatchFromHere();
             yield return Tap(reviveButton);
@@ -150,7 +154,8 @@ namespace SpaceEscaper.Tests
             while (GetPlace(m_ship) < crashPlace + k_DistanceAfterRevive)
             {
                 float distance = GetPlace(m_ship) - crashPlace;
-                Assert.That(gameManager.IsRunActive, Is.True, $"Crashed again {distance:0.0} units after the revive");
+                Assert.That(gameManager.State, Is.Not.EqualTo(GameState.Dead),
+                    $"Crashed again {distance:0.0} units after the revive");
                 Assert.That(Time.time - reviveTime, Is.LessThan(k_MaxTimeToFlyOn), "Did not fly on after the revive");
                 AssertNothingJumped();
                 yield return NextFrame();
@@ -161,25 +166,12 @@ namespace SpaceEscaper.Tests
                 "The world did not move back after the revive");
         }
 
-        private static Button FindButtonCalling<T>(string methodName) where T : Object
+        // Every screen but the main menu is switched off until the game gets there.
+        private static T FindScreen<T>() where T : Object
         {
-            foreach (GameObject root in SceneManager.GetActiveScene().GetRootGameObjects())
-            {
-                foreach (Button button in root.GetComponentsInChildren<Button>(true))
-                {
-                    for (int i = 0; i < button.onClick.GetPersistentEventCount(); i++)
-                    {
-                        if (button.onClick.GetPersistentTarget(i) is T
-                            && button.onClick.GetPersistentMethodName(i) == methodName)
-                        {
-                            return button;
-                        }
-                    }
-                }
-            }
-
-            Assert.Fail($"No button calls {typeof(T).Name}.{methodName}");
-            return null;
+            T screen = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
+            Assert.That(screen, Is.Not.Null, $"No {typeof(T).Name} in the scene");
+            return screen;
         }
 
         // Taps the middle of the button at the start of the next frame, before any
@@ -212,7 +204,7 @@ namespace SpaceEscaper.Tests
         // The test then taps Continue like a player would.
         private IEnumerator NextFrame()
         {
-            if (PauseMenu.IsPaused)
+            if (GameManager.Instance.State == GameState.Paused)
             {
                 TestContext.WriteLine("Paused by a focus change, tapping Continue");
                 yield return Tap(m_continueButton);
@@ -298,7 +290,8 @@ namespace SpaceEscaper.Tests
             float shipPlace = GetPlace(m_ship);
             float cameraPlace = GetPlace(m_camera);
             Assert.That(shipPlace - m_lastShipPlace, Is.InRange(0f, k_MaxStepPerFrame), "The ship jumped");
-            Assert.That(Mathf.Abs(cameraPlace - m_lastCameraPlace), Is.LessThan(k_MaxStepPerFrame), "The camera jumped");
+            Assert.That(Mathf.Abs(cameraPlace - m_lastCameraPlace), Is.LessThan(k_MaxStepPerFrame),
+                "The camera jumped");
             m_lastShipPlace = shipPlace;
             m_lastCameraPlace = cameraPlace;
 

@@ -545,31 +545,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 143062968}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939688}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: SwitchToMainCamera
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: CloseShop
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &143062968
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -858,6 +834,7 @@ GameObject:
   - component: {fileID: 269171262}
   - component: {fileID: 269171261}
   - component: {fileID: 269171264}
+  - component: {fileID: 269171265}
   m_Layer: 5
   m_Name: Skin1
   m_TagString: Untagged
@@ -927,19 +904,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 269171262}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 7da15d311d4bb4443b78743a2ff03870, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &269171262
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -990,6 +955,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &269171265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 269171259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: 7da15d311d4bb4443b78743a2ff03870, type: 2}
 --- !u!1 &291592508
 GameObject:
   m_ObjectHideFlags: 0
@@ -1447,19 +1425,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 371028210}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: Play
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &371028210
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1656,31 +1622,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 412622605}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939688}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: SwitchToShopCamera
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: OpenShop
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &412622605
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1819,6 +1761,7 @@ GameObject:
   - component: {fileID: 429675296}
   - component: {fileID: 429675295}
   - component: {fileID: 429675298}
+  - component: {fileID: 429675299}
   m_Layer: 5
   m_Name: Skin1
   m_TagString: Untagged
@@ -1888,19 +1831,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 429675296}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 8d40fb8e37e3f3c4f8ff3d318050303b, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &429675296
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1951,6 +1882,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &429675299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 429675293}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: 8d40fb8e37e3f3c4f8ff3d318050303b, type: 2}
 --- !u!1 &432122546
 GameObject:
   m_ObjectHideFlags: 0
@@ -2185,6 +2129,54 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1582745176265078798, guid: f750bd685226a95468c9a3dbb0340461, type: 3}
   m_PrefabInstance: {fileID: 3856785022399948892}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &536545197
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 536545198}
+  - component: {fileID: 536545199}
+  m_Layer: 0
+  m_Name: Hangar
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &536545198
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 536545197}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1697231181}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &536545199
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 536545197}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 307b67b0677f2ee4e8e1b2bad7646b9b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.Hangar
+  m_mainCamera: {fileID: 963194225}
+  m_shopCamera: {fileID: 1515923163}
+  m_building: {fileID: 963956904}
+  m_stand: {fileID: 1704399809}
 --- !u!1 &542682659
 GameObject:
   m_ObjectHideFlags: 0
@@ -2289,6 +2281,7 @@ MonoBehaviour:
   m_tileLength: 60
   m_numberOfTiles: 4
   m_recycleDistance: 55
+  m_respawnsOnRevive: 1
   m_player: {fileID: 521938649}
 --- !u!4 &560458633
 Transform:
@@ -2318,6 +2311,7 @@ GameObject:
   - component: {fileID: 677251740}
   - component: {fileID: 677251739}
   - component: {fileID: 677251742}
+  - component: {fileID: 677251743}
   m_Layer: 5
   m_Name: Skin3
   m_TagString: Untagged
@@ -2387,19 +2381,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 677251740}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: b79db8fe7f8c832489b323c862d26bb8, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &677251740
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2450,6 +2432,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &677251743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 677251737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: b79db8fe7f8c832489b323c862d26bb8, type: 2}
 --- !u!1 &693517851
 GameObject:
   m_ObjectHideFlags: 0
@@ -2575,7 +2570,6 @@ GameObject:
   - component: {fileID: 748637066}
   - component: {fileID: 748637065}
   - component: {fileID: 748637064}
-  - component: {fileID: 748637068}
   m_Layer: 5
   m_Name: SfxButton
   m_TagString: Untagged
@@ -2684,18 +2678,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 90}
   m_SizeDelta: {x: 270, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &748637068
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 748637063}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
 --- !u!1 &762442800
 GameObject:
   m_ObjectHideFlags: 0
@@ -2779,19 +2761,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 762442803}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: ShowNextFamily
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &762442803
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3151,31 +3121,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 945269657}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: RequestRevive
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
-      - m_Target: {fileID: 560458632}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: RespawnTiles
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &945269657
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3489,14 +3435,6 @@ MonoBehaviour:
   m_newBank: {fileID: 11400000, guid: 71f0633b606c6e445824d2b81e6e152c, type: 2}
   m_musicGroup: {fileID: -2818333909563224602, guid: 4a4560b5319f89b47bb380832986cda4, type: 2}
   m_sfxGroup: {fileID: -3047560730045583044, guid: 4a4560b5319f89b47bb380832986cda4, type: 2}
-  m_sfxButton: {fileID: 748637064}
-  m_sfxOnSprite: {fileID: 21300000, guid: 88922a26b6d4aa24e882e1f53c257600, type: 3}
-  m_sfxOffSprite: {fileID: 21300000, guid: 339a22fdb953476488aff8380f5950e9, type: 3}
-  m_musicButton: {fileID: 2051524505}
-  m_musicOnSprite: {fileID: 21300000, guid: 4f9f62188ff399241b3423a4556adeff, type: 3}
-  m_musicOffSprite: {fileID: 21300000, guid: 4b127bf3d82e9eb42b1b32d7bcee2965, type: 3}
-  m_newSoundsToggle: {fileID: 993446568}
-  m_volumeSlider: {fileID: 1557535780}
 --- !u!1 &1005584817
 GameObject:
   m_ObjectHideFlags: 0
@@ -3735,6 +3673,7 @@ GameObject:
   - component: {fileID: 1074951826}
   - component: {fileID: 1074951829}
   - component: {fileID: 1074951828}
+  - component: {fileID: 1074951830}
   m_Layer: 5
   m_Name: Settings
   m_TagString: Untagged
@@ -3847,6 +3786,29 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1074951830
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1074951823}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 954dcc6f69927f7499b6582e09fe2547, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.SettingsScreen
+  m_gameManager: {fileID: 1727939685}
+  m_screens: {fileID: 1423978557}
+  m_backButton: {fileID: 2093410636}
+  m_sfxButton: {fileID: 748637064}
+  m_sfxOnSprite: {fileID: 21300000, guid: 88922a26b6d4aa24e882e1f53c257600, type: 3}
+  m_sfxOffSprite: {fileID: 21300000, guid: 339a22fdb953476488aff8380f5950e9, type: 3}
+  m_musicButton: {fileID: 2051524505}
+  m_musicOnSprite: {fileID: 21300000, guid: 4f9f62188ff399241b3423a4556adeff, type: 3}
+  m_musicOffSprite: {fileID: 21300000, guid: 4b127bf3d82e9eb42b1b32d7bcee2965, type: 3}
+  m_newSoundsToggle: {fileID: 993446568}
+  m_volumeSlider: {fileID: 1557535780}
 --- !u!1 &1102950296
 GameObject:
   m_ObjectHideFlags: 0
@@ -4201,19 +4163,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1226099502}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: ReturnToMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1226099502
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4347,19 +4297,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1228001203}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939686}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: Pause
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1228001203
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4647,19 +4585,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1238864882}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939686}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: Continue
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: PauseMenu.Continue
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1238864882
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4950,6 +4876,7 @@ GameObject:
   - component: {fileID: 1359237626}
   - component: {fileID: 1359237628}
   - component: {fileID: 1359237627}
+  - component: {fileID: 1359237629}
   m_Layer: 5
   m_Name: Shop
   m_TagString: Untagged
@@ -5021,6 +4948,30 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1359237629
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1359237625}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fad758622cca10f4b91360e2e14d97f1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShopScreen
+  m_gameManager: {fileID: 1727939685}
+  m_shipCatalog: {fileID: 11400000, guid: fe297234d385c7b439976fd733d7bc02, type: 2}
+  m_playerShip: {fileID: 3856785022399948893}
+  m_hangar: {fileID: 536545199}
+  m_backButton: {fileID: 143062967}
+  m_previousFamilyButton: {fileID: 1869573089}
+  m_nextFamilyButton: {fileID: 762442802}
+  m_selectOrBuyButton: {fileID: 1961872709}
+  m_selectOrBuyImage: {fileID: 1555801300}
+  m_selectSprite: {fileID: 21300000, guid: 8a60f25a9cc08ac4ca901f0a0ab12f75, type: 3}
+  m_selectedSprite: {fileID: 21300000, guid: db2d340351c3abc408fc0134cc981c42, type: 3}
+  m_skinButtonContainer: {fileID: 693517852}
 --- !u!1 &1364591721
 GameObject:
   m_ObjectHideFlags: 0
@@ -5109,6 +5060,7 @@ GameObject:
   - component: {fileID: 1415333059}
   - component: {fileID: 1415333062}
   - component: {fileID: 1415333061}
+  - component: {fileID: 1415333063}
   m_Layer: 5
   m_Name: PauseMenu
   m_TagString: Untagged
@@ -5218,6 +5170,23 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1415333063
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1415333057}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16606908891ecc46981dad72c7fb83e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.PauseMenuScreen
+  m_gameManager: {fileID: 1727939685}
+  m_screens: {fileID: 1423978557}
+  m_continueButton: {fileID: 1238864881}
+  m_settingsButton: {fileID: 2050826036}
+  m_exitButton: {fileID: 1530010839}
 --- !u!1 &1423978552
 GameObject:
   m_ObjectHideFlags: 0
@@ -5515,6 +5484,7 @@ GameObject:
   - component: {fileID: 1525575620}
   - component: {fileID: 1525575622}
   - component: {fileID: 1525575621}
+  - component: {fileID: 1525575623}
   m_Layer: 5
   m_Name: MainMenu
   m_TagString: Untagged
@@ -5590,6 +5560,25 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1525575623
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1525575619}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c13bbb9443babf246a66c2702efd7e1f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.MainMenuScreen
+  m_gameManager: {fileID: 1727939685}
+  m_screens: {fileID: 1423978557}
+  m_coinText: {fileID: 333062915}
+  m_highscoreText: {fileID: 25657258}
+  m_startButton: {fileID: 371028209}
+  m_hangarButton: {fileID: 412622604}
+  m_settingsButton: {fileID: 1782927206}
 --- !u!1 &1530010837
 GameObject:
   m_ObjectHideFlags: 0
@@ -5673,19 +5662,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1530010840}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: ReturnToMenu
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1530010840
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5914,6 +5891,7 @@ GameObject:
   - component: {fileID: 1558057361}
   - component: {fileID: 1558057360}
   - component: {fileID: 1558057363}
+  - component: {fileID: 1558057364}
   m_Layer: 5
   m_Name: Skin2
   m_TagString: Untagged
@@ -5983,19 +5961,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1558057361}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 5183dac5b0a3d674a80121e91c89b34b, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1558057361
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6046,6 +6012,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &1558057364
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1558057358}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: 5183dac5b0a3d674a80121e91c89b34b, type: 2}
 --- !u!1 &1592248711
 GameObject:
   m_ObjectHideFlags: 0
@@ -6059,6 +6038,7 @@ GameObject:
   - component: {fileID: 1592248714}
   - component: {fileID: 1592248713}
   - component: {fileID: 1592248716}
+  - component: {fileID: 1592248717}
   m_Layer: 5
   m_Name: Skin2
   m_TagString: Untagged
@@ -6128,19 +6108,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1592248714}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: b0c03b21d60b5464083a63525f0c1c59, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1592248714
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6191,6 +6159,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &1592248717
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1592248711}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: b0c03b21d60b5464083a63525f0c1c59, type: 2}
 --- !u!1 &1592876288
 GameObject:
   m_ObjectHideFlags: 0
@@ -6285,6 +6266,7 @@ GameObject:
   - component: {fileID: 1613078406}
   - component: {fileID: 1613078405}
   - component: {fileID: 1613078408}
+  - component: {fileID: 1613078409}
   m_Layer: 5
   m_Name: Skin2
   m_TagString: Untagged
@@ -6354,19 +6336,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1613078406}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 51e20981c8ff47744a2fcf7771004199, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1613078406
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6417,6 +6387,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &1613078409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1613078403}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: 51e20981c8ff47744a2fcf7771004199, type: 2}
 --- !u!1 &1695910119
 GameObject:
   m_ObjectHideFlags: 0
@@ -6428,6 +6411,7 @@ GameObject:
   - component: {fileID: 1695910120}
   - component: {fileID: 1695910122}
   - component: {fileID: 1695910121}
+  - component: {fileID: 1695910123}
   m_Layer: 5
   m_Name: GameMenu
   m_TagString: Untagged
@@ -6500,6 +6484,25 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
+--- !u!114 &1695910123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1695910119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 79ffe70aecbfe7e4ca3fa155f36ddcf7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.GameMenuScreen
+  m_gameManager: {fileID: 1727939685}
+  m_runScore: {fileID: 2107079580}
+  m_scoreText: {fileID: 788662496}
+  m_coinText: {fileID: 2134079854}
+  m_modifierText: {fileID: 65032485}
+  m_coinIconPop: {fileID: 201166494}
+  m_pauseButton: {fileID: 1228001202}
 --- !u!1 &1697231180
 GameObject:
   m_ObjectHideFlags: 0
@@ -6530,6 +6533,8 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1727939684}
+  - {fileID: 2107079581}
+  - {fileID: 536545198}
   - {fileID: 560458633}
   - {fileID: 1803128863}
   - {fileID: 2097603733}
@@ -6606,6 +6611,17 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 100, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1709971184 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5676667254612968290, guid: f750bd685226a95468c9a3dbb0340461, type: 3}
+  m_PrefabInstance: {fileID: 3856785022399948892}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 172c52e0e115f5a4f91b36ff85c28f89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1727939683
 GameObject:
   m_ObjectHideFlags: 0
@@ -6616,9 +6632,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1727939684}
   - component: {fileID: 1727939685}
-  - component: {fileID: 1727939686}
-  - component: {fileID: 1727939687}
-  - component: {fileID: 1727939688}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -6654,64 +6667,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_screens: {fileID: 1423978557}
-  m_menuCoinText: {fileID: 333062915}
-  m_highscoreText: {fileID: 25657258}
-  m_coinIconPop: {fileID: 201166494}
-  m_scoreText: {fileID: 788662496}
-  m_coinText: {fileID: 2134079854}
-  m_modifierText: {fileID: 65032485}
-  m_spaceport: {fileID: 1838102893}
-  m_shipCatalog: {fileID: 11400000, guid: fe297234d385c7b439976fd733d7bc02, type: 2}
-  m_shipContainer: {fileID: 521938649}
-  m_hangar: {fileID: 963956904}
-  m_shopShipContainer: {fileID: 1704399809}
-  m_selectOrBuyImage: {fileID: 1555801300}
-  m_selectSprite: {fileID: 21300000, guid: 8a60f25a9cc08ac4ca901f0a0ab12f75, type: 3}
-  m_selectedSprite: {fileID: 21300000, guid: db2d340351c3abc408fc0134cc981c42, type: 3}
-  m_skinButtonContainer: {fileID: 693517852}
-  m_deathScoreText: {fileID: 2099850776}
-  m_deathCoinText: {fileID: 432122548}
-  m_reviveButton: {fileID: 945269654}
---- !u!114 &1727939686
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1727939683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 14548e6d7d89071459e43d889a2124e7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_screens: {fileID: 1423978557}
---- !u!114 &1727939687
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1727939683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f104258cfb9e6394a9608541c1e02290, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_screens: {fileID: 1423978557}
---- !u!114 &1727939688
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1727939683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0e1f0185b55269b418cccc353d5988b8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_mainCamera: {fileID: 963194225}
-  m_shopCamera: {fileID: 1515923163}
 --- !u!1 &1766708628
 GameObject:
   m_ObjectHideFlags: 0
@@ -6725,6 +6680,7 @@ GameObject:
   - component: {fileID: 1766708631}
   - component: {fileID: 1766708630}
   - component: {fileID: 1766708633}
+  - component: {fileID: 1766708634}
   m_Layer: 5
   m_Name: Skin3
   m_TagString: Untagged
@@ -6794,19 +6750,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1766708631}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 96189f17e509f9b4780344c8f9f37daa, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1766708631
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6857,6 +6801,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &1766708634
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1766708628}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: 96189f17e509f9b4780344c8f9f37daa, type: 2}
 --- !u!1 &1782927204
 GameObject:
   m_ObjectHideFlags: 0
@@ -6940,19 +6897,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1782927207}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939687}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: Open
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1782927207
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7045,6 +6990,7 @@ MonoBehaviour:
   m_tileLength: 40
   m_numberOfTiles: 8
   m_recycleDistance: 50
+  m_respawnsOnRevive: 0
   m_player: {fileID: 521938649}
 --- !u!4 &1803128863
 Transform:
@@ -7073,6 +7019,7 @@ GameObject:
   - component: {fileID: 1834117909}
   - component: {fileID: 1834117911}
   - component: {fileID: 1834117910}
+  - component: {fileID: 1834117912}
   m_Layer: 5
   m_Name: DeathMenu
   m_TagString: Untagged
@@ -7155,11 +7102,24 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!1 &1838102893 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7498119330060876098, guid: 0177760689e9da04cbce6ca41c09a859, type: 3}
-  m_PrefabInstance: {fileID: 3192047622766872004}
+--- !u!114 &1834117912
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1834117907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8827f3198a0faab41b2f3f563c82cc66, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.DeathMenuScreen
+  m_gameManager: {fileID: 1727939685}
+  m_runScore: {fileID: 2107079580}
+  m_scoreText: {fileID: 2099850776}
+  m_coinText: {fileID: 432122548}
+  m_reviveButton: {fileID: 945269656}
+  m_menuButton: {fileID: 1226099501}
 --- !u!4 &1838102894 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5973768628127239485, guid: 0177760689e9da04cbce6ca41c09a859, type: 3}
@@ -7248,19 +7208,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1869573090}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: ShowPreviousFamily
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1869573090
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7468,19 +7416,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1961872710}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: SelectOrBuyShownShip
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: 
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &1961872710
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7851,19 +7787,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2050826037}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939687}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: Open
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2050826037
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7926,7 +7850,6 @@ GameObject:
   - component: {fileID: 2051524507}
   - component: {fileID: 2051524506}
   - component: {fileID: 2051524505}
-  - component: {fileID: 2051524509}
   m_Layer: 5
   m_Name: MusicButton
   m_TagString: Untagged
@@ -8035,18 +7958,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 270, y: 75}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2051524509
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2051524504}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
 --- !u!1 &2051611498
 GameObject:
   m_ObjectHideFlags: 0
@@ -8060,6 +7971,7 @@ GameObject:
   - component: {fileID: 2051611501}
   - component: {fileID: 2051611500}
   - component: {fileID: 2051611503}
+  - component: {fileID: 2051611504}
   m_Layer: 5
   m_Name: Skin1
   m_TagString: Untagged
@@ -8129,19 +8041,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2051611501}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 4e5834b95b5332d46996599120e1e640, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2051611501
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8192,6 +8092,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &2051611504
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2051611498}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: 4e5834b95b5332d46996599120e1e640, type: 2}
 --- !u!1 &2071121943
 GameObject:
   m_ObjectHideFlags: 0
@@ -8205,6 +8118,7 @@ GameObject:
   - component: {fileID: 2071121946}
   - component: {fileID: 2071121945}
   - component: {fileID: 2071121948}
+  - component: {fileID: 2071121949}
   m_Layer: 5
   m_Name: Skin3
   m_TagString: Untagged
@@ -8274,19 +8188,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2071121946}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939685}
-        m_TargetAssemblyTypeName: SpaceEscaper.GameManager, SpaceEscaper
-        m_MethodName: ShowShip
-        m_Mode: 2
-        m_Arguments:
-          m_ObjectArgument: {fileID: 11400000, guid: 7327900162305d14993caafae5c031ea, type: 2}
-          m_ObjectArgumentAssemblyTypeName: SpaceEscaper.ShipData, SpaceEscaper
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2071121946
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8337,6 +8239,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ButtonClickSound
+--- !u!114 &2071121949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2071121943}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 117fc90139bd5234684dd7d009dca565, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ShipButton
+  m_ship: {fileID: 11400000, guid: 7327900162305d14993caafae5c031ea, type: 2}
 --- !u!1 &2079514299
 GameObject:
   m_ObjectHideFlags: 0
@@ -8629,19 +8544,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 2093410637}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls:
-      - m_Target: {fileID: 1727939687}
-        m_TargetAssemblyTypeName: 
-        m_MethodName: Close
-        m_Mode: 1
-        m_Arguments:
-          m_ObjectArgument: {fileID: 0}
-          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-          m_IntArgument: 0
-          m_FloatArgument: 0
-          m_StringArgument: 
-          m_BoolArgument: 0
-        m_CallState: 2
+      m_Calls: []
 --- !u!114 &2093410637
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8815,6 +8718,52 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2099850774}
   m_CullTransparentMesh: 0
+--- !u!1 &2107079579
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2107079581}
+  - component: {fileID: 2107079580}
+  m_Layer: 0
+  m_Name: RunScore
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &2107079580
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2107079579}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a518fed030a968246b03e5e525514fcd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.RunScore
+  m_gameManager: {fileID: 1727939685}
+  m_ship: {fileID: 1709971184}
+--- !u!4 &2107079581
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2107079579}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1697231181}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2134079852
 GameObject:
   m_ObjectHideFlags: 0
@@ -9131,6 +9080,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f750bd685226a95468c9a3dbb0340461, type: 3}
+--- !u!114 &3856785022399948893 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4301632423632245129, guid: f750bd685226a95468c9a3dbb0340461, type: 3}
+  m_PrefabInstance: {fileID: 3856785022399948892}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f59e8349d83517d4e9da8debd9b1505e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.PlayerShip
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

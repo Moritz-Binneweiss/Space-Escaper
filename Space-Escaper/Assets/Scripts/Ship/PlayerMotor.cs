@@ -28,18 +28,20 @@ namespace SpaceEscaper
         [SerializeField] private GameObject m_explosionVfx;
 
         private CharacterController m_controller;
-        private bool m_isRunning;
         private int m_desiredLane = k_MiddleLane;
         private float m_speed;
         private float m_timeSinceSpeedIncrease;
-
-        public bool IsRunning => m_isRunning;
 
         /// <summary>
         /// Forward speed in units per second. Keeps its value through a crash, so a
         /// revive flies on at the same speed.
         /// </summary>
         public float Speed => m_speed;
+
+        /// <summary>
+        /// How much faster the ship flies than at the start of the run.
+        /// </summary>
+        public float SpeedGain => m_speed - k_StartSpeed;
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         /// <summary>
@@ -48,6 +50,14 @@ namespace SpaceEscaper
         /// or the test panel.
         /// </summary>
         public static bool IsInvincible { get; set; }
+
+        // The editor starts Play Mode without a domain reload, so the switch would keep its value
+        // from the last one. The test menu switches it on again if it is ticked there.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            IsInvincible = false;
+        }
 #endif
 
         private void Start()
@@ -58,7 +68,7 @@ namespace SpaceEscaper
 
         private void Update()
         {
-            if (!m_isRunning)
+            if (GameManager.Instance.State != GameState.Run)
             {
                 return;
             }
@@ -78,9 +88,10 @@ namespace SpaceEscaper
             Move();
         }
 
+        // One move can touch more than one obstacle. Only the first one crashes the ship.
         private void OnControllerColliderHit(ControllerColliderHit hit)
         {
-            if (!hit.gameObject.CompareTag(k_ObstacleTag))
+            if (!hit.gameObject.CompareTag(k_ObstacleTag) || GameManager.Instance.State != GameState.Run)
             {
                 return;
             }
@@ -98,15 +109,6 @@ namespace SpaceEscaper
             Crash();
         }
 
-        public void StartRunning()
-        {
-            m_isRunning = true;
-            AudioSystem.Instance.StartEngine();
-
-            // No music here: GameManager.Play() starts the game track, and stopping
-            // music here would cut it off a frame later.
-        }
-
         // Counts flying time only, so the menu before a run, the death screen before
         // a revive and the pause do not bring the next speed-up closer.
         private void IncreaseSpeedOverTime()
@@ -119,7 +121,6 @@ namespace SpaceEscaper
 
             m_timeSinceSpeedIncrease -= k_SpeedIncreaseInterval;
             m_speed += k_SpeedIncreaseAmount;
-            GameManager.Instance.UpdateModifier(m_speed - k_StartSpeed);
         }
 
         private void ChangeLane(int direction)
@@ -141,12 +142,10 @@ namespace SpaceEscaper
 
         private void Crash()
         {
-            m_isRunning = false;
             GameManager.Instance.HandleDeath();
             GameObject explosion = Instantiate(m_explosionVfx, transform.position, Quaternion.identity);
             Destroy(explosion, k_ExplosionLifetime);
             AudioSystem.Instance.PlayExplosion();
-            AudioSystem.Instance.StopEngine();
         }
     }
 }

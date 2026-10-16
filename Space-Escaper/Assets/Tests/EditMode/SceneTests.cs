@@ -1,13 +1,10 @@
-using System;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Object = UnityEngine.Object;
 
 namespace SpaceEscaper.Tests
 {
@@ -18,14 +15,7 @@ namespace SpaceEscaper.Tests
 
         // Serialized names in Unity's own components, which have no other way in.
         private const string k_ScriptProperty = "m_Script";
-        private const string k_ButtonCallsProperty = "m_OnClick.m_PersistentCalls.m_Calls";
-        private const string k_CallTargetProperty = "m_Target";
-        private const string k_CallMethodProperty = "m_MethodName";
-        private const string k_CallModeProperty = "m_Mode";
-        private const string k_CallStateProperty = "m_CallState";
-        private const string k_CallArgumentsProperty = "m_Arguments";
-        private const string k_ObjectArgumentProperty = "m_ObjectArgument";
-        private const string k_ObjectArgumentTypeProperty = "m_ObjectArgumentAssemblyTypeName";
+        private const string k_StoredCallsProperty = "m_PersistentCalls.m_Calls";
 
         private Scene m_scene;
         private bool m_isOpenedByTest;
@@ -68,26 +58,32 @@ namespace SpaceEscaper.Tests
             Assert.That(objectsWithMissingScripts, Is.Empty);
         }
 
-        // The scene stores each button call as the name of a method. After a rename
-        // in code the button does nothing, without an error.
+        // Buttons and the other controls are connected in code. A call stored in the scene would
+        // run on top of that, and after a rename in code it does nothing, without an error.
         [Test]
-        public void EveryButtonCallFindsItsTargetAndMethod()
+        public void NoEventCallIsStoredInTheScene()
         {
-            List<string> brokenCalls = new List<string>();
-            foreach (Button button in GetComponentsInScene<Button>())
+            List<string> storedCalls = new List<string>();
+            foreach (MonoBehaviour behaviour in GetComponentsInScene<MonoBehaviour>())
             {
-                SerializedProperty calls = new SerializedObject(button).FindProperty(k_ButtonCallsProperty);
-                for (int i = 0; i < calls.arraySize; i++)
+                // A missing script comes back as null, NoScriptIsMissing reports it.
+                if (behaviour == null)
                 {
-                    string problem = FindProblem(calls.GetArrayElementAtIndex(i));
-                    if (problem != null)
+                    continue;
+                }
+
+                SerializedProperty property = new SerializedObject(behaviour).GetIterator();
+                while (property.Next(true))
+                {
+                    if (property.propertyPath.EndsWith(k_StoredCallsProperty) && property.arraySize > 0)
                     {
-                        brokenCalls.Add(GetPath(button.transform) + ": " + problem);
+                        storedCalls.Add(GetPath(behaviour.transform) + ": " + behaviour.GetType().Name + "."
+                            + property.propertyPath);
                     }
                 }
             }
 
-            Assert.That(brokenCalls, Is.Empty);
+            Assert.That(storedCalls, Is.Empty);
         }
 
         // Our components need every reference they show in the Inspector. A gap only
@@ -177,6 +173,25 @@ namespace SpaceEscaper.Tests
             Assert.That(knownScreens, Is.EquivalentTo(screens));
         }
 
+        // The game starts in the main menu, and the scene is saved that way. Another screen
+        // switched on would wake up with the scene, maybe before what it shows is ready, and
+        // only then would the ScreenManager switch it off.
+        [Test]
+        public void OnlyTheMainMenuIsSwitchedOn()
+        {
+            List<string> problems = new List<string>();
+            foreach (Transform screen in GetUiRoot().transform)
+            {
+                bool isMainMenu = screen.GetComponent<MainMenuScreen>() != null;
+                if (screen.gameObject.activeSelf != isMainMenu)
+                {
+                    problems.Add(screen.name + (isMainMenu ? " is off" : " is on"));
+                }
+            }
+
+            Assert.That(problems, Is.Empty);
+        }
+
         // Asteroids and coins only turn while a SpinManager runs. They come with the tiles at
         // runtime, so a missing manager would only show in the game.
         [Test]
@@ -191,60 +206,6 @@ namespace SpaceEscaper.Tests
         public void SceneHasOneFloatingOrigin()
         {
             Assert.That(GetComponentsInScene<FloatingOrigin>(), Has.Count.EqualTo(1));
-        }
-
-        private static string FindProblem(SerializedProperty call)
-        {
-            Object target = call.FindPropertyRelative(k_CallTargetProperty).objectReferenceValue;
-            string methodName = call.FindPropertyRelative(k_CallMethodProperty).stringValue;
-            if (target == null)
-            {
-                return "no target for " + methodName;
-            }
-
-            string callName = target.GetType().Name + "." + methodName;
-            PersistentListenerMode mode =
-                (PersistentListenerMode)call.FindPropertyRelative(k_CallModeProperty).intValue;
-            SerializedProperty arguments = call.FindPropertyRelative(k_CallArgumentsProperty);
-            if (UnityEventBase.GetValidMethodInfo(target, methodName, GetArgumentTypes(mode, arguments)) == null)
-            {
-                return callName + " not found";
-            }
-
-            if (mode == PersistentListenerMode.Object
-                && arguments.FindPropertyRelative(k_ObjectArgumentProperty).objectReferenceValue == null)
-            {
-                return callName + " without its argument";
-            }
-
-            UnityEventCallState state = (UnityEventCallState)call.FindPropertyRelative(k_CallStateProperty).intValue;
-            if (state == UnityEventCallState.Off)
-            {
-                return callName + " switched off";
-            }
-
-            return null;
-        }
-
-        private static Type[] GetArgumentTypes(PersistentListenerMode mode, SerializedProperty arguments)
-        {
-            switch (mode)
-            {
-                case PersistentListenerMode.Object:
-                    string typeName = arguments.FindPropertyRelative(k_ObjectArgumentTypeProperty).stringValue;
-                    return new[] { Type.GetType(typeName, false) ?? typeof(Object) };
-                case PersistentListenerMode.Int:
-                    return new[] { typeof(int) };
-                case PersistentListenerMode.Float:
-                    return new[] { typeof(float) };
-                case PersistentListenerMode.String:
-                    return new[] { typeof(string) };
-                case PersistentListenerMode.Bool:
-                    return new[] { typeof(bool) };
-                default:
-                    // Void, or the arguments of the event itself, of which a click has none.
-                    return Type.EmptyTypes;
-            }
         }
 
         private GameObject GetUiRoot()
