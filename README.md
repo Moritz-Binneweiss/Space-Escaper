@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.4.13 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.5.0 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -143,15 +143,15 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-### **v1.5.0** | Refactoring _(------- --, 2026)_
+### **v1.5.0** | Refactoring _(October 16, 2026)_
 
-- [ ] Reworked and Refactored all Game Engine and Development related things
-- [x] Audio settings menu connects itself to the audio system
-- [x] One game state for menu, hangar, run, pause and death
-- [x] Buttons connected in code instead of in the scene
-- [x] GameManager split into smaller classes
-- [x] Editor enters Play Mode without a domain reload, over ten times faster
-- [x] Performance measured on a phone
+- 🔧 Reworked and Refactored all Game Engine and Development related things
+- 🔊 Audio settings menu connects itself to the audio system
+- 🚦 One game state for menu, hangar, run, pause and death
+- 🔗 Buttons connected in code instead of in the scene
+- 🧩 GameManager split into smaller classes
+- ⚡ Editor enters Play Mode without a domain reload, over ten times faster
+- 📱 Performance measured on a phone
 
 #### **v1.4.13** | Floating Origin _(October 14, 2026)_
 
