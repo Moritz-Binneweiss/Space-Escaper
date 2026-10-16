@@ -235,15 +235,21 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
     Rendering Debugger (`Scripts/Game/TestPanel.cs`), auf dem Handy per
     Dreifinger-Doppeltipp. Im Editor steht es im Play Mode unter Window > Analysis
     > Rendering Debugger und gilt nur für den laufenden Play Mode.
-  - **Nie im Release:** Schalter und Panel stehen unter
+  - **In den Settings** steht seit v1.5.0 dafür auch ein Haken „Invincible“ unter dem
+    Zurück-Button. Der `SettingsScreen` legt ihn in `Awake` als Kopie von „Use new
+    Sound“ an, in der Szene steht er nicht. Auf dem Handy ist er leichter zu treffen
+    als der Dreifinger-Doppeltipp, der auf dem Pixel 9 Pro nicht immer klappte, und er
+    braucht den Rendering Debugger nicht. Der ist in URP 17.6 mit UI Toolkit gebaut:
+    Sein erstes Öffnen kostete dort einen Frame von 561 ms und 10 MB, danach legt er
+    in jedem Frame weiter Speicher an, auch geschlossen.
+  - **Nie im Release:** Schalter, Panel und Haken stehen unter
     `#if UNITY_EDITOR || UNITY_ENABLE_CHECKS`. `UNITY_ENABLE_CHECKS` setzen die
     Managed Code Variants „Checked“ und „Debug“, also genau die Builds, in denen
     es auch den Rendering Debugger gibt. `DEVELOPMENT_BUILD` meldet der
     Unity-Analyzer in Unity 6.6 als veraltet (UAC0009). Der Haken „Development
     Build“ allein setzt keine Variante, für Android steht sie in den Player
     Settings auf Release: Ein solcher Build hat weder Panel noch Rendering Debugger
-    (geprüft in v1.4.12). Auf dem Handy ist das Panel noch nicht ausprobiert, das
-    kommt mit dem Messen am Ende von v1.5.0.
+    (geprüft in v1.4.12).
 - **Ein neuer Test sollte einmal rot gewesen sein.** Den Bug dafür kurz wieder
   einbauen und prüfen, dass der Test ihn findet. So in v1.4.7: Mit dem alten
   Revive-Bug zeigte der Test 13 statt 8 Münzen, ohne den Rückfall aufs Startschiff
