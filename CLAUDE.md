@@ -677,16 +677,18 @@ bei 8.
   `Application.targetFrameRate = 60` einmal beim Start, vor der ersten Szene
   (`RuntimeInitializeOnLoadMethod`). Ohne Ziel rendert Android fest mit 30 FPS,
   vSync ignoriert es dort. Passt 60 nicht glatt in die Bildwiederholrate des
-  Displays, rundet Unity: 90 Hz ergibt 45 FPS, 144 Hz 72 FPS. „Optimized Frame
-  Pacing“ ist aus, damit würde Unity immer abrunden. Im Editor gilt das Ziel nur
-  fürs Game-Fenster.
+  Displays, rundet Unity laut Doku ab, auf die nächste Rate, die glatt hineinpasst:
+  90 Hz ergibt 45 FPS, 144 Hz 48 FPS. Gemessen ist bisher nur ein Display mit 60 und
+  120 Hz, da passt 60 glatt (siehe „Messen auf dem Handy“). „Optimized Frame Pacing“
+  bleibt aus, siehe dort. Im Editor gilt das Ziel nur fürs Game-Fenster.
 - **Garbage Collection inkrementell** seit v1.4.12 (Player Settings > Other
   Settings > „Use incremental GC“, Unitys Standard für neue Projekte, hier war es
   aus). Der GC räumt dann in kleinen Schritten über mehrere Frames auf, statt das
   Spiel für einen ganzen Durchlauf anzuhalten. Bei 60 FPS hat ein Frame 16,7 ms,
   ein voller Durchlauf kann darüber liegen und ruckeln. Wie oft der GC überhaupt
-  läuft, hängt daran, wie viel das Spiel pro Frame neu anlegt. Das zeigt die
-  Messung am Ende von v1.5.0.
+  läuft, hängt daran, wie viel das Spiel pro Frame neu anlegt. Gemessen in v1.5.0
+  auf dem Handy: 48 bis 134 Byte pro Frame, im Run ein Durchlauf pro Minute, keiner
+  über 3 ms (siehe „Messen auf dem Handy“).
 - **Auto Sync Transforms bleibt an** (Project Settings > Physics, Entscheidung
   Oktober 2026), anders als in neuen Unity-Projekten. Unity gleicht bewegte Collider
   damit vor jeder Physik-Abfrage ab, auch vor jedem `CharacterController.Move`. Aus
@@ -787,6 +789,7 @@ bei 8.
   dauert rund 6 Minuten. `Space-Escaper/Builds/` ist von Git ignoriert, der Ordner
   `…_BackUpThisFolder_ButDontShipItWithYourGame` neben der APK enthält nur
   Debug-Symbole. Ein Build ändert zwei URP-Assets, siehe „Render Pipeline: URP“.
+  Messbuilds und wie man auf dem Handy misst, stehen unter „Messen auf dem Handy“.
 - **App-Icon auf Android:** Unity 6 nimmt dafür nur die Android-Icons der Player
   Settings, nicht das Default Icon. Fehlen sie, steckt das Unity-Logo in der APK, so
   vom Wechsel auf Unity 6 bis v1.4.4. Bei `minSdkVersion` 26 gibt es nur noch adaptive
@@ -804,7 +807,9 @@ bei 8.
   Android Extension Pack bringt Geometrie- und Tessellation-Shader, kein Shader im
   Projekt nutzt sie. Die Pflicht stand trotzdem im Manifest
   (`android.hardware.opengles.aep`, required), und der Play Store bietet eine App dann
-  nur Geräten mit AEP an. Ob Vulkan dazukommt, zeigt die Messung am Ende von v1.5.0.
+  nur Geräten mit AEP an. Vulkan kommt vorerst nicht dazu: In v1.5.0 zeigte es auf
+  dem Handy das Bild fehlerfrei, brachte es aber einen Frame später aufs Display
+  (siehe „Messen auf dem Handy“).
 - **Keine Define-Symbole** in den Player Settings (seit v1.4.12). Bis dahin standen
   dort für 19 Plattformen Überbleibsel entfernter Pakete, für Android
   `CROSS_PLATFORM_INPUT` und `MOBILE_INPUT` (Standard Assets),
@@ -852,6 +857,11 @@ bei 8.
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt, auch der `MainMenuScreen` verbindet ihn mit
   nichts. Der Button spielt nur den Klicksound.
+- **Angeschnittene Texte auf schmalen Displays** (gesehen in v1.5.0 auf dem Pixel 9
+  Pro, 20:9): In den Settings zeigt „Use new Sound“ nur „Use new“, die Titel
+  „SETTINGS“ und „PAUSED“ sind links angeschnitten. Vermutlich, weil der Canvas nach
+  der Höhe skaliert (siehe „UI“): Auf 20:9 bleiben rund 360 Einheiten Breite, auf
+  16:9 sind es 450. Gehört zum UI Overhaul (v1.5.1).
 
 ## Spielstand (SaveData)
 
@@ -1419,9 +1429,11 @@ Für ein Licht ohne Schatten rendert URP eine leere Shadow Map und schaltet
 `_MAIN_LIGHT_SHADOWS` trotzdem ein, so kommt es mit weniger Shader-Varianten aus.
 `_ADDITIONAL_LIGHTS` startete in jedem Pixel eine Schleife über null Lichter. Jetzt
 sind beide Schlüsselwörter aus (nach einem Kamera-Render ausgelesen), Haupt- und
-Hangar-Kamera rendern bitgleich wie vorher. Wie viel das auf dem Handy spart, zeigt
-erst die Messung am Ende von v1.5.0. Der nächste Build schreibt dazu neue
-`m_Prefilter…`-Werte ins Asset (siehe unten). Kommen im Remaster (v1.7.0) Schatten
+Hangar-Kamera rendern bitgleich wie vorher. Wie viel das auf dem Handy spart, ist
+nicht einzeln gemessen, in v1.5.0 brauchte die GPU dort 5,5 bis 7 ms pro Frame (siehe
+„Messen auf dem Handy“). Der erste Build danach schrieb neue `m_Prefilter…`-Werte ins
+Asset, seit v1.5.0 im Repo: Builds lassen die Shader-Varianten für Schatten und
+zusätzliche Lichter jetzt weg (siehe unten). Kommen im Remaster (v1.7.0) Schatten
 oder weitere Lichter dazu, beides hier wieder einschalten, sonst bleiben sie
 unsichtbar.
 
@@ -1587,6 +1599,107 @@ Format, rund 60 Zeilen Diff ohne inhaltliche Änderung. Die Max-Size steht im Ei
 mit), der Alphakanal unter `alphaUsage`, 0 heißt None. Danach
 `AssetDatabase.ImportAsset` mit `ImportAssetOptions.ForceUpdate`: Unity importiert
 neu, schreibt die Datei aber nicht um.
+
+## Messen auf dem Handy
+
+Seit v1.5.0 gibt es Messwerte vom Handy, bisher von einem Gerät: Pixel 9 Pro (Android
+17, Tensor G4 mit Mali-G715), 960×2142 bei „High resolution“, Display mit 60 bis 120
+Hz. Mehr Handys kommen mit den Tests vor v2.0 (siehe „Arbeitsweise“).
+
+**Stand v1.5.0** (Messbuild, Menü, Hangar und Run, dazu ein Run über 10 Minuten):
+
+- 60,0 FPS überall. Am Display kamen 0 bis 0,03 % der Frames zu spät an.
+- Der Main Thread arbeitet in Menü und Hangar 5,5 ms, im Run 6,2 bis 7,3 ms, mit dem
+  Tempo steigend, von 16,7 ms pro Frame. Die GPU braucht 5,5 bis 7 ms (abgelesen in
+  den Läufen mit Vulkan und mit Multithreaded Rendering, siehe unten). Draw Calls:
+  Menü 11, Hangar 12, Run 195.
+- GC: 48 bis 134 Byte pro Frame, im Run ein inkrementeller Durchlauf pro Minute,
+  keiner über 3 ms, Heap höchstens 4,5 MB. Am meisten legt das Input System selbst an,
+  dann der `TileManager` (jeder Abschnitt per `Instantiate`, der alte per `Destroy`,
+  kein Pool), der Münzstaub und der Score-Text.
+- Speicher über 10 Minuten ohne Anstieg. Der Release-Build belegt 313 bis 316 MB
+  (PSS), v1.4.5 belegte 365 bis 373 MB, vor allem wegen der Texturen aus v1.4.12. Die
+  APK hat 68,2 statt 73,0 MB.
+- Nach 10 Minuten GPU 42 bis 43 °C, Gehäuse 34 °C, keine Drosselung.
+- Die Font-Textur baut sich im Run bei fast jeder neuen Score-Zahl neu auf, bis 8-mal
+  pro Sekunde, je 0,2 bis 0,4 ms (`Font.CacheFontForText`), im Menü nie. Mit TextMesh
+  Pro im UI Overhaul (v1.5.1) fällt das weg.
+
+**Die Bildausgabe hat zwei Phasen.** Zeitweise wartet der Main Thread in jedem Frame
+2 bis 3,5 ms im Blit auf einen freien Bildpuffer statt in `WaitForTargetFPS`, und ein
+Bild braucht vom Abschicken bis aufs Display rund 37 statt 24 ms. FPS bleiben 60. In
+den Messungen war das 22 bis 41 % der Zeit so, eingeleitet von einem Frame mit langem
+Blit. Frame-Zeiten deshalb nicht direkt vergleichen, sondern die Arbeit: PlayerLoop
+minus `WaitForTargetFPS` minus `Graphics.PresentAndSync`.
+
+**Entschieden in v1.5.0** (Oktober 2026), jede Einstellung einzeln gegen denselben
+Messbuild gemessen:
+
+| Einstellung | bleibt | gemessen |
+|---|---|---|
+| Blit Type | „Always“ | „Auto“ spart den Blit, aber das Warten wandert in den Render von URP, und die Bildfolge wird unruhig: 0,56 % der Frames kamen zu spät aufs Display |
+| Optimized Frame Pacing | aus | hält die Bildausgabe gleichmäßig bei 25 ms. Unitys Frame-Zeiten und damit `Time.deltaTime` schwanken dafür stärker (99 % unter 22 bis 25 statt 18 ms), ob man das sieht, ist nicht geprüft |
+| Multithreaded Rendering | aus | Main Thread im Run 6,4 statt 7,9 ms beschäftigt, aber jedes Bild kommt einen Frame später aufs Display (über 30 statt 24 ms). Zusammen mit Frame Pacing wieder 25 ms |
+| Grafik-API | nur OpenGL ES 3 | Vulkan zeigte das Bild fehlerfrei, Main Thread 7,0 statt 7,9 ms, aber wie Multithreaded Rendering einen Frame später (rund 36 ms) |
+| Run In Background | an | aus rendert das Spiel bei heruntergezogener Leiste nicht mehr (an: 60 FPS hinter der Leiste), die Auto-Pause greift trotzdem. Gilt aber auch im Editor, siehe unten |
+| Frame Timing Stats | an | brauchen der Rendering Debugger („Display Stats“) und die Messung, vor v2.0 entscheiden |
+
+- Frame Pacing, Multithreaded Rendering und Vulkan kommen mit den Tests auf mehr Handys
+  vor v2.0 wieder auf den Tisch, am ehesten zusammen. Für Displays mit 90 Hz spricht
+  eher etwas für Frame Pacing: Laut einem Unity-Mitarbeiter (2021) schaltet es
+  Displays, die das können, auf 60 Hz um. Multithreaded Rendering war für Android
+  schon im ersten Stand des Repos aus (`mobileMTRendering` nennt nur iPhone und tvOS),
+  Unity hat es in neuen Projekten an.
+- **„Run In Background“** steht in den Player Settings für alle Plattformen, auch für
+  den Editor: Laut Unity-Forum hält der Editor den Play Mode dann an, sobald er den
+  Fokus verliert, und die CLI-Tests laufen oft mit Unity im Hintergrund. Geprüft ist
+  das nicht, beim Versuch in v1.5.0 hatte Unity den Fokus, und beide Einstellungen
+  liefen gleich. Nur fürs Handy ginge es im Code (`Application.runInBackground`), ob
+  Android den Wert zur Laufzeit übernimmt, ist nicht geprüft.
+
+**So misst man** (Stand v1.5.0):
+
+- **Messbuild:** Development Build mit Autoconnect Profiler und der Managed Code
+  Variant „Checked“, sonst fehlen Test-Panel und der Haken „Invincible“ (siehe
+  „Tests“). Damit die Player Settings auf Release bleiben, ein eigenes Build-Profil
+  als Kopie des Android-Profils anlegen, mit einem Player-Settings-Override und darin
+  „Checked“. Per `eval` geht das über `BuildProfileDataSource.DuplicateAsset`,
+  `BuildProfileModuleUtil.CreatePlayerSettingsFromGlobal` und
+  `SerializePlayerSettings` (alle intern, per Reflection,
+  `BuildProfile.CreateBuildProfile` scheitert aus `eval`), dann bei aktivem Profil
+  `PlayerSettings.SetManagedCodeVariant`, das schreibt in den Override. Bauen mit
+  `unity command build --outputPath Builds/<Name>.apk --profileName <Name> --options
+  '["Development","ConnectWithProfiler"]' --confirm true`: Das Kommando aktiviert das
+  Profil, nimmt Development und Profiler aber nur aus `--options`, als JSON-Array.
+- **Danach aufräumen:** `BuildProfile.SetActiveBuildProfile(null)`, das Profil löschen
+  und die URP Global Settings zurücksetzen. Der Override ist eine vollständige Kopie
+  der Player Settings und veraltet mit der nächsten Änderung dort, etwa der
+  `bundleVersion`. Mess-Builds schreiben außerdem `RenderingDebuggerRuntimeResources`
+  in die Global Settings, das gehört nicht ins Repo.
+- **Profiler über USB:** `adb forward tcp:34999
+  localabstract:Unity-com.ANIMOGames.SpaceEscaper`, dann im Editor
+  `ProfilerDriver.DirectIPConnect("127.0.0.1:34999")`. `adb` liegt im Android-SDK des
+  Editors (`…/PlaybackEngines/AndroidPlayer/SDK/platform-tools/`).
+- **Android misst selbst,** auch in Release-Builds: `dumpsys SurfaceFlinger --timestats`
+  (wann jedes Bild am Display ankam), `dumpsys meminfo com.ANIMOGames.SpaceEscaper`
+  (Speicher als PSS) und `dumpsys thermalservice` (Temperaturen, Drosselung).
+- **APK-Größe** aus den Einträgen der APK zählen, nicht aus der Dateigröße:
+  Inkrementelle Builds lassen bis 20 MB Lücken in der Datei. Ein Messbuild (123 MB) ist
+  nicht mit der Release-APK vergleichbar.
+- **Spielen per adb:** `adb shell input tap x y` auf Punkte, die man pro Handy und
+  Auflösung aus einem Screenshot abliest (`adb exec-out screencap -p`). Für Runs über
+  Minuten den Haken „Invincible“ setzen und in den Entwickleroptionen „Wach bleiben“
+  an, das Spiel setzt kein `Screen.sleepTimeout`. Eine Benachrichtigung oben fängt
+  Taps ab, vorher `adb shell cmd statusbar collapse`. Ob ein Tap ankam, per Screenshot
+  prüfen: In v1.5.0 ging einmal auch ohne Benachrichtigung einer verloren.
+- **Vergleichen:** Varianten erst messen, wenn das Handy wieder auf Ruhetemperatur ist
+  (am Ladekabel GPU rund 43 °C), und die Basis zur Gegenprobe noch einmal. Die GPU-Zeit
+  aus Frame Timing taugt nicht als absolute Zahl: Die GPU taktet herunter, bis ihre
+  Arbeit gerade in den Frame passt (im Basis-Build 16 bis 20 ms).
+- **Im Log** (`adb logcat -s Unity`) steht beim Start ein `ClassNotFoundException` für
+  `com.google.android.play.core.assetpacks.AssetPackManager`: Unity sucht Play Asset
+  Delivery, das Spiel nutzt es nicht. Ähnliches meldeten laut Unity auch leere
+  Projekte, das Spiel läuft danach normal.
 
 ## Sprache
 
