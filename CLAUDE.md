@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 34 Skripte, ~2900 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 34 Skripte, ~3000 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -19,7 +19,8 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `Save/SaveData.cs` (Spielstand), `Ship/ShipData.cs` / `Ship/ShipCatalog.cs`
   (Schiffe).
 - `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, ein PlayMode-Test in
-  `PlayMode/`, siehe „Tests“.
+  `PlayMode/`, siehe „Tests“. Dort liegt auch `TestFrameworkFix`, siehe „Play Mode
+  ohne Domain Reload“ unter „Unity-Besonderheiten“.
 - `Space-Escaper/Assets/Editor/` - das Test-Menü im Editor, siehe „Tests“.
 - `Space-Escaper/Assets/Scenes/Game.unity` - **die einzige Szene**. Menü, Hangar/Shop
   und Gameplay laufen alle darin; "Quit" lädt die Szene komplett neu.
@@ -83,6 +84,15 @@ unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hi
   (`WorldShifted`). Ausgelöst wird es in einer Methode mit `On` davor
   (`OnWorldShifted`), Handler heißen `Subjekt_Event`
   (`FloatingOrigin_WorldShifted`). An- und abmelden in `OnEnable` und `OnDisable`.
+- **Statische Felder setzen sich selbst zurück** (seit v1.5.0), denn der Editor startet
+  den Play Mode ohne Domain Reload (siehe „Play Mode ohne Domain Reload“ unter
+  „Unity-Besonderheiten“). Jede Klasse leert ihre statischen Felder, Events und
+  Properties in einer Methode `ResetStaticState` mit
+  `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]`,
+  in Komponenten vor `Awake`. Die ruft Unity beim Start des Play Mode als Erstes auf,
+  vor dem Laden der Szene. Konstanten und `static readonly`-Werte bleiben, wie sie
+  sind, eine `static readonly`-Liste wird geleert (`SpinManager`). Ein neues
+  statisches Feld gehört mit hinein, sonst meldet es `StaticFieldTests`.
 - **Kommentare** erklären das Warum, nicht das Was. `/// <summary>` nur an
   öffentlichen Membern, wo der Name nicht reicht, `[Tooltip]` statt Kommentar an
   serialisierten Feldern. Kein auskommentierter Code, keine `#region`, keine
@@ -137,7 +147,10 @@ der `ScreenManager` kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außer
 genau einen `SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`. Seit v1.5.0
 steht in der Szene kein Aufruf mehr, den ein Button oder ein anderes Bedienelement
 auslöst. Bis dahin prüfte der Test, dass jeder Button-Aufruf Ziel, Methode und
-Argument findet.
+Argument findet. Seit v1.5.0 prüft `StaticFieldTests`, dass sich jedes statische Feld
+des Spiels beim Start des Play Mode zurücksetzt (siehe „Code-Stil“): Der Test füllt
+alle, ruft die Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
+wieder leer. Danach stellt er die alten Werte wieder her, der Editor liest sie auch.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
@@ -163,8 +176,10 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten. Synchron führt
   das Test Framework nur EditMode-Tests aus, die in einem Frame fertig sind, und
   die CLI meldet 0/0. `--mode all` startet asynchron gar nichts, also beide Modi
-  einzeln. Mit dem Wechsel in den Play Mode dauert er knapp 20 s, also
-  vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Die CLI legt eine
+  einzeln. Mit dem Wechsel in den Play Mode dauert er rund 12 s, also
+  vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Meldet ein asynchroner
+  PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
+  ohne Domain Reload“ unter „Unity-Besonderheiten“). Die CLI legt eine
   `TestResults.xml` neben den Spielstand, die darf weg. Ist die offene Szene
   ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie speichern soll.
   Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
@@ -182,7 +197,8 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   Sichern und zurücklegen ginge nicht sauber: Beim Verlassen des Play Mode speichert
   `AudioSystem.OnApplicationQuit` noch einmal und überschriebe den zurückgelegten
   Stand. Die Umleitung gilt deshalb bis zum Ende des Play Mode, der nächste Start
-  lädt wieder den echten Spielstand.
+  lädt wieder den echten Spielstand, auch ohne Domain Reload: `SaveSystem` lädt bei
+  jedem Start des Play Mode neu.
 - **Tippen wie ein Finger:** Der Test tippt jeden Button an seiner Mitte. Die Buttons
   reichen ihm die Screens (`MainMenuScreen.StartButton` usw., nur für Tests sichtbar).
   Vorher prüft ein Raycast, dass der Tipp dort bei ihm ankommt und nichts darüber liegt.
@@ -211,8 +227,10 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
     ignoriert ein getroffenes Hindernis per `Physics.IgnoreCollision`, statt zu
     crashen, und sammelt weiter Münzen. Am Hindernis hängt es dabei einen Frame
     (gemessen: 3 Frames in 25 s Flug). Der Haken gilt für jeden Play Mode der
-    Editor-Sitzung (`SessionState`), beim Start erinnert eine Zeile in der Konsole
-    daran. Der PlayMode-Test schaltet es für seinen Lauf aus.
+    Editor-Sitzung (`SessionState`): `PlayerMotor` schaltet die Unverwundbarkeit beim
+    Start des Play Mode aus, das Test-Menü bei `EnteredPlayMode` wieder ein, und eine
+    Zeile in der Konsole erinnert daran. Der PlayMode-Test schaltet sie für seinen Lauf
+    aus, auch bei gesetztem Haken (geprüft in v1.5.0).
   - **Im Build** schaltet die Unverwundbarkeit ein Panel „Space Escaper“ im
     Rendering Debugger (`Scripts/Game/TestPanel.cs`), auf dem Handy per
     Dreifinger-Doppeltipp. Im Editor steht es im Play Mode unter Window > Analysis
@@ -247,7 +265,9 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   13,13, nach dem Aufteilen in ganzen Punkten des `RunScore` 16 statt 13. Seit v1.5.0
   fand der Szenen-Test in der Szene des Commits davor alle 23 Button-Aufrufe, und
   „nur das Hauptmenü ist an“ schlug an, sobald in einer Kopie der Szene der Shop an
-  oder das Hauptmenü aus war.
+  oder das Hauptmenü aus war. `StaticFieldTests` fand im Code davor alle 16 statischen
+  Felder und ohne die Zeilen für `Coin.Collected` und die Liste des `SpinManager` genau
+  diese beiden.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -607,6 +627,40 @@ bei 8.
   - Die Analyzer liegen im Ordner der VS-Code-Erweiterung, ihr Pfad enthält deren
     Version. Nach einem Update der Erweiterung stimmt er erst wieder, wenn Unity die
     Projektdateien neu schreibt.
+- **Play Mode ohne Domain Reload** (seit v1.5.0): Project Settings > Editor, „When
+  entering Play Mode“ steht auf „Reload Scene only“ (`m_EnterPlayModeOptions: 1` in
+  `ProjectSettings/EditorSettings.asset`). Beim Start des Play Mode lädt Unity nur die
+  Szene neu, alle Skripte nur noch nach dem Kompilieren. Gemessen in v1.5.0 im Editor:
+  vom Start bis zum ersten Frame 0,07 statt 0,87 s, und die ersten gut 4 s liefen mit
+  60 statt rund 19 FPS, vermutlich weil nach einem Domain Reload der Code erst neu
+  übersetzt wird (JIT).
+  - **Statisches überlebt dafür den Start des Play Mode** und bleibt bis zum nächsten
+    Kompilieren stehen: statische Felder und Events, Handler an statischen Ereignissen
+    von Unity und vom Editor, `AppDomain`-Daten und Änderungen an der Player Loop (die
+    letzten beiden geprüft in v1.5.0). Unsere Klassen setzen ihre statischen Felder
+    deshalb selbst zurück (siehe „Code-Stil“), sonst liefe etwa ein Handler aus dem
+    letzten Play Mode weiter. Wer zum Testen die Player Loop oder Ereignisse von Unity
+    ändert, stellt sie danach wieder her, wie `RunTests` in `TearDown`.
+  - **Editor-Code mit `[InitializeOnLoad]`** läuft nur noch nach dem Kompilieren, nicht
+    bei jedem Start des Play Mode. Was bei jedem Start passieren soll, hängt an
+    `EditorApplication.playModeStateChanged`: `EnteredPlayMode` kommt im ersten Frame,
+    nach den `Awake` der Szene. So setzt das Test-Menü den Haken „Invincible“, bis
+    v1.4.13 tat es das im statischen Konstruktor.
+  - **Fehler im Test Framework 1.8.0** (neueste Version, Oktober 2026): Ohne Domain
+    Reload laufen PlayMode-Tests nur einmal pro Kompilieren, jeder weitere Lauf findet
+    keinen Test und meldet 0 von 0, auch im Test-Runner-Fenster.
+    `PlayerTestAssemblyProvider` hält die geladenen Test-Assemblies in einer
+    statischen Liste und leert sie beim Start des Play Mode, lädt aber nur nach,
+    solange es gar keine Liste gibt. `Tests/PlayMode/TestFrameworkFix.cs` verwirft die
+    Liste beim Start jedes Play Mode wie ein Domain Reload und warnt in der Konsole,
+    wenn es das Feld nicht mehr findet. Gefunden in v1.5.0, als schon der zweite
+    `RunTests`-Lauf hintereinander 0 von 0 meldete, mit dem Umweg liefen fünf
+    hintereinander grün. Behebt Unity den Fehler, kommt die Datei weg.
+  - Die CLI meldet sich bei jedem Testlauf für die Ergebnisse an und bleibt ohne Domain
+    Reload angemeldet. Die Konsole zeigt dann mehrfach „Run started“ und „Ignoring
+    duplicate RunFinished“, das Ergebnis stimmt trotzdem.
+  - Mit Domain Reload läuft der Code genauso, die Einstellung lässt sich jederzeit
+    zurückstellen.
 - **UI-Texte nicht über die Skalierung vergrößern.** Legacy-`Text` wird in seiner
   Schriftgröße gerastert und dann hochgezogen, das wird unscharf. Größer heißt:
   Schriftgröße und Rect-Größe erhöhen, Skalierung 1 lassen. Der Toggle „Use new

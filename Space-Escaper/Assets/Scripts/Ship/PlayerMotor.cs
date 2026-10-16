@@ -50,6 +50,14 @@ namespace SpaceEscaper
         /// or the test panel.
         /// </summary>
         public static bool IsInvincible { get; set; }
+
+        // The editor starts Play Mode without a domain reload, so the switch would keep its value
+        // from the last one. The test menu switches it on again if it is ticked there.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            IsInvincible = false;
+        }
 #endif
 
         private void Start()

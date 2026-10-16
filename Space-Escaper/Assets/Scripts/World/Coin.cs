@@ -22,6 +22,14 @@ namespace SpaceEscaper
         /// </summary>
         public static event Action Collected;
 
+        // The editor starts Play Mode without a domain reload, so static fields would keep their
+        // values from the last one.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            Collected = null;
+        }
+
         private void OnTriggerEnter(Collider other)
         {
             if (!other.CompareTag(k_PlayerTag))

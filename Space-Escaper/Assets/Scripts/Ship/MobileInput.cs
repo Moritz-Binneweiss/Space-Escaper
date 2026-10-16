@@ -46,6 +46,14 @@ namespace SpaceEscaper
         public bool HasSwipedUp => m_hasSwipedUp;
         public bool HasSwipedDown => m_hasSwipedDown;
 
+        // The editor starts Play Mode without a domain reload, so static fields would keep their
+        // values from the last one.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            Instance = null;
+        }
+
         private void Awake()
         {
             Instance = this;

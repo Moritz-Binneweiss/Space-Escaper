@@ -89,6 +89,14 @@ namespace SpaceEscaper
 
         private AudioBank ClassicSounds => m_classicBank != null ? m_classicBank : EmptyBank;
 
+        // The editor starts Play Mode without a domain reload, so static fields would keep their
+        // values from the last one.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            Instance = null;
+        }
+
         private void Awake()
         {
             if (Instance != null && Instance != this)

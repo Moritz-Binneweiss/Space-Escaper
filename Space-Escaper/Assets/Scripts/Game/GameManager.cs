@@ -39,6 +39,21 @@ namespace SpaceEscaper
         public static event Action ShipCrashed;
         public static event Action ShipRevived;
 
+        // The editor starts Play Mode without a domain reload, so static fields would keep their
+        // values from the last one.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            Instance = null;
+            RunStarted = null;
+            HangarOpened = null;
+            HangarClosed = null;
+            RunPaused = null;
+            RunResumed = null;
+            ShipCrashed = null;
+            ShipRevived = null;
+        }
+
         private void Awake()
         {
             // "Exit" in the pause menu reloads the scene while the time stands still.

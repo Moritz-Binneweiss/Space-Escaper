@@ -31,6 +31,14 @@ namespace SpaceEscaper
         /// </summary>
         public static event Action<Vector3> WorldShifted;
 
+        // The editor starts Play Mode without a domain reload, so static fields would keep their
+        // values from the last one.
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticState()
+        {
+            WorldShifted = null;
+        }
+
         private void Awake()
         {
             // The groups of the scene are empty objects at the origin. They stay there and
