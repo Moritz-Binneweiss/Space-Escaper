@@ -147,9 +147,10 @@ der `ScreenManager` kennt jeden Screen genau einmal. Seit v1.4.12 gibt es außer
 genau einen `SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`. Seit v1.5.0
 steht in der Szene kein Aufruf mehr, den ein Button oder ein anderes Bedienelement
 auslöst. Bis dahin prüfte der Test, dass jeder Button-Aufruf Ziel, Methode und
-Argument findet. Seit v1.5.0 prüft `StaticFieldTests`, dass sich jedes statische Feld
-des Spiels beim Start des Play Mode zurücksetzt (siehe „Code-Stil“): Der Test füllt
-alle, ruft die Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
+Argument findet. Seit v1.5.1 hat die Szene keinen Legacy-`Text` mehr, alle Texte sind
+TextMesh Pro (siehe „Texte“ unter „UI“). Seit v1.5.0 prüft `StaticFieldTests`, dass
+sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
+„Code-Stil“): Der Test füllt alle, ruft die Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
 wieder leer. Danach stellt er die alten Werte wieder her, der Editor liest sie auch.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
@@ -273,7 +274,8 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   „nur das Hauptmenü ist an“ schlug an, sobald in einer Kopie der Szene der Shop an
   oder das Hauptmenü aus war. `StaticFieldTests` fand im Code davor alle 16 statischen
   Felder und ohne die Zeilen für `Coin.Collected` und die Liste des `SpinManager` genau
-  diese beiden.
+  diese beiden. In v1.5.1 fand `NoLegacyTextIsInTheScene` vor dem Umbau alle 9
+  Legacy-Texte.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -299,7 +301,7 @@ nur Ordner.
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
-| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/`, `Mockups.png` |
+| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften und ihre Font Assets für TextMesh Pro), `Mockups.png` |
 
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
@@ -602,10 +604,11 @@ bei 8.
   `TileManager.NextSpawnZ`, seit v1.5.0 für die Buttons der Screens
   (`MainMenuScreen.StartButton` usw.). Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
-  `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket** (etwa TextMesh Pro in
-  v1.5.1), gehört dessen Assembly in die References der `SpaceEscaper.asmdef`, sonst
-  findet der Compiler es nicht. Derzeit stehen dort `Unity.InputSystem`,
-  `Unity.RenderPipelines.Core.Runtime` (für `TestPanel`) und `UnityEngine.UI`. Szene
+  `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket**, gehört dessen Assembly in
+  die References der `SpaceEscaper.asmdef`, sonst findet der Compiler es nicht.
+  Derzeit stehen dort `Unity.InputSystem`, `Unity.RenderPipelines.Core.Runtime` (für
+  `TestPanel`), `Unity.TextMeshPro` (seit v1.5.1, für die Texte der Screens) und
+  `UnityEngine.UI`. Szene
   und Prefabs finden ihre Skripte über deren GUID, der Umzug
   hat nichts gebrochen (geprüft: kein fehlendes Skript, alle 34 OnClick-Aufrufe
   finden ihre Methode).
@@ -667,12 +670,12 @@ bei 8.
     duplicate RunFinished“, das Ergebnis stimmt trotzdem.
   - Mit Domain Reload läuft der Code genauso, die Einstellung lässt sich jederzeit
     zurückstellen.
-- **UI-Texte nicht über die Skalierung vergrößern.** Legacy-`Text` wird in seiner
-  Schriftgröße gerastert und dann hochgezogen, das wird unscharf. Größer heißt:
-  Schriftgröße und Rect-Größe erhöhen, Skalierung 1 lassen. Der Toggle „Use new
-  Sound“ stand seit v1.4.0 auf Skalierung 2 mit Schriftgröße 10 und war deshalb
-  matschig. In v1.4.4 wurde die Skalierung eingebacken: doppelte Maße,
-  Schriftgröße 20, Sliced-Rahmen mit `Pixels Per Unit Multiplier` 0,5.
+- **UI-Texte bleiben auch skaliert scharf,** seit sie TextMesh Pro sind (v1.5.1,
+  siehe „Texte“ unter „UI“): Die Schrift kommt aus einem Signed Distance Field. Der
+  Legacy-`Text` davor wurde in seiner Schriftgröße gerastert und dann hochgezogen,
+  deshalb war der Toggle „Use new Sound“ von v1.4.0 bis v1.4.4 auf Skalierung 2 mit
+  Schriftgröße 10 matschig. Größer heißt trotzdem Schriftgröße und Rect-Größe,
+  Skalierung 1 lassen, sonst passen Rechteck und sichtbarer Text nicht zusammen.
 - **Bildrate: 60 FPS** seit v1.4.5. `FrameRate.cs` setzt
   `Application.targetFrameRate = 60` einmal beim Start, vor der ersten Szene
   (`RuntimeInitializeOnLoadMethod`). Ohne Ziel rendert Android fest mit 30 FPS,
@@ -857,11 +860,15 @@ bei 8.
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt, auch der `MainMenuScreen` verbindet ihn mit
   nichts. Der Button spielt nur den Klicksound.
-- **Angeschnittene Texte auf schmalen Displays** (gesehen in v1.5.0 auf dem Pixel 9
-  Pro, 20:9): In den Settings zeigt „Use new Sound“ nur „Use new“, die Titel
-  „SETTINGS“ und „PAUSED“ sind links angeschnitten. Vermutlich, weil der Canvas nach
-  der Höhe skaliert (siehe „UI“): Auf 20:9 bleiben rund 360 Einheiten Breite, auf
-  16:9 sind es 450. Gehört zum UI Overhaul (v1.5.1).
+- **Angeschnittene Titel auf schmalen Displays** (gesehen in v1.5.0 auf dem Pixel 9
+  Pro, 20:9): Die Titel „SETTINGS“ und „PAUSED“ sind links angeschnitten. Vermutlich,
+  weil der Canvas nach der Höhe skaliert (siehe „UI“): Auf 20:9 bleiben rund 360
+  Einheiten Breite, auf 16:9 sind es 450. Gehört zum UI Overhaul (v1.5.1). In den
+  Settings zeigte „Use new Sound“ dort nur „Use new“. Der Toggle ist 270 Einheiten
+  breit und passt auch auf 20:9, vermutlich war der Legacy-Text bei der Skalierung des
+  Pixel breiter als sein Rechteck, brach um, und „Truncate“ schnitt die zweite Zeile
+  ab. Seit v1.5.1 ist er TextMesh Pro und hat Platz (siehe „Texte“ unter „UI“), auf
+  dem Handy noch nicht nachgesehen.
 
 ## Spielstand (SaveData)
 
@@ -1121,6 +1128,39 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   Spiel-UI folgt dem `RunScore` in `LateUpdate`, also mit dem Score dieses Frames, und
   setzt einen Text nur, wenn sich seine Zahl ändert. Steigen die Münzen, poppt das
   Icon. Der `ShopScreen` führt den Shop selbst (siehe „Shop“).
+- **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
+  Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`:
+  TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
+  legt es dabei zusätzlich einen String für den Inspector an (`#if UNITY_EDITOR` im
+  Paket), Allokationen also auf dem Handy messen, nicht im Editor. Kommazahlen bekommen
+  dort immer einen Punkt, egal welche Sprache das Handy hat. Ein neuer Legacy-`Text`
+  fällt in `SceneTests` auf.
+  - **Schriften** liegen als Font Asset neben ihrer Schriftdatei in `UI/Fonts/`:
+    `NeuropolXRegularSDF` für fast alles, `GoodTimesRegularSDF` für Score und Münzen
+    auf dem Todesbildschirm. Beide sind statisch und haben 117 Zeichen für Englisch und
+    Deutsch: ASCII, Umlaute und ß, deutsche und englische Anführungszeichen, `…`, `·`,
+    `×`, `©`, `®`, `°`, `€`, `•` und das geschützte Leerzeichen. Gerendert mit SDF16 aus
+    Sampling-Größe 90 und Padding 9 in einen Atlas von 1024 × 1024, Shader
+    `TextMeshPro/Mobile/Distance Field`, ohne Kerning wie der Legacy-Text davor. Der
+    Atlas ist nicht lesbar, liegt also nur auf der GPU, und die Schriftdatei selbst
+    kommt nicht mehr in den Build. Ein fehlendes Zeichen zeichnet TextMesh Pro aus
+    `LiberationSans SDF`, der Standardschrift in den TMP Settings, so das große ẞ, das
+    keine der beiden Schriften hat.
+  - **Ein Zeichen dazunehmen:** im Inspector des Font Assets „Update Atlas Texture“.
+    Das öffnet den Font Asset Creator mit den gespeicherten Einstellungen. Dort das
+    Zeichen an die Custom Characters hängen, „Generate Font Atlas“ und über das
+    bestehende Asset speichern, so bleiben GUID und alle Verweise.
+  - **Überlauf:** Die Texte stehen auf „Overflow“. Bei „Truncate“ verschwindet eine
+    Zeile ganz, sobald sie nach den Zeilenmaßen von TextMesh Pro nicht in ihr Rechteck
+    passt. Ob ein Text überläuft, meldet `TMP_Text.isTextOverflowing`.
+  - **Umgestellt in v1.5.1:** Alle 9 Texte stehen an derselben Stelle und sind gleich
+    groß, gemessen im Play Mode an den Glyphen (Mitten höchstens 0,5 Einheiten
+    verschoben). TextMesh Pro setzt die Laufweiten ungerundet, „Volume“ wurde dadurch
+    3 Einheiten breiter, und „Use new Sound“ brauchte 217 Einheiten, in seinem Rechteck
+    von 214 brach es um. Sein Label reicht deshalb bis an den rechten Rand des Toggles
+    (224). `ModifierText` hat `LiberationSans SDF` statt Unitys eingebauter Schrift,
+    beide sind so breit wie Arial. Er liegt weiter bei x 472 außerhalb des Bildes
+    (gefunden in v1.4.10), ob er gezeigt wird, entscheidet der UI Overhaul.
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
@@ -1156,7 +1196,10 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   Bildschirm, Farbe, Bild und Text, vorher und nachher. Ob ein Klick ankommt, zeigt
   `EventSystem.RaycastAll` in der Mitte jedes Buttons, `onClick.Invoke()` umgeht das
   Raycasting. Neu gebaute Canvases zählt ein `ProfilerRecorder` auf `Canvas.BuildBatch`.
-  So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an.
+  So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an. Texte vergleicht man an
+  ihren Glyphen: TextMesh Pro rechnet sie aus `textInfo.characterInfo` (Ursprung,
+  Grundlinie, Skalierung und Maße der Glyphe, die Eckpunkte dort enthalten das Padding
+  des Atlas), ein Legacy-`Text` hatte sie in `cachedTextGenerator.verts`.
 
 ## Eingabe (Input System)
 
@@ -1462,8 +1505,9 @@ neuen Stand in einem eigenen Commit aufnehmen, nicht vermischt mit inhaltlichen
 Änderungen.
 
 Shader-Verteilung: 34 Materialien auf `ANIMO/BendWorld`, 13 auf URP/Lit, 7 auf URP
-Particles (Lit/Unlit), 2 TextMesh Pro, 1 auf dem eingebauten `Unlit/Texture` (der
-Sternenhintergrund, `Materials/Skybox/Background.mat`).
+Particles (Lit/Unlit), 2 TextMesh Pro (dazu das Material in jedem Font Asset), 1 auf
+dem eingebauten `Unlit/Texture` (der Sternenhintergrund,
+`Materials/Skybox/Background.mat`).
 
 **Always Included Shaders** (Project Settings > Graphics) kommen in jeden Build, auch
 wenn nichts sie nutzt. Seit v1.4.12 stehen dort nur noch Unitys Helfer für UI,
@@ -1616,14 +1660,16 @@ Hz. Mehr Handys kommen mit den Tests vor v2.0 (siehe „Arbeitsweise“).
 - GC: 48 bis 134 Byte pro Frame, im Run ein inkrementeller Durchlauf pro Minute,
   keiner über 3 ms, Heap höchstens 4,5 MB. Am meisten legt das Input System selbst an,
   dann der `TileManager` (jeder Abschnitt per `Instantiate`, der alte per `Destroy`,
-  kein Pool), der Münzstaub und der Score-Text.
+  kein Pool), der Münzstaub und der Score-Text. Der Score-Text seit v1.5.1 nicht mehr
+  (siehe „Texte“ unter „UI“), auf dem Handy noch nicht nachgemessen.
 - Speicher über 10 Minuten ohne Anstieg. Der Release-Build belegt 313 bis 316 MB
   (PSS), v1.4.5 belegte 365 bis 373 MB, vor allem wegen der Texturen aus v1.4.12. Die
   APK hat 68,2 statt 73,0 MB.
 - Nach 10 Minuten GPU 42 bis 43 °C, Gehäuse 34 °C, keine Drosselung.
 - Die Font-Textur baut sich im Run bei fast jeder neuen Score-Zahl neu auf, bis 8-mal
-  pro Sekunde, je 0,2 bis 0,4 ms (`Font.CacheFontForText`), im Menü nie. Mit TextMesh
-  Pro im UI Overhaul (v1.5.1) fällt das weg.
+  pro Sekunde, je 0,2 bis 0,4 ms (`Font.CacheFontForText`), im Menü nie. Seit v1.5.1
+  sind alle Texte TextMesh Pro: Im Editor lief `Font.CacheFontForText` in einem Run von
+  800 Frames kein einziges Mal mehr, vorher 126-mal in 53 Frames.
 
 **Die Bildausgabe hat zwei Phasen.** Zeitweise wartet der Main Thread in jedem Frame
 2 bis 3,5 ms im Blit auf einen freien Bildpuffer statt in `WaitForTargetFPS`, und ein

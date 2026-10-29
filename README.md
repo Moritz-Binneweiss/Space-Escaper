@@ -136,7 +136,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 <small>
  
 - [ ] UI overhaul
-- [ ] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
+- [x] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
 - [ ] Safe area support for notches and camera cutouts
 - [ ] Clean up unused UI images
 - [ ] Decide what the leaderboard button should do (currently without function)

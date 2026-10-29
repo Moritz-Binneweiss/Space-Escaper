@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -39,7 +40,7 @@ namespace SpaceEscaper
         {
             m_invincibleToggle = Instantiate(m_newSoundsToggle, m_newSoundsToggle.transform.parent);
             m_invincibleToggle.name = k_InvincibleToggleName;
-            m_invincibleToggle.GetComponentInChildren<Text>().text = k_InvincibleLabel;
+            m_invincibleToggle.GetComponentInChildren<TMP_Text>().text = k_InvincibleLabel;
             RectTransform rect = (RectTransform)m_invincibleToggle.transform;
             rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, k_InvincibleToggleY);
         }

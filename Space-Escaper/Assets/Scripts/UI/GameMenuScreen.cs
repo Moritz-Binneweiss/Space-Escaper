@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,9 +11,9 @@ namespace SpaceEscaper
     {
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private RunScore m_runScore;
-        [SerializeField] private Text m_scoreText;
-        [SerializeField] private Text m_coinText;
-        [SerializeField] private Text m_modifierText;
+        [SerializeField] private TMP_Text m_scoreText;
+        [SerializeField] private TMP_Text m_coinText;
+        [SerializeField] private TMP_Text m_modifierText;
         [Tooltip("The coin icon, which pops for every coin collected.")]
         [SerializeField] private PopEffect m_coinIconPop;
         [SerializeField] private Button m_pauseButton;
@@ -38,7 +39,8 @@ namespace SpaceEscaper
         }
 
         // After every Update, so the screen shows the score of this frame. A text only changes
-        // with its number, which keeps new strings and canvas rebuilds out of the other frames.
+        // with its number, which keeps canvas rebuilds out of the other frames. SetText writes the
+        // number into the text's own buffer, in a build without a new string.
         private void LateUpdate()
         {
             if (m_runScore.Score != m_shownScore)
@@ -61,19 +63,19 @@ namespace SpaceEscaper
         private void ShowScore()
         {
             m_shownScore = m_runScore.Score;
-            m_scoreText.text = m_shownScore.ToString();
+            m_scoreText.SetText("{0}", m_shownScore);
         }
 
         private void ShowCoins()
         {
             m_shownCoins = m_runScore.Coins;
-            m_coinText.text = m_shownCoins.ToString();
+            m_coinText.SetText("{0}", m_shownCoins);
         }
 
         private void ShowModifier()
         {
             m_shownModifier = m_runScore.Modifier;
-            m_modifierText.text = "x" + m_shownModifier.ToString("0.0");
+            m_modifierText.SetText("x{0:0.0}", m_shownModifier);
         }
     }
 }

@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -11,8 +12,8 @@ namespace SpaceEscaper
     {
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private RunScore m_runScore;
-        [SerializeField] private Text m_scoreText;
-        [SerializeField] private Text m_coinText;
+        [SerializeField] private TMP_Text m_scoreText;
+        [SerializeField] private TMP_Text m_coinText;
         [SerializeField] private Button m_reviveButton;
         [SerializeField] private Button m_menuButton;
 
@@ -24,8 +25,8 @@ namespace SpaceEscaper
             m_reviveButton.onClick.AddListener(m_gameManager.RequestRevive);
             m_menuButton.onClick.AddListener(m_gameManager.ReturnToMenu);
 
-            m_scoreText.text = m_runScore.Score.ToString();
-            m_coinText.text = m_runScore.Coins.ToString();
+            m_scoreText.SetText("{0}", m_runScore.Score);
+            m_coinText.SetText("{0}", m_runScore.Coins);
             m_reviveButton.gameObject.SetActive(m_gameManager.CanRevive);
         }
 
