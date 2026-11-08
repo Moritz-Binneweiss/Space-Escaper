@@ -140,6 +140,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] Safe area support for notches and camera cutouts
 - [ ] Clean up unused UI images
 - [ ] Decide what the leaderboard button should do (currently without function)
+- [x] UI images in a sprite atlas, compressed and drawn in fewer batches
 
 </small>
 

@@ -148,7 +148,11 @@ genau einen `SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`. Seit v1
 steht in der Szene kein Aufruf mehr, den ein Button oder ein anderes Bedienelement
 auslöst. Bis dahin prüfte der Test, dass jeder Button-Aufruf Ziel, Methode und
 Argument findet. Seit v1.5.1 hat die Szene keinen Legacy-`Text` mehr, alle Texte sind
-TextMesh Pro (siehe „Texte“ unter „UI“). Seit v1.5.0 prüft `StaticFieldTests`, dass
+TextMesh Pro (siehe „Texte“ unter „UI“). Ebenfalls seit v1.5.1 prüft `SpriteAtlasTests`,
+dass jedes UI-Bild der Szene in einem Sprite Atlas liegt und der Packer dafür an ist,
+dass jeder Atlas mit in den Build kommt, keiner dreht oder eng packt und keiner ein Bild
+hält, das das Spiel nicht nutzt (siehe „Bilder liegen im Sprite Atlas“ unter „UI“).
+Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, ruft die Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
 wieder leer. Danach stellt er die alten Werte wieder her, der Editor liest sie auch.
@@ -170,8 +174,8 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit
   `unity command run_tests --mode EditMode`. Sie dauern wenige Sekunden, also vor
-  jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die Szene oder eine
-  Methode ändert, die ein Button aufruft. Den PlayMode-Test nur asynchron:
+  jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die Szene, UI-Bilder, den
+  Atlas oder eine Methode ändert, die ein Button aufruft. Den PlayMode-Test nur asynchron:
   `unity command run_tests --mode playmode --async_tests true`, dann
   `unity command test_status` abfragen, bis es nach `running` `completed` meldet.
   Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten. Synchron führt
@@ -275,7 +279,9 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   oder das Hauptmenü aus war. `StaticFieldTests` fand im Code davor alle 16 statischen
   Felder und ohne die Zeilen für `Coin.Collected` und die Liste des `SpinManager` genau
   diese beiden. In v1.5.1 fand `NoLegacyTextIsInTheScene` vor dem Umbau alle 9
-  Legacy-Texte.
+  Legacy-Texte. `SpriteAtlasTests` fand vor dem Atlas den alten Packer-Modus und danach
+  alle 36 UI-Bilder, mit eingebauten Fehlern ein ungenutztes Bild im Atlas, einen Atlas
+  außerhalb des Builds, Drehen und enges Packen.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -301,7 +307,7 @@ nur Ordner.
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
-| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften und ihre Font Assets für TextMesh Pro), `Mockups.png` |
+| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften und ihre Font Assets für TextMesh Pro), `UIAtlas.spriteatlasv2` (der Sprite Atlas der UI-Bilder, siehe „UI“), `Mockups.png` |
 
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
@@ -1161,6 +1167,35 @@ schoben die gerade nicht gebrauchten aus dem Bild.
     (224). `ModifierText` hat `LiberationSans SDF` statt Unitys eingebauter Schrift,
     beide sind so breit wie Arial. Er liegt weiter bei x 472 außerhalb des Bildes
     (gefunden in v1.4.10), ob er gezeigt wird, entscheidet der UI Overhaul.
+- **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle 36
+  UI-Bilder, die die Szene nutzt, auf einer Seite von 2048 × 2048 in ETC2, 4,0 MiB.
+  Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
+  „Texturen“). Die Bilder eines Screens kommen damit in einem Draw Call, gemessen im
+  Editor nur fürs UI: Menü 2 statt 7, Hangar 1 statt 7, Settings 6 statt 9, Run 3 statt
+  4, Pause 2 statt 5, Tod 3 statt 6. Eigene Draw Calls bleiben die Texte (ein Material
+  pro Schrift) und was kein Bild aus dem Atlas zeigt: Unitys eingebaute Sprites
+  (Hintergrund von Pause und Settings, Toggle, Slider) und die Abdunklung hinter dem
+  Todesbildschirm.
+  - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
+    Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` und `2021/`
+    liegen noch ungenutzte Bilder, die er mitpacken würde. Was fehlt oder zu viel ist,
+    meldet `SpriteAtlasTests`.
+  - **Einstellungen:** nicht drehen und nicht eng packen, denn ein UI-Bild zeigt das
+    Rechteck seines Sprites (ein neuer Atlas hat beides an). 4 Pixel Abstand, so teilen
+    sich zwei Sprites nie einen 4×4-Block von ETC2. Alpha Dilation an, ohne Mipmaps,
+    Kompressorqualität „Best“. Durchsichtige Ränder schneidet Unity beim Packen ab
+    (648×207 wird 634×193), das UI gleicht das beim Zeichnen aus.
+  - **Qualität:** ETC2 ist verlustbehaftet, einzeln waren die Bilder verlustfrei.
+    Gemessen an den Pixeln, die die GPU bekommt: im Schnitt 0,6 von 255 Stufen
+    Abweichung, 0,5 % der Pixel weichen um mehr als 16 ab. Titel und Buttons sind
+    praktisch gleich. Sichtbar wird es nur an den neun Schiffsbildern im Hangar, und erst
+    vierfach vergrößert: leichte Treppen an weichen Kanten. „Best“ statt „Normal“ senkte
+    die Abweichung nur von 0,77 auf 0,63 und kostet allein beim Packen Zeit.
+  - **Packen:** Der Sprite Packer steht auf „Sprite Atlas V2 - Enabled“ (Project
+    Settings > Editor, bis v1.5.0 V1 „Enabled for Builds“, ohne Atlas). Unity packt damit
+    auch im Editor, der Play Mode zeigt den Atlas wie das Handy. Neu gepackt wird nur,
+    wenn sich der Atlas oder eines seiner Bilder ändert, mit „Best“ in gut 2 s. Beim
+    Start des Play Mode packt Unity nicht neu, er dauert 0,1 s.
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
@@ -1199,7 +1234,9 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an. Texte vergleicht man an
   ihren Glyphen: TextMesh Pro rechnet sie aus `textInfo.characterInfo` (Ursprung,
   Grundlinie, Skalierung und Maße der Glyphe, die Eckpunkte dort enthalten das Padding
-  des Atlas), ein Legacy-`Text` hatte sie in `cachedTextGenerator.verts`.
+  des Atlas), ein Legacy-`Text` hatte sie in `cachedTextGenerator.verts`. Draw Calls
+  nur des UI: im Play Mode alle Kameras auf `cullingMask` 0 mit einfarbigem Hintergrund
+  stellen und je Screen `UnityStats.drawCalls` lesen, so in v1.5.1 für den Atlas.
 
 ## Eingabe (Input System)
 
@@ -1604,8 +1641,10 @@ das angrenzende Feld hinein. Ohne Transparenz brauchen Paletten keinen Alphakana
 
 **Android-Format ist ETC2** (Player Settings), nicht ASTC: mit Alphakanal 1 Byte pro
 Pixel, ohne 0,5. Kantenlängen müssen durch 4 teilbar sein, sonst bleibt eine Textur
-unkomprimiert (RGBA32). Das trifft 35 UI-Bilder mit zusammen 10,4 MB (etwa 648×207),
-ein Sprite Atlas soll das in v1.5.1 lösen.
+unkomprimiert (RGBA32). Das traf bis v1.5.0 35 UI-Bilder mit zusammen 10,4 MiB (etwa
+648×207). Seit v1.5.1 liegen sie im Sprite Atlas, dessen Seite sich komprimieren lässt
+(siehe „Bilder liegen im Sprite Atlas“ unter „UI“). Ein UI-Bild außerhalb des Atlas wäre
+wieder unkomprimiert.
 
 **Messen:**
 
@@ -1622,7 +1661,10 @@ ein Sprite Atlas soll das in v1.5.1 lösen.
   bekommt, per `Graphics.Blit` in eine Render Texture genau ihrer Größe kopieren und
   auslesen (in halber Größe die Stufe darunter), vorher und nachher Pixel für Pixel
   vergleichen. Das geht ohne Play Mode für alle Texturen auf einmal, so in v1.4.12 für
-  die 22 halbierten.
+  die 22 halbierten. Ein Sprite im Atlas liegt dort im Rechteck `textureRect` der
+  gepackten Kopie aus `SpriteAtlas.GetSprites`. Gegenüber dem Original ist es um
+  `textureRect` minus `textureRectOffset` verschoben, weil Unity durchsichtige Ränder
+  abschneidet. So in v1.5.1 für alle 36 UI-Bilder.
 - Partikelgrößen: die Zeit anhalten, den Effekt mit `ParticleSystem.Simulate`
   vorspulen und pro Teilchen `GetCurrentSize` durch die Tiefe zur Kamera teilen. Eine
   Aufzeichnung pro Frame verpasst die meisten Frames, wenn Unity im Hintergrund
