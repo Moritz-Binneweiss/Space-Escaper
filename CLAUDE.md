@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 34 Skripte, ~3000 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 35 Skripte, ~3000 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -152,6 +152,11 @@ TextMesh Pro (siehe „Texte“ unter „UI“). Ebenfalls seit v1.5.1 prüft `S
 dass jedes UI-Bild der Szene in einem Sprite Atlas liegt und der Packer dafür an ist,
 dass jeder Atlas mit in den Build kommt, keiner dreht oder eng packt und keiner ein Bild
 hält, das das Spiel nicht nutzt (siehe „Bilder liegen im Sprite Atlas“ unter „UI“).
+Ebenso seit v1.5.1 legt `LayoutTests` die Screens so aus, wie zehn Displays sie zeigen,
+von Tablets in 4:3 bis zum schmalen Außendisplay eines Klapphandys, fünf davon mit
+Kameraloch oder Balken: Alles Sichtbare und jede Tippfläche liegt in der Safe Area, kein
+Text läuft aus seinem Rechteck, und jedes Bedienelement nimmt Tipps auf mindestens 48 dp
+an (siehe „Layout für alle Seitenverhältnisse“ unter „UI“).
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, ruft die Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
@@ -192,6 +197,14 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   gegen eine leere und stellt sie danach wieder her. `SceneTests` öffnet
   `Game.unity` deshalb selbst daneben und schließt sie am Ende wieder. Ist sie schon
   geladen, prüft der Test sie, wie sie ist, und lässt sie offen.
+- **Layout im Test:** `LayoutTests` legt eine Kopie der UI in eine Vorschau-Szene
+  (`EditorSceneManager.NewPreviewScene`), so bleibt `Game.unity` unberührt, auch wenn
+  sie offen ist. Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
+  `CanvasScaler` auf dem Display ergäbe, und `SafeArea.Fit` bekommt dessen Safe Area. In
+  der Kopie ist jeder Screen an, denn TextMesh Pro rechnet einen Text erst, wenn er
+  einmal an war. Die Displays stehen oben im Test, die Safe Areas mit Kameraloch stammen
+  aus dem Device Simulator. `GameMenu/ModifierText` ist die einzige Ausnahme, bis der UI
+  Overhaul über ihn entscheidet (siehe „Texte“ unter „UI“).
 - **Der PlayMode-Test spielt echt, aber stumm und ohne den echten Spielstand.** Ein
   Tod schreibt Münzen und Highscore, deshalb lenkt `SetUp` den Spielstand mit
   `SaveSystem.LoadFrom` in einen eigenen Ordner um, im Editor
@@ -281,7 +294,13 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   diese beiden. In v1.5.1 fand `NoLegacyTextIsInTheScene` vor dem Umbau alle 9
   Legacy-Texte. `SpriteAtlasTests` fand vor dem Atlas den alten Packer-Modus und danach
   alle 36 UI-Bilder, mit eingebauten Fehlern ein ungenutztes Bild im Atlas, einen Atlas
-  außerhalb des Builds, Drehen und enges Packen.
+  außerhalb des Builds, Drehen und enges Packen. `LayoutTests` fand vor dem Umbau auf
+  20:9 die Titel „PAUSED“ und „SETTINGS“ (je 3 Einheiten links draußen), auf schmaleren
+  Displays und unter Kameralöchern mehr, dazu sechs zu kleine Tippflächen. Mit
+  eingebauten Fehlern fand er einen Text, der umbricht, einen ohne Umbruch, der zu breit
+  ist, „EXIT“ im Hangar außerhalb der `SafeArea` (auf allen vier Displays mit Kameraloch)
+  und einen Pokal mit 50 statt 60. Die Texte fand er erst, seit die Kopie alle Screens
+  einschaltet, vorher prüfte er nur die des Hauptmenüs.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -358,7 +377,7 @@ behalten dadurch ihre Weltposition.
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Shop` (`ShopScreen`), siehe „UI“ |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Shop` (`ShopScreen`), in jedem ein Kind `SafeArea`, siehe „UI“ |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
@@ -600,7 +619,8 @@ bei 8.
 - **Assembly Definitions** (seit v1.4.7): Alle Skripte liegen in der Assembly
   `SpaceEscaper` (`Scripts/SpaceEscaper.asmdef`) statt in `Assembly-CSharp`, die
   Tests in `SpaceEscaper.Tests.EditMode` (seit v1.4.11 mit `UnityEngine.UI` in den
-  References, für `SceneTests`) und seit v1.4.11 `SpaceEscaper.Tests.PlayMode`. Die
+  References, für `SceneTests`, seit v1.5.1 auch mit `Unity.TextMeshPro`, für
+  `LayoutTests`) und seit v1.4.11 `SpaceEscaper.Tests.PlayMode`. Die
   PlayMode-Assembly gilt für alle Plattformen, nur dann führt der Test Runner sie
   unter PlayMode. Das Test-Menü liegt seit v1.4.11 in `SpaceEscaper.Editor`
   (`Editor/`, nur für den Editor). `Scripts/AssemblyInfo.cs` öffnet ihm und den
@@ -608,7 +628,8 @@ bei 8.
   `SaveSystem.LoadFrom` und `SaveSystem.Delete`, den PlayMode-Tests seit v1.4.13
   auch für `FloatingOrigin.Distance`, `TileManager.Tiles` und
   `TileManager.NextSpawnZ`, seit v1.5.0 für die Buttons der Screens
-  (`MainMenuScreen.StartButton` usw.). Test-Assemblies kommen an
+  (`MainMenuScreen.StartButton` usw.). Seit v1.5.1 öffnet sie auch den EditMode-Tests
+  `internal`, für `SafeArea.Fit`. Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket**, gehört dessen Assembly in
   die References der `SpaceEscaper.asmdef`, sonst findet der Compiler es nicht.
@@ -866,15 +887,6 @@ bei 8.
   nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
   existierende Methode und ist entfernt, auch der `MainMenuScreen` verbindet ihn mit
   nichts. Der Button spielt nur den Klicksound.
-- **Angeschnittene Titel auf schmalen Displays** (gesehen in v1.5.0 auf dem Pixel 9
-  Pro, 20:9): Die Titel „SETTINGS“ und „PAUSED“ sind links angeschnitten. Vermutlich,
-  weil der Canvas nach der Höhe skaliert (siehe „UI“): Auf 20:9 bleiben rund 360
-  Einheiten Breite, auf 16:9 sind es 450. Gehört zum UI Overhaul (v1.5.1). In den
-  Settings zeigte „Use new Sound“ dort nur „Use new“. Der Toggle ist 270 Einheiten
-  breit und passt auch auf 20:9, vermutlich war der Legacy-Text bei der Skalierung des
-  Pixel breiter als sein Rechteck, brach um, und „Truncate“ schnitt die zweite Zeile
-  ab. Seit v1.5.1 ist er TextMesh Pro und hat Platz (siehe „Texte“ unter „UI“), auf
-  dem Handy noch nicht nachgesehen.
 
 ## Spielstand (SaveData)
 
@@ -1103,9 +1115,9 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 
 Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMenu`
 (die Anzeige im Run), `PauseMenu`, `Settings`, `Shop` und `DeathMenu`. Der Root-Canvas
-`UI` trägt den `CanvasScaler` (Referenzhöhe 800, skaliert nach der Höhe) und den
-`ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem Canvas, und sechs Animatoren
-schoben die gerade nicht gebrauchten aus dem Bild.
+`UI` trägt den `CanvasScaler` (Referenz 450 × 800, „Expand“, siehe „Layout für alle
+Seitenverhältnisse“) und den `ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem
+Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 
 - **Es ist immer genau ein Screen an.** `ScreenManager.Show(GameState)` zeigt den
   Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings.
@@ -1166,7 +1178,8 @@ schoben die gerade nicht gebrauchten aus dem Bild.
     von 214 brach es um. Sein Label reicht deshalb bis an den rechten Rand des Toggles
     (224). `ModifierText` hat `LiberationSans SDF` statt Unitys eingebauter Schrift,
     beide sind so breit wie Arial. Er liegt weiter bei x 472 außerhalb des Bildes
-    (gefunden in v1.4.10), ob er gezeigt wird, entscheidet der UI Overhaul.
+    (gefunden in v1.4.10), ob er gezeigt wird, entscheidet der UI Overhaul. Bis dahin
+    nimmt `LayoutTests` ihn als einzigen aus.
 - **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle 36
   UI-Bilder, die die Szene nutzt, auf einer Seite von 2048 × 2048 in ETC2, 4,0 MiB.
   Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
@@ -1196,6 +1209,49 @@ schoben die gerade nicht gebrauchten aus dem Bild.
     auch im Editor, der Play Mode zeigt den Atlas wie das Handy. Neu gepackt wird nur,
     wenn sich der Atlas oder eines seiner Bilder ändert, mit „Best“ in gut 2 s. Beim
     Start des Play Mode packt Unity nicht neu, er dauert 0,1 s.
+- **Layout für alle Seitenverhältnisse** (seit v1.5.1): Der `CanvasScaler` steht auf
+  „Expand“ mit Referenz 450 × 800. Das UI ist damit nie schmaler als 450 und nie
+  niedriger als 800 Einheiten: Handys, die schmaler sind als 16:9, bekommen mehr Höhe
+  (20:9: 450 × 1000), Tablets mehr Breite (4:3: 600 × 800). Bis v1.5.0 skalierte er nach
+  der Höhe (Referenz 800 × 800), das UI war immer 800 hoch und auf schmalen Handys nur
+  noch 360 (20:9) bis 289 Einheiten breit (Außendisplay eines Klapphandys). Auf dem
+  Pixel 9 Pro waren „SETTINGS“ und „PAUSED“ deshalb links angeschnitten, im Hangar
+  standen „EXIT“ und die Pfeile am Rand. Auf 16:9 sieht alles aus wie vorher (Bilder
+  aller Screens in 1080 × 1920 verglichen), auf schmaleren Handys ist das UI kleiner als
+  bis v1.5.0, auf 20:9 um 20 %.
+  - **Jedes Element hängt an dem, wozu es gehört.** Was an einer Kante steht, liegt in
+    der `SafeArea` seines Screens und hängt an seiner Ecke: Pokal, Highscore und Münzen
+    oben links, Zahnrad und Pause oben rechts, die Titel oben links, „EXIT“ im Hangar
+    oben rechts, Hangar-Button und Kaufen unten. Die Menüs von Pause, Settings und Tod
+    liegen mittig in der `SafeArea`. Was über der 3D-Welt liegt, hängt direkt am Screen,
+    an einem Anker auf seiner Höhe relativ zum Bildschirm: Logo und „Tap to Start“ über
+    dem Raumhafen, Skins und Pfeile im Hangar. Die Kameras halten ihr senkrechtes
+    Sichtfeld (75° und 60°), die Welt wächst also mit der Bildhöhe, und diese Elemente
+    bleiben über derselben Stelle. Die Skins liegen dafür bei y = 0 in ihren Familien,
+    ihr Container hängt auf ihrer Höhe.
+  - **Safe Area:** Das Spiel zeichnet bis unter das Kameraloch („Render outside safe
+    area“ in den Player Settings), das bleibt so. Die Komponente `SafeArea` zieht das
+    gleichnamige Kind jedes Screens auf `Screen.safeArea`: beim Einschalten und, solange
+    der Screen gezeigt wird, sobald sich Safe Area oder Bildschirmgröße ändern
+    (Klapphandy, Gerätewechsel im Device Simulator). Hintergründe, die den ganzen
+    Bildschirm decken, liegen daneben und reichen unter die Kamera. Außerhalb des Play
+    Mode tut sie nichts, gespeichert ist die `SafeArea` über den ganzen Screen. Sie ist
+    das letzte Kind ihres Screens, so liegen die Buttons an den Kanten über den
+    Elementen der 3D-Welt, wie vorher.
+  - **Tippflächen** sind mindestens 60 Einheiten groß: 48 dp, wie Android sie
+    empfiehlt, auf einem Handy mit 360 dp Breite, so schmal sind die schmalsten
+    verbreiteten. Auf dem Außendisplay eines Klapphandys (320 dp) bleiben davon 43 dp.
+    Pokal, Zahnrad und Pause sind dafür seit v1.5.1 60 × 60 groß statt 50 bis 52, „EXIT“
+    im Hangar 60 statt 55 hoch, ihre Bilder blieben gleich. „Use new Sound“ (40 hoch)
+    und der Lautstärkeregler (26) bekamen ein unsichtbares Kind `HitArea`, 60 hoch,
+    eingestellt wie die anderen unsichtbaren Klickflächen (siehe unten). Die Draw Calls
+    blieben gleich.
+  - **Ein neues Element** kommt nach diesen Regeln in die `SafeArea` oder direkt an den
+    Screen. Ob es auf allen Displays passt, prüft `LayoutTests` (siehe „Tests“). Ansehen
+    im Device Simulator (Window > General > Device Simulator), er hat Handys mit
+    Kameraloch, ein Klapphandy und zwei Tablets. Auf dem Handy ist das neue Layout noch
+    nicht nachgesehen, auch nicht „Use new Sound“, das auf dem Pixel 9 Pro in v1.5.0 nur
+    „Use new“ zeigte (siehe „Texte“).
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
@@ -1207,8 +1263,9 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   seit v1.4.10 keinen mehr, direkt unter ihm liegt nichts Klickbares.
 - **Ein neuer Screen:** Objekt unter `UI`, auf den ganzen Canvas gestreckt (Anker 0
   bis 1, Abstände 0), mit `Canvas`, `GraphicRaycaster` und seiner eigenen
-  `…Screen`-Komponente für die Buttons. Im `ScreenManager` bekommt
-  er ein Feld und einen Platz in `m_screens`, dazu einen Fall in `GetScreen`, wenn er
+  `…Screen`-Komponente für die Buttons, als letztes Kind eine `SafeArea` (ebenso
+  gestreckt, mit der gleichnamigen Komponente) für alles Bedienbare. Im `ScreenManager`
+  bekommt er ein Feld und einen Platz in `m_screens`, dazu einen Fall in `GetScreen`, wenn er
   zu einem Zustand gehört, sonst eine eigene `Show…`-Methode wie `ShowSettings`. Dass
   Canvas, Raycaster und `m_screens` stimmen, prüft `SceneTests`.
 - **Keine Animatoren für Übergänge oder kurze Effekte.** Ein Animator am UI markiert
@@ -1237,6 +1294,17 @@ schoben die gerade nicht gebrauchten aus dem Bild.
   des Atlas), ein Legacy-`Text` hatte sie in `cachedTextGenerator.verts`. Draw Calls
   nur des UI: im Play Mode alle Kameras auf `cullingMask` 0 mit einfarbigem Hintergrund
   stellen und je Screen `UnityStats.drawCalls` lesen, so in v1.5.1 für den Atlas.
+  Andere Seitenverhältnisse: das Game-Fenster im Play Mode auf eine feste Auflösung
+  stellen (siehe „Bilder vorher und nachher“ unter „Render Pipeline: URP“) oder auf den
+  Device Simulator umschalten, nur dort gibt es eine Safe Area. Aus `eval` geht beides
+  per Reflection: `GameView.SetCustomResolution`, `PlayModeView.SwapMainWindow`
+  (Game-Fenster zum Simulator und zurück, wie das Dropdown im Reiter) und
+  `DeviceSimulatorMain.deviceIndex`, auch im laufenden Play Mode. `ScreenCapture` nimmt
+  dort in der Auflösung des Geräts auf. Vorsicht beim Vergleichen: Wechselt die
+  Auflösung, während ein Screen an ist, behalten seine Texte die Kantenglättung der
+  alten Auflösung, bis sich das Layout um sie ändert. Aus- und Einschalten reicht nicht
+  (gesehen in v1.5.1 im Hauptmenü, die Zahlen wurden weich). Erst die Auflösung setzen,
+  dann den Screen zeigen.
 
 ## Eingabe (Input System)
 
