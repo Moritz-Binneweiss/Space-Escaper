@@ -56,8 +56,8 @@ Seit v1.4.5 folgen alle Skripte dem Unity-Styleguide „Use a C# style guide for
 clean and scalable game code“ (Unity-6-Ausgabe, 2025, PDF über
 unity.com/resources/c-sharp-style-guide-unity-6). Wo er die Wahl lässt, gilt hier:
 
-- **Namespace** `SpaceEscaper` für alle Skripte. In `unity command eval` deshalb
-  `SpaceEscaper.GameManager` usw. schreiben. Veraltete APIs lehnt `eval` als
+- **Namespace** `SpaceEscaper` für alle Skripte. In `unity command script eval` deshalb
+  `SpaceEscaper.GameManager` usw. schreiben. Veraltete APIs lehnt `script eval` als
   Fehler ab, in Unity 6.6 etwa `FindObjectsByType` mit `FindObjectsSortMode` und
   `GetInstanceID`.
 - **Namen:** private Felder `m_camelCase`, private statische Felder `s_camelCase`,
@@ -177,22 +177,24 @@ Welt, die Gruppen der Szene bleiben im Ursprung, und die Abschnitte liegen
 lückenlos hintereinander bis zur nächsten Spawn-Position.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
-  oder PlayMode. Per CLI die EditMode-Tests mit
-  `unity command run_tests --mode EditMode`. Sie dauern wenige Sekunden, also vor
-  jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die Szene, UI-Bilder, den
-  Atlas oder eine Methode ändert, die ein Button aufruft. Den PlayMode-Test nur asynchron:
-  `unity command run_tests --mode playmode --async_tests true`, dann
-  `unity command test_status` abfragen, bis es nach `running` `completed` meldet.
-  Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten. Synchron führt
-  das Test Framework nur EditMode-Tests aus, die in einem Frame fertig sind, und
-  die CLI meldet 0/0. `--mode all` startet asynchron gar nichts, also beide Modi
-  einzeln. Mit dem Wechsel in den Play Mode dauert er rund 12 s, also
+  oder PlayMode. Per CLI die EditMode-Tests mit `unity command test run`. Sie dauern
+  wenige Sekunden, also vor jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die
+  Szene, UI-Bilder, den Atlas oder eine Methode ändert, die ein Button aufruft. Grün ist
+  ein Lauf bei Exit-Code 0, bei 8 ist ein Test rot, `--format json` gibt eine Zeile pro
+  Test aus. Den PlayMode-Test nur asynchron:
+  `unity command test run --mode playmode --async-tests true`, dann
+  `unity command test status --detail summary` abfragen, bis es nach `running`
+  `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
+  Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
+  verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
+  aus (in v1.5.1 67 Tests in gut 8 s). Mit dem Wechsel in den Play Mode dauert der
+  PlayMode-Test rund 12 s, also
   vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Meldet ein asynchroner
   PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“). Die CLI legt eine
   `TestResults.xml` neben den Spielstand, die darf weg. Ist die offene Szene
   ungespeichert, fragt der Test Runner vorher per Dialog, ob er sie speichern soll.
-  Bis jemand klickt, steht Unity, und die CLI bricht nach 30 s ab.
+  Bis jemand klickt, steht Unity, und die CLI bricht nach ihrer Zeitgrenze ab.
 - **Szenen im Test:** Während des Laufs tauscht der Test Runner die offenen Szenen
   gegen eine leere und stellt sie danach wieder her. `SceneTests` öffnet
   `Game.unity` deshalb selbst daneben und schließt sie am Ende wieder. Ist sie schon
@@ -515,9 +517,9 @@ Beim Umbenennen:
 - **Dateien nur über Unity verschieben** (`AssetDatabase.MoveAsset`), nie im
   Explorer: So bleiben GUID und `.meta` erhalten, und keine Referenz bricht. Unity
   importiert Modelle dabei neu, bei vielen `.blend`-Dateien dauert das Minuten.
-  Die CLI bricht Aufrufe auf dem Main Thread nach 5 s ab, die Arbeit läuft aber
-  weiter. Danach warten, bis `eval` wieder antwortet, und das Ergebnis selbst
-  prüfen.
+  Die CLI bricht einen Aufruf nach seiner Zeitgrenze ab (`--timeout`, bei
+  `script eval` 30 s), die Arbeit läuft aber weiter. Danach warten, bis
+  `script eval` wieder antwortet, und das Ergebnis selbst prüfen.
 - **Nur Groß-/Kleinschreibung ändern** geht unter Windows in Unity nur über einen
   Zwischennamen und in Git nur per `git mv`. Sonst behält der Index den alten
   Namen, weil `core.ignorecase` an ist.
@@ -663,6 +665,15 @@ bei 8.
   - Die Analyzer liegen im Ordner der VS-Code-Erweiterung, ihr Pfad enthält deren
     Version. Nach einem Update der Erweiterung stimmt er erst wieder, wenn Unity die
     Projektdateien neu schreibt.
+- **Unity-CLI:** Sie steuert den laufenden Editor über das Paket `com.unity.pipeline` im
+  Manifest, seit v1.5.1 in Version 1.0.0. Meldet die CLI, dass das Paket veraltet ist,
+  hebt `unity pipeline upgrade` es an. Das ändert Manifest und Lock-Datei und gehört in
+  einen eigenen Commit. Unity übernimmt es erst nach `unity command package resolve` oder
+  wenn sein Fenster den Fokus bekommt. Seit 1.0.0 stehen die Befehle in Gruppen
+  (`unity command script eval`, `test run`, `editor status` …), die Parameter in
+  kebab-case. `unity command` listet die Gruppen, `unity command <Gruppe>` deren Befehle,
+  `--help` dahinter die Parameter. `script eval` gibt den Rückgabewert direkt zurück,
+  ein Fehler endet mit Exit-Code 6.
 - **Play Mode ohne Domain Reload** (seit v1.5.0): Project Settings > Editor, „When
   entering Play Mode“ steht auf „Reload Scene only“ (`m_EnterPlayModeOptions: 1` in
   `ProjectSettings/EditorSettings.asset`). Beim Start des Play Mode lädt Unity nur die
@@ -692,9 +703,6 @@ bei 8.
     wenn es das Feld nicht mehr findet. Gefunden in v1.5.0, als schon der zweite
     `RunTests`-Lauf hintereinander 0 von 0 meldete, mit dem Umweg liefen fünf
     hintereinander grün. Behebt Unity den Fehler, kommt die Datei weg.
-  - Die CLI meldet sich bei jedem Testlauf für die Ergebnisse an und bleibt ohne Domain
-    Reload angemeldet. Die Konsole zeigt dann mehrfach „Run started“ und „Ignoring
-    duplicate RunFinished“, das Ergebnis stimmt trotzdem.
   - Mit Domain Reload läuft der Code genauso, die Einstellung lässt sich jederzeit
     zurückstellen.
 - **UI-Texte bleiben auch skaliert scharf,** seit sie TextMesh Pro sind (v1.5.1,
@@ -812,9 +820,9 @@ bei 8.
   springt z alle 4800 Einheiten zurück (siehe „Floating Origin“). Wer über längere
   Strecken misst, zählt die Verschiebungen über `FloatingOrigin.WorldShifted` mit, wie
   `RunTests`.
-- **Test-APKs** baut die Unity-CLI asynchron: `unity command build --outputPath
-  Builds/<Name>.apk --confirm true`, danach `build_status` abfragen, bis es
-  `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus
+- **Test-APKs** baut die Unity-CLI asynchron: `unity command build run --output-path
+  Builds/<Name>.apk --confirm true`, danach `unity command build status` abfragen, bis
+  es `completed` meldet. Vorher den Play Mode beenden. Die Einstellungen kommen aus
   den Player Settings (IL2CPP für ARMv7 und ARM64, Debug-Signatur), ein Build
   dauert rund 6 Minuten. `Space-Escaper/Builds/` ist von Git ignoriert, der Ordner
   `…_BackUpThisFolder_ButDontShipItWithYourGame` neben der APK enthält nur
@@ -1585,14 +1593,15 @@ zusätzliche Lichter jetzt weg (siehe unten). Kommen im Remaster (v1.7.0) Schatt
 oder weitere Lichter dazu, beides hier wieder einschalten, sonst bleiben sie
 unsichtbar.
 
-**Bilder vorher und nachher** nimmt im Play Mode `unity command capture_game_view
---source screen` auf, über den Bildschirm wie auf dem Handy. Die Aufnahme rendert
+**Bilder vorher und nachher** nimmt im Play Mode `unity command capture game_view` auf
+(`--source screen` ist der Standard), über den Bildschirm wie auf dem Handy. Die Aufnahme rendert
 aber nicht neu, sie skaliert nur das Game-Fenster auf `--width` und `--height`. Für
 echte Handy-Auflösung das Game-Fenster vorher auf eine feste Größe stellen (intern
 `GameView.SetCustomResolution`, per Reflection), danach die alte Größe wieder wählen
 und die neue löschen (`GameViewSizeGroup.RemoveCustomSize` erwartet den Gesamtindex).
-Ohne `--save_path` kommt das Bild als Base64 zurück und lässt sich speichern, wo man
-will. Mit `--save_path` legt die CLI jede Datei unter `Assets/` ab. Zeit anhalten
+Ohne `--output-path` kommt das Bild als Base64 zurück. Mit `--output-path` (absolut
+oder relativ zum Projektordner) speichert die CLI es dort, außerhalb von `Assets/` ohne
+`.meta`. Zeit anhalten
 (`Time.timeScale = 0`), UI ausblenden und zuerst zweimal hintereinander aufnehmen:
 Beide Bilder müssen gleich sein. So in v1.4.12 für HDR, je ein Bild mit und ohne
 `Camera.allowHDR` (720×1280, im 9:16-Fenster also nur leicht hochskaliert), und für
@@ -1824,7 +1833,7 @@ Messbuild gemessen:
   `SerializePlayerSettings` (alle intern, per Reflection,
   `BuildProfile.CreateBuildProfile` scheitert aus `eval`), dann bei aktivem Profil
   `PlayerSettings.SetManagedCodeVariant`, das schreibt in den Override. Bauen mit
-  `unity command build --outputPath Builds/<Name>.apk --profileName <Name> --options
+  `unity command build run --output-path Builds/<Name>.apk --profile-name <Name> --options
   '["Development","ConnectWithProfiler"]' --confirm true`: Das Kommando aktiviert das
   Profil, nimmt Development und Profiler aber nur aus `--options`, als JSON-Array.
 - **Danach aufräumen:** `BuildProfile.SetActiveBuildProfile(null)`, das Profil löschen
