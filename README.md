@@ -123,11 +123,13 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] German language support
 - [ ] English language support
 
-#### **v1.5.2** | Credits _(------- --, 2026)_
+#### **v1.5.2** | Credits, Achievements & Collectibles Screens _(------- --, 2026)_
 
 <small>
 
 - [ ] Added Credits Screen
+- [ ] Added Achievements Screen (achievements follow in v1.8.0)
+- [ ] Added Collectibles Screen (collectibles follow in v1.8.0)
 
 </small>
 
@@ -137,10 +139,11 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
  
 - [ ] UI overhaul
 - [x] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
+- [x] Words on buttons and titles as text instead of images
 - [x] Layout fits narrow and wide displays
 - [x] Safe area support for notches and camera cutouts
 - [ ] Clean up unused UI images
-- [ ] Decide what the leaderboard button should do (currently without function)
+- [x] Decide what the leaderboard button should do (now a symbol next to the highscore)
 - [x] UI images in a sprite atlas, compressed and drawn in fewer batches
 - [x] Updated the Unity Pipeline package to 1.0.0 for the Unity CLI
 

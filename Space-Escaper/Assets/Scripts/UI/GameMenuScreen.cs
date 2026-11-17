@@ -75,7 +75,7 @@ namespace SpaceEscaper
         private void ShowModifier()
         {
             m_shownModifier = m_runScore.Modifier;
-            m_modifierText.SetText("x{0:0.0}", m_shownModifier);
+            m_modifierText.SetText("×{0:0.0}", m_shownModifier);
         }
     }
 }

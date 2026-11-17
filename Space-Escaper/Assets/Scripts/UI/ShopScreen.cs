@@ -19,10 +19,8 @@ namespace SpaceEscaper
         [SerializeField] private Button m_previousFamilyButton;
         [SerializeField] private Button m_nextFamilyButton;
         [SerializeField] private Button m_selectOrBuyButton;
-        [Tooltip("Graphic of the select or buy button: Select, Selected or the price tag of the shown ship.")]
-        [SerializeField] private Image m_selectOrBuyImage;
-        [SerializeField] private Sprite m_selectSprite;
-        [SerializeField] private Sprite m_selectedSprite;
+        [Tooltip("The look of the select or buy button: the price of the shown ship, Select or Selected.")]
+        [SerializeField] private SelectOrBuyButton m_selectOrBuyLook;
         [Tooltip("Skin buttons, one child per family in the order of ShipFamily.")]
         [SerializeField] private Transform m_skinButtonContainer;
 
@@ -105,13 +103,12 @@ namespace SpaceEscaper
             ShowShip(m_shipCatalog.GetFirstShipOfFamily(family));
         }
 
-        // The ship on the stand, and either its price tag or whether it is already the one being
-        // flown.
+        // The ship on the stand, and either its price or whether it is already the one being flown.
         private void ShowShip(ShipData ship)
         {
             m_shownShip = ship;
             m_hangar.ShowShip(ship);
-            m_selectOrBuyImage.sprite = GetSelectOrBuySprite(ship);
+            ShowSelectOrBuy(ship);
         }
 
         private void SelectShip(ShipData ship)
@@ -123,17 +120,23 @@ namespace SpaceEscaper
             // closed. After a purchase, that also keeps the coins spent.
             SaveSystem.Save();
 
-            m_selectOrBuyImage.sprite = m_selectedSprite;
+            m_selectOrBuyLook.ShowSelected();
         }
 
-        private Sprite GetSelectOrBuySprite(ShipData ship)
+        private void ShowSelectOrBuy(ShipData ship)
         {
             if (!SaveSystem.Data.IsShipUnlocked(ship.Id))
             {
-                return ship.PriceTag;
+                m_selectOrBuyLook.ShowPrice(ship.Price);
             }
-
-            return ship == m_playerShip.Ship ? m_selectedSprite : m_selectSprite;
+            else if (ship == m_playerShip.Ship)
+            {
+                m_selectOrBuyLook.ShowSelected();
+            }
+            else
+            {
+                m_selectOrBuyLook.ShowSelect();
+            }
         }
 
         // Wraps around at both ends of the hangar.

@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 35 Skripte, ~3000 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 39 Skripte, ~3300 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -134,7 +134,7 @@ prüfen die Regeln des Spielstands ohne Szene: Neuinstallation, älterer Spielst
 unbekanntes Schiff, Kauf, Münzen nach einem Revive, Highscore, Audio-Einstellungen
 und Versionsnummer. Seit v1.4.8 prüfen sie auch die Schiffsdaten
 (`ShipCatalogTests`): jedes `ShipData` genau einmal im Katalog, das Startschiff
-darin und gratis, alle anderen mit Preis und Preisschild, jedes mit eindeutiger ID,
+darin und gratis, alle anderen mit Preis, jedes mit eindeutiger ID,
 Modell, Hangar-Größe und Antriebsflamme, jede Familie mit Schiffen. Seit v1.4.9
 prüfen sie die Streckenabschnitte (`ChunkTests`): Jeder feste Collider in einem
 Chunk trägt `Obstacle`, jeder Trigger ist eine Münze (Tag `Coin` und Komponente
@@ -205,8 +205,9 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   `CanvasScaler` auf dem Display ergäbe, und `SafeArea.Fit` bekommt dessen Safe Area. In
   der Kopie ist jeder Screen an, denn TextMesh Pro rechnet einen Text erst, wenn er
   einmal an war. Die Displays stehen oben im Test, die Safe Areas mit Kameraloch stammen
-  aus dem Device Simulator. `GameMenu/ModifierText` ist die einzige Ausnahme, bis der UI
-  Overhaul über ihn entscheidet (siehe „Texte“ unter „UI“).
+  aus dem Device Simulator. Layout-Gruppen legt der Test vor dem Prüfen aus wie das Spiel
+  vor dem Zeichnen (`LayoutRebuilder.ForceRebuildLayoutImmediate`, seit v1.5.1), sonst
+  stünden ihre Texte noch in den Rechtecken der Vorlage.
 - **Der PlayMode-Test spielt echt, aber stumm und ohne den echten Spielstand.** Ein
   Tod schreibt Münzen und Highscore, deshalb lenkt `SetUp` den Spielstand mit
   `SaveSystem.LoadFrom` in einen eigenen Ordner um, im Editor
@@ -255,9 +256,10 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
     Rendering Debugger (`Scripts/Game/TestPanel.cs`), auf dem Handy per
     Dreifinger-Doppeltipp. Im Editor steht es im Play Mode unter Window > Analysis
     > Rendering Debugger und gilt nur für den laufenden Play Mode.
-  - **In den Settings** steht seit v1.5.0 dafür auch ein Haken „Invincible“ unter dem
-    Zurück-Button. Der `SettingsScreen` legt ihn in `Awake` als Kopie von „Use new
-    Sound“ an, in der Szene steht er nicht. Auf dem Handy ist er leichter zu treffen
+  - **In den Settings** steht seit v1.5.0 dafür auch ein Schalter „Invincible“. Der
+    `SettingsScreen` legt ihn in `Awake` als Kopie der Zeile „Classic Mode“ an, die
+    Layout-Gruppe ihres Abschnitts setzt ihn darunter (seit v1.5.1), in der Szene steht
+    er nicht. Auf dem Handy ist er leichter zu treffen
     als der Dreifinger-Doppeltipp, der auf dem Pixel 9 Pro nicht immer klappte, und er
     braucht den Rendering Debugger nicht. Der ist in URP 17.6 mit UI Toolkit gebaut:
     Sein erstes Öffnen kostete dort einen Frame von 561 ms und 10 MB, danach legt er
@@ -321,14 +323,14 @@ nur Ordner.
 | `Editor/` | Werkzeuge für den Editor: das Test-Menü und seine Assembly Definition |
 | `Materials/` | Materialien, nach Gruppe |
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
-| `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte) und `AsteroidFields/` (Hintergrund) |
+| `Prefabs/` | nach Gruppe, dazu `Chunks/` (Streckenabschnitte), `AsteroidFields/` (Hintergrund) und `UI/` (Bausteine der Screens, siehe „UI“) |
 | `Scenes/` | `Game.unity` |
 | `Scripts/` | alle Skripte in Ordnern nach Bereich (siehe unten), im Root nur `SpaceEscaper.asmdef` und `AssemblyInfo.cs` |
 | `Settings/` | URP-Asset, Renderer, Global Settings, Volume Profile, Build Profiles |
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
-| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften und ihre Font Assets für TextMesh Pro), `UIAtlas.spriteatlasv2` (der Sprite Atlas der UI-Bilder, siehe „UI“), `Mockups.png` |
+| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften, ihre Lizenztexte und ihre Font Assets für TextMesh Pro), `UIAtlas.spriteatlasv2` (der Sprite Atlas der UI-Bilder, siehe „UI“), `Mockups.png` |
 
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
@@ -354,10 +356,12 @@ nur Ordner.
 - **UI-Bilder liegen nach Herkunft** (seit v1.4.12): `UI/Images/2020/` hat die 38
   Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hat die 39
   aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
-  hat die Preisschilder aus v1.4.1. Das Spiel nutzt 36: aus `2020/` nur `CoinIcon`,
-  aus `2021/` alle bis auf die leere Platte `ButtonBlank`, die drei Namensschriftzüge
-  in `Shop/` und die alten Preisschilder, dazu die drei aus `2026/`. Neue Bilder
-  kommen in den Ordner ihres Jahres.
+  hat die Preisschilder aus v1.4.1 und die Symbole, Platten, das Logo und die Münze aus
+  v1.5.1. Die Münze ist die aus `2020/`, auf die Mutter zugeschnitten (siehe „Nicht
+  größer importieren als gezeigt“ unter „Texturen“). Das Spiel nutzt seit Schritt 3a von
+  v1.5.1 30: aus `2021/` nur die neun Skin-Bilder in `Shop/`, dazu 21 aus `2026/`. Die
+  übrigen fallen beim Aufräumen in v1.5.1 weg. Neue Bilder kommen in den Ordner ihres
+  Jahres.
 - **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
   lagen auch im Ordner `GUI/` der Quelldateien des Originals, die im Januar 2026 ins
   Repo kamen (`84f02f9`). Sieben tragen einen PNG-Zeitstempel von August oder
@@ -890,11 +894,11 @@ bei 8.
   beim Revive sofort ins selbe Hindernis (zweite Explosion, Spiel-UI weg, Schiff
   unsichtbar; behoben in v1.4.4). Seit v1.4.11 prüft `RunTests` das bei jedem Lauf.
 - Highscore-Leaderboard entfiel mit Google Play Games; es gibt nur noch den lokalen
-  Highscore im Spielstand. Der Pokal-Button im Hauptmenü (`UI/MainMenu/LeaderboardButton`) bleibt
-  trotzdem **bewusst sichtbar**, auch ohne Funktion (Entscheidung Oktober 2026) -
-  nicht ausblenden oder löschen. Sein OnClick-Aufruf zeigte auf eine nicht mehr
-  existierende Methode und ist entfernt, auch der `MainMenuScreen` verbindet ihn mit
-  nichts. Der Button spielt nur den Klicksound.
+  Highscore im Spielstand. Der Pokal im Hauptmenü bleibt trotzdem **bewusst sichtbar**
+  (Entscheidung Oktober 2026), seit v1.5.1 als Symbol neben dem Highscore
+  (`UI/MainMenu/SafeArea/Stats/TrophyIcon`) statt als Button ohne Funktion
+  (Entscheidung 17.11.2026). Mit Google Play Games (v2.0) wird er wieder ein Button zur
+  Rangliste.
 
 ## Spielstand (SaveData)
 
@@ -987,7 +991,7 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
 ## Shop
 
 Seit v1.4.8 beschreibt ein `ShipData`-Asset pro Schiff, was der Shop wissen muss:
-Familie, Preis, Preisschild, Modell und Antriebsflamme. Die Assets liegen in
+Familie, Preis, Modell und Antriebsflamme. Die Assets liegen in
 `Data/Ships/`, der `ShipCatalog` daneben listet alle Schiffe in der Reihenfolge des
 Hangars: ARISTOCRAT, FREETER und VAGOR (`ShipFamily`) mit je drei Skins, das
 Startschiff vorn. Bis v1.4.7 hing der Shop an Kind-Indizes, mit 9 Kauf-Buttons, 11
@@ -998,9 +1002,10 @@ Prefab.
   seinem `ShipData` und meldet es beim Tipp, der `ShopScreen` zeigt dann dieses Schiff.
   Die Pfeile zeigen das erste Schiff der
   Familie davor oder danach (`ShipCatalog.GetFirstShipOfFamily`). Ein einziger
-  unsichtbarer Button, `UI/Shop/SelectOrBuyButton`, kauft oder wählt das gezeigte
-  Schiff (`SelectOrBuyShownShip`). Sein Kind `Image` zeigt Select, Selected oder das
-  Preisschild aus dem `ShipData` und lässt Klicks zum Button durch.
+  Button, `UI/Shop/SafeArea/SelectOrBuyButton`, kauft oder wählt das gezeigte Schiff
+  (`SelectOrBuyShownShip`). Seine Komponente `SelectOrBuyButton` zeigt den Preis aus dem
+  `ShipData` mit Münze, SELECT oder SELECTED in der Leuchtfarbe (seit v1.5.1, bis dahin
+  Bilder).
 - **Modelle sind Prefabs** in `Prefabs/Ships/` (`AristocratSkin1.prefab` …), mit
   ihrem Platz auf dem Schiff: Versatz und Skalierung stecken in der Wurzel. Der
   `PlayerShip` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein, der
@@ -1014,8 +1019,7 @@ Prefab.
   bestehenden Spielständen. Das Startschiff legt `ShipCatalog.StarterShip` fest, die
   Reihenfolge im Katalog ist nur die des Hangars.
 - **Ein neues Schiff:** Modell-Prefab in `Prefabs/Ships/` anlegen, ein `ShipData` in
-  `Data/Ships/` mit ID, Familie, Preis, Preisschild-Bild, Modell, Hangar-Größe und
-  Flamme, das `ShipData` in den `ShipCatalog` eintragen und einen Skin-Button mit
+  `Data/Ships/` mit ID, Familie, Preis, Modell, Hangar-Größe und Flamme, das `ShipData` in den `ShipCatalog` eintragen und einen Skin-Button mit
   `ShipButton` und dem `ShipData` in die Gruppe der Familie legen, am einfachsten einen
   vorhandenen duplizieren. Der `ShopScreen` findet ihn beim ersten Öffnen des Hangars
   von selbst. Die `ShipCatalogTests` prüfen danach die Daten.
@@ -1038,16 +1042,10 @@ bis v1.4.2 ohne sichtbaren Antrieb fliegen, während er beim ARISTOCRAT nicht
 auffiel. Weil die Flammen jetzt erst zur Laufzeit entstehen, kann die Szene sie
 nicht mehr überschreiben.
 
-**Preisschilder sind Bilder, keine Texte.** Den Preis im `ShipData` allein zu ändern
-reicht nicht - der Shop zeigt ihn aus `Assets/UI/Images/2026/`:
-`PriceTagAristocrat250.png`, `PriceTagFreeter750.png` und `PriceTagVagor1250.png`.
-Aufbau wie bei den Originalen von v1.3 (`2021/PriceTagAristocrat3500.png`,
-`PriceTagFreeter6000.png`, `PriceTagVagor8000.png`, pixelgleich nachgeprüft):
-`2021/ButtonBlank.png` als Platte, `2020/CoinIcon.png` als Icon, Zahl in
-`UI/Fonts/NeuropolXRegular.ttf` mit 49 px Ziffernhöhe ab y = 71, Icon und Zahl als
-Gruppe mittig. Die Original-Schilder mit den alten Preisen liegen unverändert in
-`2021/` und sind in der Szene nicht mehr referenziert. Sie bleiben bewusst liegen,
-entschieden wird beim UI Overhaul (v1.5.1) - bis dahin nicht löschen.
+**Der Preis ist Text** (seit v1.5.1): Der Shop zeigt `ShipData.Price`, ein neuer Preis
+im `ShipData` reicht. Bis dahin waren Preisschilder Bilder (`2026/PriceTag…`, davor die
+Originale von v1.3 in `2021/`), das Feld `ShipData.PriceTag` ist weg. Die Bilder sind
+ungenutzt und fallen beim Aufräumen in v1.5.1 weg, bis dahin nicht löschen.
 
 ## Spielzustand (GameState)
 
@@ -1161,17 +1159,29 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   Paket), Allokationen also auf dem Handy messen, nicht im Editor. Kommazahlen bekommen
   dort immer einen Punkt, egal welche Sprache das Handy hat. Ein neuer Legacy-`Text`
   fällt in `SceneTests` auf.
-  - **Schriften** liegen als Font Asset neben ihrer Schriftdatei in `UI/Fonts/`:
-    `NeuropolXRegularSDF` für fast alles, `GoodTimesRegularSDF` für Score und Münzen
-    auf dem Todesbildschirm. Beide sind statisch und haben 117 Zeichen für Englisch und
-    Deutsch: ASCII, Umlaute und ß, deutsche und englische Anführungszeichen, `…`, `·`,
-    `×`, `©`, `®`, `°`, `€`, `•` und das geschützte Leerzeichen. Gerendert mit SDF16 aus
-    Sampling-Größe 90 und Padding 9 in einen Atlas von 1024 × 1024, Shader
-    `TextMeshPro/Mobile/Distance Field`, ohne Kerning wie der Legacy-Text davor. Der
-    Atlas ist nicht lesbar, liegt also nur auf der GPU, und die Schriftdatei selbst
-    kommt nicht mehr in den Build. Ein fehlendes Zeichen zeichnet TextMesh Pro aus
-    `LiberationSans SDF`, der Standardschrift in den TMP Settings, so das große ẞ, das
-    keine der beiden Schriften hat.
+  - **Schriften** liegen als Font Asset neben ihrer Schriftdatei und deren Lizenztext
+    in `UI/Fonts/` (seit Schritt 3 von v1.5.1): `TitleSDF` (Audiowide) für Titel,
+    Buttons und Zahlen, `TextSDF` und `TextBoldSDF` (Exo 2 Regular und Bold) für kleine
+    Texte, `TextSDF` verweist für Fett auf `TextBoldSDF`. Audiowide heißt als Font Asset
+    neutral: Die Schrift hat einen Reserved Font Name, und ein Font Asset gilt nach der
+    SIL Open Font License als geänderte Fassung, die nicht unter diesem Namen angeboten
+    werden darf. Alle drei sind statisch und haben 117 Zeichen für Englisch und Deutsch:
+    ASCII, Umlaute und ß, deutsche und englische Anführungszeichen, `…`, `·`, `×`, `©`,
+    `®`, `°`, `€`, `•` und das geschützte Leerzeichen, Exo 2 dazu das große ẞ. Gerendert
+    mit SDF16 aus Sampling-Größe 90 und Padding 9 in einen Atlas von 1024 × 1024, Shader
+    `TextMeshPro/Mobile/Distance Field`, ohne Kerning: Die Schriften brächten 5.000 bis
+    12.600 Paare mit, die Assets wären 4 bis 8 statt 2 MB groß, und in den Wörtern der
+    Screens verschiebt es höchstens 6 % eines Buchstabens. Der Atlas ist nicht lesbar,
+    liegt also nur auf der GPU, und die Schriftdatei selbst kommt nicht mehr in den Build.
+    Ein fehlendes Zeichen zeichnet TextMesh Pro aus `LiberationSans SDF`, der
+    Standardschrift in den TMP Settings, so das große ẞ in Audiowide. `TitleSDFShadow`
+    ist ein Material-Preset mit Schatten (Underlay) für den Score im Run. Neuropol X und
+    Good Times nutzt seit v1.5.1 kein Text mehr, ihre Dateien fallen beim Aufräumen weg.
+  - **Buchstabenabstand wie in den Mockups:** `characterSpacing` zählt in Hundertsteln
+    der Schriftgröße, also 100 × Abstand / Größe. Dazu kommt ein rechter Innenrand
+    (`margin`) von einem Abstand: Der Browser setzt ihn auch nach dem letzten Buchstaben,
+    TextMesh Pro lässt ihn aus der bevorzugten Breite, und in einer Layout-Gruppe ragte
+    der Text sonst um einen Abstand aus seinem Rechteck.
   - **Ein Zeichen dazunehmen:** im Inspector des Font Assets „Update Atlas Texture“.
     Das öffnet den Font Asset Creator mit den gespeicherten Einstellungen. Dort das
     Zeichen an die Custom Characters hängen, „Generate Font Atlas“ und über das
@@ -1184,12 +1194,12 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     verschoben). TextMesh Pro setzt die Laufweiten ungerundet, „Volume“ wurde dadurch
     3 Einheiten breiter, und „Use new Sound“ brauchte 217 Einheiten, in seinem Rechteck
     von 214 brach es um. Sein Label reicht deshalb bis an den rechten Rand des Toggles
-    (224). `ModifierText` hat `LiberationSans SDF` statt Unitys eingebauter Schrift,
-    beide sind so breit wie Arial. Er liegt weiter bei x 472 außerhalb des Bildes
-    (gefunden in v1.4.10), ob er gezeigt wird, entscheidet der UI Overhaul. Bis dahin
-    nimmt `LayoutTests` ihn als einzigen aus.
-- **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle 36
-  UI-Bilder, die die Szene nutzt, auf einer Seite von 2048 × 2048 in ETC2, 4,0 MiB.
+    (224). `ModifierText` lag bei x 472 außerhalb des Bildes (gefunden in v1.4.10).
+    Seit Schritt 3a steht er als Multiplikator „×1.4“ in einem Chip neben dem Score,
+    `LayoutTests` nimmt ihn nicht mehr aus.
+- **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle
+  UI-Bilder, die die Szene nutzt, seit Schritt 3a 30 auf einer Seite von 2048 × 1024 in
+  ETC2, 2,0 MiB. Beim Einführen waren es 36 auf 2048 × 2048, 4,0 MiB.
   Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
   „Texturen“). Die Bilder eines Screens kommen damit in einem Draw Call, gemessen im
   Editor nur fürs UI: Menü 2 statt 7, Hangar 1 statt 7, Settings 6 statt 9, Run 3 statt
@@ -1228,12 +1238,14 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   aller Screens in 1080 × 1920 verglichen), auf schmaleren Handys ist das UI kleiner als
   bis v1.5.0, auf 20:9 um 20 %.
   - **Jedes Element hängt an dem, wozu es gehört.** Was an einer Kante steht, liegt in
-    der `SafeArea` seines Screens und hängt an seiner Ecke: Pokal, Highscore und Münzen
-    oben links, Zahnrad und Pause oben rechts, die Titel oben links, „EXIT“ im Hangar
-    oben rechts, Hangar-Button und Kaufen unten. Die Menüs von Pause, Settings und Tod
-    liegen mittig in der `SafeArea`. Was über der 3D-Welt liegt, hängt direkt am Screen,
-    an einem Anker auf seiner Höhe relativ zum Bildschirm: Logo und „Tap to Start“ über
-    dem Raumhafen, Skins und Pfeile im Hangar. Die Kameras halten ihr senkrechtes
+    der `SafeArea` seines Screens und hängt an seiner Ecke, oben 24 Einheiten unter ihr
+    (seit Schritt 3a von v1.5.1): Highscore und Münzen oben links, Zahnrad und Pause
+    oben rechts, Zurück oben links und die Titel oben mittig, LAUNCH, Hangar-Button,
+    Kaufen und die Buttons des Todesbildschirms unten, das Sheet der Pause am unteren
+    Rand. Die Abschnitte der Settings sowie Titel und Score des Todesbildschirms hängen
+    oben. Was über der 3D-Welt liegt, hängt direkt am Screen, an einem Anker auf seiner
+    Höhe relativ zum Bildschirm: das Logo über dem Raumhafen, Skins und Pfeile im
+    Hangar. Die Kameras halten ihr senkrechtes
     Sichtfeld (75° und 60°), die Welt wächst also mit der Bildhöhe, und diese Elemente
     bleiben über derselben Stelle. Die Skins liegen dafür bei y = 0 in ihren Familien,
     ihr Container hängt auf ihrer Höhe.
@@ -1249,17 +1261,42 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Tippflächen** sind mindestens 60 Einheiten groß: 48 dp, wie Android sie
     empfiehlt, auf einem Handy mit 360 dp Breite, so schmal sind die schmalsten
     verbreiteten. Auf dem Außendisplay eines Klapphandys (320 dp) bleiben davon 43 dp.
-    Pokal, Zahnrad und Pause sind dafür seit v1.5.1 60 × 60 groß statt 50 bis 52, „EXIT“
-    im Hangar 60 statt 55 hoch, ihre Bilder blieben gleich. „Use new Sound“ (40 hoch)
-    und der Lautstärkeregler (26) bekamen ein unsichtbares Kind `HitArea`, 60 hoch,
-    eingestellt wie die anderen unsichtbaren Klickflächen (siehe unten). Die Draw Calls
-    blieben gleich.
+    Die kleinen Buttons (Zahnrad, Pause, Zurück, Prefab `IconButton`) zeigen 60 × 60 und
+    nehmen Tipps über ein unsichtbares Kind `HitArea` auf 68 × 68 an, das sind auch dort
+    48 dp. Der Lautstärkeregler und die Zeilen mit Schalter sind 60 hoch.
   - **Ein neues Element** kommt nach diesen Regeln in die `SafeArea` oder direkt an den
     Screen. Ob es auf allen Displays passt, prüft `LayoutTests` (siehe „Tests“). Ansehen
     im Device Simulator (Window > General > Device Simulator), er hat Handys mit
     Kameraloch, ein Klapphandy und zwei Tablets. Auf dem Handy ist das neue Layout noch
-    nicht nachgesehen, auch nicht „Use new Sound“, das auf dem Pixel 9 Pro in v1.5.0 nur
-    „Use new“ zeigte (siehe „Texte“).
+    nicht nachgesehen.
+- **Look aus den Mockups** (seit Schritt 3 von v1.5.1, Vorlage ist Version 6 der
+  Mockups): Grund `#050607`, Leuchtfarbe `#57ff5c` mit Schatten `#2b7f2e` und Text
+  `#062b08` darauf, Sternenlicht `#ffad3d`, weiße Platten mit Text `#1b1a20` und
+  Schatten `#6f7380`.
+  - **Platten** sind ein einziges 9-Slice-Bild, `2026/Plate` (ein weißer Kreis mit 64
+    Pixel Rand): Der Radius ist 64 / `pixelsPerUnitMultiplier`. Mit großem Faktor
+    zeichnet es auch Rechtecke aus dem Atlas, etwa die Abdunklungen, so bleiben sie im
+    Draw Call des Atlas. Rahmen sind `PlateOutline` (2 Einheiten bei Radius 18) und
+    `PlateOutlineThin` (1 Einheit), ein Schatten ist eine zweite Platte 4 rechts und 6
+    tiefer.
+  - **Prefabs** in `Prefabs/UI/`: `Button` (weiße Platte mit Symbol und Text),
+    `PrimaryButton` (Variante in der Leuchtfarbe), `IconButton` (siehe Tippflächen),
+    `OnOffButton` (an oder aus mit Zustand, Komponente `OnOffButton`) und `SwitchRow`
+    (Titel, Beschreibung und Schalter, die ganze Zeile ist das Toggle, Komponente
+    `ToggleSwitch`). Text und Symbol bekommt jede Instanz selbst.
+  - **Transparenz im linearen Farbraum:** Das Projekt rendert linear, Unity mischt
+    halbtransparentes UI deshalb im linearen Licht, der Browser der Mockups in sRGB: 7 %
+    Weiß über Schwarz sieht hier aus wie 30 %. Halbtransparente Farben bekommen deshalb
+    das Alpha, das über ihrem Untergrund aussieht wie im Mockup, etwa 0,014 statt 0,07
+    für die Kacheln und 0,90 statt 0,72 für die Abdunklung des Todesbildschirms. Die
+    weichen Ränder von Logo und Leuchten (`SpaceEscaperLogo`, `PlateGlow`) sind pixelweise
+    so umgerechnet, für dunklen Weltraum als Untergrund.
+  - **Bilder** entstehen aus HTML im Browser: Die Symbole sind die SVGs der Mockups
+    (Feather und Lucide, ein paar eigene) als weiße PNGs von 128 Pixeln, im Spiel
+    eingefärbt. Das Logo ist Bruno Ace SC als Bild mit 3 Pixeln pro Einheit, die Schrift
+    selbst liegt nicht im Projekt. Nur die Münze ist kein HTML: Sie ist die rostige Mutter
+    von 2020, enger zugeschnitten (siehe „Texturen“), ihr Rechteck zeigt also die ganze
+    Mutter.
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
@@ -1279,11 +1316,13 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 - **Keine Animatoren für Übergänge oder kurze Effekte.** Ein Animator am UI markiert
   seine Grafiken in jedem Frame neu, auch wenn sich nichts bewegt, und dann baut der
   ganze Canvas neu. In einem Screen fällt er außerdem bei jedem Einschalten auf seinen
-  Startzustand zurück. Er lohnt sich nur für Elemente, die sich ständig bewegen, wie
-  den Puls von „Tap to Start“ im Hauptmenü. Kurze Effekte laufen im Code, so der
-  Münz-Pop: `PopEffect` am `GameMenu/CoinIcon` vergrößert es für 0,25 s auf 115 % und
-  färbt es gelb. Bis v1.4.9 lief er über einen Animator, der das Icon nach der ersten
-  Münze von 55 auf 65 wachsen ließ. Seit v1.4.10 ist 65 die Ruhegröße.
+  Startzustand zurück. Seit v1.5.1 hat das UI keinen Animator mehr: Das Leuchten um
+  LAUNCH pulsiert per `PulseEffect` über das Alpha seines `CanvasRenderer`, die Farbe der
+  Grafik bleibt dabei unberührt. Kurze Effekte laufen ebenso im Code, so der Münz-Pop:
+  `PopEffect` an der Münze der Spielanzeige (`GameMenu/SafeArea/Hud/CoinRow/CoinIcon`)
+  vergrößert sie für 0,25 s auf 115 % und färbt sie gelb. Bis v1.4.9 lief er über einen
+  Animator, der das Icon nach der ersten Münze von 55 auf 65 wachsen ließ. Danach war 65
+  die Ruhegröße, seit Schritt 3a von v1.5.1 sind es 28.
 - **Unsichtbar heißt nicht kostenlos.** Eine Grafik mit Alpha 0 wird gezeichnet, solange
   „Cull Transparent Mesh“ an ihrem `CanvasRenderer` aus ist, auf dem Handy kostet das
   Füllrate. Seit v1.4.10 sind die unsichtbaren Vollbild-Hintergründe von Hauptmenü,
@@ -1295,7 +1334,10 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   durchklicken und pro Zustand die sichtbaren Grafiken auflisten, mit Rechteck auf dem
   Bildschirm, Farbe, Bild und Text, vorher und nachher. Ob ein Klick ankommt, zeigt
   `EventSystem.RaycastAll` in der Mitte jedes Buttons, `onClick.Invoke()` umgeht das
-  Raycasting. Neu gebaute Canvases zählt ein `ProfilerRecorder` auf `Canvas.BuildBatch`.
+  Raycasting. Ein Screen, der im selben Frame eingeschaltet wurde, nimmt noch keine
+  Raycasts an, seine Grafiken haben bis zum ersten Zeichnen keine Tiefe (`depth` -1),
+  also einen Frame später prüfen. Neu gebaute Canvases zählt ein `ProfilerRecorder` auf
+  `Canvas.BuildBatch`.
   So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an. Texte vergleicht man an
   ihren Glyphen: TextMesh Pro rechnet sie aus `textInfo.characterInfo` (Ursprung,
   Grundlinie, Skalierung und Maße der Glyphe, die Eckpunkte dort enthalten das Padding
@@ -1459,10 +1501,10 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   `Awake()`. Eine Inspector-Referenz oder ein persistenter OnClick-Aufruf darauf
   zeigt nach dem ersten Reload ins Leere. Alles geht deshalb über
   `AudioSystem.Instance`, und das AudioSystem selbst kennt nichts in der Szene:
-  - Die Bedienelemente unter `UI/Settings` (`NewSoundsToggle` „Use new Sound“,
-    `VolumeSlider`, `SfxButton`, `MusicButton`) verbindet seit v1.5.0 der
-    `SettingsScreen` am selben Screen, in `OnEnable`, und zeigt dabei den Stand
-    des AudioSystem. Ein neues Bedienelement für den Ton kommt dorthin. Bis v1.4.13
+  - Die Bedienelemente unter `UI/Settings` (`VolumeSlider`, `MusicButton`, `SfxButton`
+    und `ClassicModeToggle`, bis v1.5.0 „Use new Sound“, seit v1.5.1 umgekehrt: an
+    heißt die Sounds von 2020) verbindet seit v1.5.0 der `SettingsScreen` am selben
+    Screen, in `OnEnable`, und zeigt dabei den Stand des AudioSystem. Ein neues Bedienelement für den Ton kommt dorthin. Bis v1.4.13
     hielt das AudioSystem die Referenzen selbst und übernahm sie nach jedem Reload
     von seiner Szenenkopie (`AdoptSceneReferencesFrom`). Geprüft in v1.5.0 über die
     echten Buttons: Öffnen aus Hauptmenü und Pause, alle vier Elemente umschalten,
@@ -1689,9 +1731,12 @@ höchstens 38 Stufen), die Sterne minimal schwächer (0,2 %, höchstens 52).
 danach, wie groß eine Textur höchstens auf dem Bildschirm erscheint. Gemessen in
 1080×2400:
 
-- `UI/Images/2020/CoinIcon.png` 512: Das Icon ist im Canvas höchstens 75 Einheiten groß,
-  auf einem 3200 px hohen Display rund 300 px. Im Bildvergleich blieb es gleich, die
-  Unterschiede zu 2000 px sind Rauschen in der Rost-Struktur.
+- `UI/Images/2026/CoinIcon.png` hat 128 px (seit v1.5.1): Die Münze ist im Canvas
+  höchstens 30 Einheiten groß, mit dem Pop im Run 32, auf einem 3200 px hohen Display
+  rund 100 px. Das Bild ist die Mutter aus `2020/CoinIcon.png`, auf ihren Umriss
+  zugeschnitten (2 px Rand) und über die Fläche gemittelt verkleinert, im linearen Licht.
+  Das alte Bild hat 2000 px, die Mutter darin nur 1067 × 924. Im UI füllte sie ihr
+  Rechteck deshalb nur zur Hälfte und war kaum zu sehen.
 - Die neun Schiffspaletten 512 ohne Alphakanal, `Asteroid016To025Color.png` 256,
   siehe Paletten.
 - `Textures/Coin/CoinColor.jpg` 512: Münzen auf der Strecke nutzen höchstens die
@@ -1717,7 +1762,10 @@ das angrenzende Feld hinein. Ohne Transparenz brauchen Paletten keinen Alphakana
 (Alpha Source „None“), `ANIMO/BendWorld` liest ihn nicht.
 
 **Android-Format ist ETC2** (Player Settings), nicht ASTC: mit Alphakanal 1 Byte pro
-Pixel, ohne 0,5. Kantenlängen müssen durch 4 teilbar sein, sonst bleibt eine Textur
+Pixel, ohne 0,5. In den Player Settings steht als Format für Android zwar nur „ETC“
+(`PlayerSettings.Android.textureCompressionFormats`), die Texturen bekommen aber ETC2,
+ohne Alphakanal ETC2 RGB und mit ETC2 RGBA (geprüft in v1.5.1 an allen Texturen der
+Szene). Kantenlängen müssen durch 4 teilbar sein, sonst bleibt eine Textur
 unkomprimiert (RGBA32). Das traf bis v1.5.0 35 UI-Bilder mit zusammen 10,4 MiB (etwa
 648×207). Seit v1.5.1 liegen sie im Sprite Atlas, dessen Seite sich komprimieren lässt
 (siehe „Bilder liegen im Sprite Atlas“ unter „UI“). Ein UI-Bild außerhalb des Atlas wäre

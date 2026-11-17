@@ -13,36 +13,33 @@ namespace SpaceEscaper
     {
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         private const string k_InvincibleToggleName = "InvincibleToggle";
-        private const string k_InvincibleLabel = "Invincible";
-        private const float k_InvincibleToggleY = -170f;
+        private const string k_InvincibleLabel = "INVINCIBLE";
+        private const string k_InvincibleDescription = "Fly through obstacles, test builds only";
 #endif
 
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private Button m_backButton;
         [SerializeField] private Button m_sfxButton;
-        [SerializeField] private Sprite m_sfxOnSprite;
-        [SerializeField] private Sprite m_sfxOffSprite;
         [SerializeField] private Button m_musicButton;
-        [SerializeField] private Sprite m_musicOnSprite;
-        [SerializeField] private Sprite m_musicOffSprite;
-        [SerializeField] private Toggle m_newSoundsToggle;
+        [Tooltip("The sounds of the 2020 original. Its look comes with the remaster in v1.7.0.")]
+        [SerializeField] private Toggle m_classicModeToggle;
         [SerializeField] private Slider m_volumeSlider;
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         private Toggle m_invincibleToggle;
 
-        // The switch is a copy of the new sounds toggle made at runtime, so the scene stays as it is and
-        // release builds have no trace of it. On a phone it is easier to hit than the three-finger double
-        // tap of the test panel, and it does not need the Rendering Debugger, whose first opening costs a
-        // long frame and several megabytes.
+        // The switch is a copy of the classic mode row made at runtime, so the scene stays as it is and release
+        // builds have no trace of it. The layout of its section puts it below. On a phone it is easier to hit than
+        // the three-finger double tap of the test panel, and it does not need the Rendering Debugger, whose first
+        // opening costs a long frame and several megabytes.
         private void Awake()
         {
-            m_invincibleToggle = Instantiate(m_newSoundsToggle, m_newSoundsToggle.transform.parent);
+            m_invincibleToggle = Instantiate(m_classicModeToggle, m_classicModeToggle.transform.parent);
             m_invincibleToggle.name = k_InvincibleToggleName;
-            m_invincibleToggle.GetComponentInChildren<TMP_Text>().text = k_InvincibleLabel;
-            RectTransform rect = (RectTransform)m_invincibleToggle.transform;
-            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, k_InvincibleToggleY);
+            TMP_Text[] texts = m_invincibleToggle.GetComponentsInChildren<TMP_Text>();
+            texts[0].text = k_InvincibleLabel;
+            texts[1].text = k_InvincibleDescription;
         }
 #endif
 
@@ -51,7 +48,7 @@ namespace SpaceEscaper
             m_backButton.onClick.AddListener(BackButton_Clicked);
             m_sfxButton.onClick.AddListener(SfxButton_Clicked);
             m_musicButton.onClick.AddListener(MusicButton_Clicked);
-            m_newSoundsToggle.onValueChanged.AddListener(NewSoundsToggle_ValueChanged);
+            m_classicModeToggle.onValueChanged.AddListener(ClassicModeToggle_ValueChanged);
             m_volumeSlider.onValueChanged.AddListener(VolumeSlider_ValueChanged);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.AddListener(InvincibleToggle_ValueChanged);
@@ -65,7 +62,7 @@ namespace SpaceEscaper
             m_backButton.onClick.RemoveListener(BackButton_Clicked);
             m_sfxButton.onClick.RemoveListener(SfxButton_Clicked);
             m_musicButton.onClick.RemoveListener(MusicButton_Clicked);
-            m_newSoundsToggle.onValueChanged.RemoveListener(NewSoundsToggle_ValueChanged);
+            m_classicModeToggle.onValueChanged.RemoveListener(ClassicModeToggle_ValueChanged);
             m_volumeSlider.onValueChanged.RemoveListener(VolumeSlider_ValueChanged);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.RemoveListener(InvincibleToggle_ValueChanged);
@@ -95,9 +92,9 @@ namespace SpaceEscaper
             ShowCurrentSettings();
         }
 
-        private void NewSoundsToggle_ValueChanged(bool isOn)
+        private void ClassicModeToggle_ValueChanged(bool isOn)
         {
-            AudioSystem.Instance.SetUseNewSounds(isOn);
+            AudioSystem.Instance.SetUseNewSounds(!isOn);
         }
 
         private void VolumeSlider_ValueChanged(float value)
@@ -124,15 +121,15 @@ namespace SpaceEscaper
                 return;
             }
 
-            ShowMuteState(m_sfxButton, m_sfxOnSprite, m_sfxOffSprite, audioSystem.IsSfxMuted);
-            ShowMuteState(m_musicButton, m_musicOnSprite, m_musicOffSprite, audioSystem.IsMusicMuted);
-            m_newSoundsToggle.SetIsOnWithoutNotify(audioSystem.UseNewSounds);
+            ShowMuteState(m_sfxButton, audioSystem.IsSfxMuted);
+            ShowMuteState(m_musicButton, audioSystem.IsMusicMuted);
+            m_classicModeToggle.SetIsOnWithoutNotify(!audioSystem.UseNewSounds);
             m_volumeSlider.SetValueWithoutNotify(audioSystem.MasterVolume);
         }
 
-        private static void ShowMuteState(Button button, Sprite onSprite, Sprite offSprite, bool isMuted)
+        private static void ShowMuteState(Button button, bool isMuted)
         {
-            button.GetComponent<Image>().sprite = isMuted ? offSprite : onSprite;
+            button.GetComponent<OnOffButton>().ShowState(!isMuted);
         }
     }
 }

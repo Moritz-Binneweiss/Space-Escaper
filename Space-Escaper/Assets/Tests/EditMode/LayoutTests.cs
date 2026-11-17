@@ -25,10 +25,6 @@ namespace SpaceEscaper.Tests
         // Fitting rectangles leaves small differences in the float math, far below a pixel.
         private const float k_Tolerance = 0.5f;
 
-        // Lies outside the picture since v1.4.10. Whether it is shown or deleted is up to the UI overhaul,
-        // and this line goes with that decision.
-        private const string k_KnownOutsideText = "UI/GameMenu/ModifierText";
-
         // Screens in portrait, in pixels. Safe areas count from the bottom left like in Unity, the ones with
         // a cutout are those of the phones and tablets in the Device Simulator.
         private static readonly Device[] s_Devices =
@@ -103,7 +99,7 @@ namespace SpaceEscaper.Tests
             {
                 string path = GetPath(graphic.transform);
                 Rect box = GetRect(graphic.rectTransform);
-                if (!graphic.enabled || path == k_KnownOutsideText || IsSameRect(box, screen))
+                if (!graphic.enabled || IsSameRect(box, screen))
                 {
                     continue;
                 }
@@ -196,6 +192,13 @@ namespace SpaceEscaper.Tests
             foreach (SafeArea safeArea in m_ui.GetComponentsInChildren<SafeArea>(true))
             {
                 safeArea.Fit(device.SafeAreaInPixels, device.ScreenSize);
+            }
+
+            // The game lays out its layout groups before it draws. The copy does it here, so the texts in a group
+            // get the boxes the group gives them before TextMesh Pro fills them.
+            foreach (LayoutGroup group in m_ui.GetComponentsInChildren<LayoutGroup>(true))
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)group.transform);
             }
 
             foreach (TMP_Text text in m_ui.GetComponentsInChildren<TMP_Text>(true))

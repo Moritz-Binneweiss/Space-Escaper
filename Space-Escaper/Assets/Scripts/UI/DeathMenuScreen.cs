@@ -26,7 +26,7 @@ namespace SpaceEscaper
             m_menuButton.onClick.AddListener(m_gameManager.ReturnToMenu);
 
             m_scoreText.SetText("{0}", m_runScore.Score);
-            m_coinText.SetText("{0}", m_runScore.Coins);
+            m_coinText.SetText("+{0}", m_runScore.Coins);
             m_reviveButton.gameObject.SetActive(m_gameManager.CanRevive);
         }
 
