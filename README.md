@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.5.0 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.5.1 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -132,6 +132,17 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] German language support
 - [ ] English language support
 
+#### **v1.5.4** | Transitions & Polish _(------- --, 2026)_
+
+<small>
+
+- [ ] Smooth transitions and animations in the menus
+- [ ] Hangar: the platform slides out and the next ship family slides in
+- [ ] Highscore bar slides in from the top, swipe hint arrows sway
+- [ ] Small fixes and polish
+
+</small>
+
 #### **v1.5.3** | UI Colorways _(------- --, 2026)_
 
 <small>
@@ -157,23 +168,23 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-#### **v1.5.1** | UI Overhaul _(------- --, 2026)_
+#### **v1.5.1** | UI Overhaul _(November 18, 2026)_
 
 <small>
- 
-- [ ] UI overhaul
-- [x] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
-- [x] New fonts implementation (Audiowide and Exo 2)
-- [x] Words on buttons and titles as text instead of images
-- [x] Layout fits narrow and wide displays
-- [x] Safe area support for notches and camera cutouts
-- [x] Separate volume for music and effects
-- [x] Time, distance and highscore progress of every run
-- [x] Play again or open the hangar right from the death screen
-- [x] Clean up unused UI images
-- [x] Decide what the leaderboard button should do (now a symbol next to the highscore)
-- [x] UI images in a sprite atlas, compressed and drawn in fewer batches
-- [x] Updated the Unity Pipeline package to 1.0.0 for the Unity CLI
+
+- 🎨 UI overhaul
+- 🔤 Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
+- ✒️ New fonts implementation (Audiowide and Exo 2)
+- 🏷️ Words on buttons and titles as text instead of images
+- 📱 Layout fits narrow and wide displays
+- 📷 Safe area support for notches and camera cutouts
+- 🎚️ Separate volume for music and effects
+- ⏱️ Time, distance and highscore progress of every run
+- 🔁 Play again or open the hangar right from the death screen
+- 🧹 Clean up unused UI images
+- 🏆 Leaderboard button is now a symbol next to the highscore
+- 🖼️ UI images in a sprite atlas, compressed and drawn in fewer batches
+- 🧰 Updated the Unity Pipeline package to 1.0.0 for the Unity CLI
 
 </small>
 

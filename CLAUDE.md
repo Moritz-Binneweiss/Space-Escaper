@@ -48,7 +48,8 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
 - **Tests auf dem Handy** ausführlich erst kurz vor v2.0 (Entscheidung Oktober 2026).
   Bis dahin reichen Tests im Editor und kurze Stichproben auf dem Handy. Test-APKs
-  nur bauen, wenn danach gefragt wird.
+  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 ist nur
+  im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung 18.11.2026).
 
 ## Code-Stil
 
@@ -352,7 +353,7 @@ nur Ordner.
 | `Shaders/` | `BendWorld.shader` |
 | `Tests/` | `EditMode/` und `PlayMode/`, je mit den Tests und ihrer Assembly Definition |
 | `Textures/` | Texturen der Unity-Materialien, nach Gruppe |
-| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften, ihre Lizenztexte und ihre Font Assets für TextMesh Pro), `UIAtlas.spriteatlasv2` (der Sprite Atlas der UI-Bilder, siehe „UI“), `Mockups.png` |
+| `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften, ihre Lizenztexte und ihre Font Assets für TextMesh Pro), `UIAtlas.spriteatlasv2` (der Sprite Atlas der UI-Bilder, siehe „UI“) |
 
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
   `Ships`, `Spaceport` und `Skybox`. Was zum
@@ -702,7 +703,9 @@ bei 8.
   (`unity command script eval`, `test run`, `editor status` …), die Parameter in
   kebab-case. `unity command` listet die Gruppen, `unity command <Gruppe>` deren Befehle,
   `--help` dahinter die Parameter. `script eval` gibt den Rückgabewert direkt zurück,
-  ein Fehler endet mit Exit-Code 6.
+  ein Fehler endet mit Exit-Code 6. Den Play Mode starten und beenden
+  `unity command editor.playmode start` und `stop`, ob er läuft, zeigt `editor status`
+  (`playMode`).
 - **Play Mode ohne Domain Reload** (seit v1.5.0): Project Settings > Editor, „When
   entering Play Mode“ steht auf „Reload Scene only“ (`m_EnterPlayModeOptions: 1` in
   `ProjectSettings/EditorSettings.asset`). Beim Start des Play Mode lädt Unity nur die
@@ -1179,14 +1182,14 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 
 - **Es ist immer genau ein Screen an.** `ScreenManager.Show(GameState)` zeigt den
   Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings.
-  Beide schalten ihn per `SetActive` ein und alle anderen aus, ohne
-  Übergang (Entscheidung Oktober 2026). Beim Start zeigt er das Hauptmenü, egal welcher
-  Screen beim Bearbeiten an blieb. Gespeichert ist die Szene mit nur dem Hauptmenü an,
-  so sieht sie im Editor aus wie beim Start. Zum Bearbeiten einen Screen einschalten,
-  vor dem Speichern wieder nur das Hauptmenü. Das prüft seit v1.5.0 `SceneTests`: Ein
-  anderer Screen wachte sonst mit der Szene auf, vielleicht bevor bereit ist, was er
-  zeigt, etwa der `ShopScreen` vor dem `PlayerShip`, und erst danach schaltete der
-  `ScreenManager` ihn aus.
+  Beide schalten ihn per `SetActive` ein und alle anderen aus, ohne Übergang
+  (Entscheidung Oktober 2026, Übergänge kommen mit v1.5.4, siehe README). Beim Start
+  zeigt er das Hauptmenü, egal welcher Screen beim Bearbeiten an blieb. Gespeichert
+  ist die Szene mit nur dem Hauptmenü an, so sieht sie im Editor aus wie beim Start.
+  Zum Bearbeiten einen Screen einschalten, vor dem Speichern wieder nur das Hauptmenü.
+  Das prüft seit v1.5.0 `SceneTests`: Ein anderer Screen wachte sonst mit der Szene
+  auf, vielleicht bevor bereit ist, was er zeigt, etwa der `ShopScreen` vor dem
+  `PlayerShip`, und erst danach schaltete der `ScreenManager` ihn aus.
 - **Jeder Screen hat eine Komponente mit seinem Namen und `Screen` dahinter** (seit
   v1.5.0), etwa `MainMenuScreen` am `UI/MainMenu`. Sie verbindet die Buttons ihres
   Screens in `OnEnable` und löst sie in `OnDisable`, eine Zeile pro Button
@@ -1268,9 +1271,11 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
   „Texturen“). Die Bilder eines Screens kommen damit in einem Draw Call, gemessen im
   Editor nur fürs UI, beim Einführen: Menü 2 statt 7, Hangar 1 statt 7, Settings 6 statt
-  9, Run 3 statt 4, Pause 2 statt 5, Tod 3 statt 6. Seit dem neuen Design (Schritt 3 von
-  v1.5.1) nicht neu gemessen. Eigene Draw Calls bleiben die Texte (ein Material pro
-  Schrift) und was kein Bild aus dem Atlas zeigt.
+  9, Run 3 statt 4, Pause 2 statt 5, Tod 3 statt 6. Mit dem neuen Design, gemessen zum
+  Abschluss von v1.5.1: Menü 4, Hangar 4, Settings 8, Run 4 (mit der Leiste zum Highscore
+  7, mit „NEW HIGHSCORE!“ 6), Pause 3, Tod 3. Seit Schritt 3a sind alle Wörter Text, und
+  eigene Draw Calls sind die Texte (ein Material pro Schrift) und was kein Bild aus dem
+  Atlas zeigt.
   - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
     Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` liegen
     ungenutzte Bilder für den Classic Mode, die er mitpacken würde. Was fehlt oder zu viel ist,
@@ -1445,12 +1450,17 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   Raycasts an, seine Grafiken haben bis zum ersten Zeichnen keine Tiefe (`depth` -1),
   also einen Frame später prüfen. Neu gebaute Canvases zählt ein `ProfilerRecorder` auf
   `Canvas.BuildBatch`.
-  So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an. Texte vergleicht man an
+  So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an. Zum Abschluss von v1.5.1
+  kamen alle 41 Tipps eines Durchlaufs durch alle Zustände an, nach jedem Wechsel des
+  Screens in einem neuen Aufruf von `script eval`. Texte vergleicht man an
   ihren Glyphen: TextMesh Pro rechnet sie aus `textInfo.characterInfo` (Ursprung,
   Grundlinie, Skalierung und Maße der Glyphe, die Eckpunkte dort enthalten das Padding
   des Atlas), ein Legacy-`Text` hatte sie in `cachedTextGenerator.verts`. Draw Calls
   nur des UI: im Play Mode alle Kameras auf `cullingMask` 0 mit einfarbigem Hintergrund
-  stellen und je Screen `UnityStats.drawCalls` lesen, so in v1.5.1 für den Atlas.
+  stellen und je Screen `UnityStats.drawCalls` lesen (`batches` hat Unity 6.6 dort nicht),
+  so in v1.5.1 für den Atlas und zum Abschluss. Leiste und Banner im Run schaltet die
+  Spielanzeige gleich wieder aus, wenn nur der Screen gezeigt wird: Für die Messung ihre
+  Endzeit im `GameMenuScreen` vorstellen, bei stehender Zeit bleiben sie dann an.
   Andere Seitenverhältnisse: das Game-Fenster im Play Mode auf eine feste Auflösung
   stellen (siehe „Bilder vorher und nachher“ unter „Render Pipeline: URP“) oder auf den
   Device Simulator umschalten, nur dort gibt es eine Safe Area. Aus `eval` geht beides
