@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -6,7 +7,8 @@ namespace SpaceEscaper
 {
     /// <summary>
     /// The hangar screen. It shows one ship at a time: the skin buttons and arrows pick it, and
-    /// the button below it flies it if it is owned, or buys it.
+    /// the button below it flies it if it is owned, or buys it. The coins are on show, and the
+    /// skin buttons mark the ship on the stand, the ships owned and the one being flown.
     /// </summary>
     public class ShopScreen : MonoBehaviour
     {
@@ -15,14 +17,14 @@ namespace SpaceEscaper
         [SerializeField] private PlayerShip m_playerShip;
         [Tooltip("Shows the ship on its stand.")]
         [SerializeField] private Hangar m_hangar;
+        [SerializeField] private TMP_Text m_coinText;
+        [SerializeField] private TMP_Text m_familyNameText;
         [SerializeField] private Button m_backButton;
         [SerializeField] private Button m_previousFamilyButton;
         [SerializeField] private Button m_nextFamilyButton;
         [SerializeField] private Button m_selectOrBuyButton;
-        [Tooltip("Graphic of the select or buy button: Select, Selected or the price tag of the shown ship.")]
-        [SerializeField] private Image m_selectOrBuyImage;
-        [SerializeField] private Sprite m_selectSprite;
-        [SerializeField] private Sprite m_selectedSprite;
+        [Tooltip("The look of the select or buy button: the price of the shown ship, Select or Selected.")]
+        [SerializeField] private SelectOrBuyButton m_selectOrBuyLook;
         [Tooltip("Skin buttons, one child per family in the order of ShipFamily.")]
         [SerializeField] private Transform m_skinButtonContainer;
 
@@ -50,6 +52,8 @@ namespace SpaceEscaper
             {
                 shipButton.Clicked += ShipButton_Clicked;
             }
+
+            ShowCoins();
         }
 
         private void OnDisable()
@@ -97,6 +101,7 @@ namespace SpaceEscaper
 
             AudioSystem.Instance.PlayShipPurchase();
             SelectShip(m_shownShip);
+            ShowCoins();
         }
 
         private void ShowFamily(ShipFamily family)
@@ -105,13 +110,14 @@ namespace SpaceEscaper
             ShowShip(m_shipCatalog.GetFirstShipOfFamily(family));
         }
 
-        // The ship on the stand, and either its price tag or whether it is already the one being
-        // flown.
+        // The ship on the stand, its family, and either its price or whether it is already the one being flown.
         private void ShowShip(ShipData ship)
         {
             m_shownShip = ship;
             m_hangar.ShowShip(ship);
-            m_selectOrBuyImage.sprite = GetSelectOrBuySprite(ship);
+            m_familyNameText.SetText(ship.Family.ToString().ToUpperInvariant());
+            ShowSelectOrBuy(ship);
+            ShowShipButtons();
         }
 
         private void SelectShip(ShipData ship)
@@ -123,17 +129,41 @@ namespace SpaceEscaper
             // closed. After a purchase, that also keeps the coins spent.
             SaveSystem.Save();
 
-            m_selectOrBuyImage.sprite = m_selectedSprite;
+            m_selectOrBuyLook.ShowSelected();
+            ShowShipButtons();
         }
 
-        private Sprite GetSelectOrBuySprite(ShipData ship)
+        private void ShowSelectOrBuy(ShipData ship)
         {
-            if (!SaveSystem.Data.IsShipUnlocked(ship.Id))
+            SaveData saveData = SaveSystem.Data;
+            if (!saveData.IsShipUnlocked(ship.Id))
             {
-                return ship.PriceTag;
+                m_selectOrBuyLook.ShowPrice(ship.Price, saveData.Coins >= ship.Price);
             }
+            else if (ship == m_playerShip.Ship)
+            {
+                m_selectOrBuyLook.ShowSelected();
+            }
+            else
+            {
+                m_selectOrBuyLook.ShowSelect();
+            }
+        }
 
-            return ship == m_playerShip.Ship ? m_selectedSprite : m_selectSprite;
+        private void ShowCoins()
+        {
+            m_coinText.SetText("{0}", SaveSystem.Data.Coins);
+        }
+
+        // The buttons of the other families are switched off, but they show the right state when they come on.
+        private void ShowShipButtons()
+        {
+            SaveData saveData = SaveSystem.Data;
+            foreach (ShipButton shipButton in m_shipButtons)
+            {
+                ShipData ship = shipButton.Ship;
+                shipButton.ShowState(ship == m_shownShip, saveData.IsShipUnlocked(ship.Id), ship == m_playerShip.Ship);
+            }
         }
 
         // Wraps around at both ends of the hangar.

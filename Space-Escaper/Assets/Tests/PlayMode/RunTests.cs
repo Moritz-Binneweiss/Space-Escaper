@@ -25,6 +25,16 @@ namespace SpaceEscaper.Tests
         private const float k_MaxTimeToCrash = 60f;
         private const float k_TimeOnDeathScreen = 1f;
         private const float k_MaxTimeToFlyOn = 10f;
+        private const int k_MaxFramesToReload = 60;
+
+        // The first run beats it on the way to its first obstacle, at about 13 points.
+        private const int k_HighscoreToBeat = 5;
+
+        // The test reads time and place after the frame of a tap, the score counts that frame
+        // too. A frame of flight is a fraction of a unit, and the ship stops short of the full
+        // step when it crashes.
+        private const float k_DistanceTolerance = 1f;
+        private const float k_TimeTolerance = 0.5f;
 
         // The fresh track after a revive starts at least 35 units ahead of the ship, and
         // obstacles reach at most 3 units back from the start of their tile. So a crash
@@ -45,6 +55,7 @@ namespace SpaceEscaper.Tests
         private readonly List<TileManager> m_tileManagers = new List<TileManager>();
         private readonly List<Transform> m_groups = new List<Transform>();
         private string m_saveDirectory;
+        private float m_listenerVolume;
         private PlayerLoopSystem m_originalPlayerLoop;
         private GameObject m_pendingTap;
         private PointerEventData m_pendingTapData;
@@ -70,9 +81,12 @@ namespace SpaceEscaper.Tests
             Directory.CreateDirectory(m_saveDirectory);
             SaveSystem.LoadFrom(m_saveDirectory);
 
-            // Played silently with the volume slider all the way down. Music and sounds
-            // still go through the same code as in the game.
-            SaveSystem.Data.MasterVolume = 0f;
+            // Played silently with the listener turned down. Music and sounds still go through the
+            // same code as in the game, which a slider all the way down would not: it pauses them.
+            m_listenerVolume = AudioListener.volume;
+            AudioListener.volume = 0f;
+
+            SaveSystem.Data.RecordScore(k_HighscoreToBeat);
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             // The ship has to crash, whatever the test menu says.
@@ -95,13 +109,15 @@ namespace SpaceEscaper.Tests
         {
             PlayerLoop.SetPlayerLoop(m_originalPlayerLoop);
             FloatingOrigin.WorldShifted -= FloatingOrigin_WorldShifted;
+            AudioListener.volume = m_listenerVolume;
         }
 
-        // Start, crash and revive through the buttons of the game. The score stands still on
-        // the death screen, and the revive must not crash the ship again: the obstacle that
-        // killed it is only destroyed at the end of the frame, and the ship flies on in that
-        // same frame. All along, the world moves back to the origin every few units, and
-        // nothing on screen may jump.
+        // Start, crash and revive through the buttons of the game. The death screen shows the
+        // distance and the time flown and the beaten highscore, the score stands still there,
+        // and the revive must not crash the ship again: the obstacle that killed it is only
+        // destroyed at the end of the frame, and the ship flies on in that same frame. All
+        // along, the world moves back to the origin every few units, and nothing on screen may
+        // jump.
         [UnityTest]
         public IEnumerator ShipCrashesAndFliesOnAfterRevive()
         {
@@ -120,7 +136,8 @@ namespace SpaceEscaper.Tests
 
             Button startButton = FindScreen<MainMenuScreen>().StartButton;
             Button pauseButton = FindScreen<GameMenuScreen>().PauseButton;
-            Button reviveButton = FindScreen<DeathMenuScreen>().ReviveButton;
+            DeathMenuScreen deathMenu = FindScreen<DeathMenuScreen>();
+            Button reviveButton = deathMenu.ReviveButton;
             m_continueButton = FindScreen<PauseMenuScreen>().ContinueButton;
 
             yield return Tap(startButton);
@@ -130,6 +147,7 @@ namespace SpaceEscaper.Tests
             // Straight down the middle lane until the first obstacle.
             float startTime = Time.time;
             WatchFromHere();
+            float startPlace = GetPlace(m_ship);
             while (gameManager.State != GameState.Dead)
             {
                 Assert.That(Time.time - startTime, Is.LessThan(k_MaxTimeToCrash), "No crash flying straight");
@@ -138,10 +156,17 @@ namespace SpaceEscaper.Tests
             }
 
             float crashPlace = GetPlace(m_ship);
-            TestContext.WriteLine($"Crashed at z = {crashPlace:0.0} after {Time.time - startTime:0.0} s, "
+            float flightTime = Time.time - startTime;
+            TestContext.WriteLine($"Crashed at z = {crashPlace:0.0} after {flightTime:0.0} s, "
                 + $"the world moved back {m_shiftCount} times");
             Assert.That(reviveButton.gameObject.activeInHierarchy, Is.True, "No death menu with the revive button");
             AssertDeathIsSaved();
+            Assert.That(runScore.Distance, Is.EqualTo(crashPlace - startPlace).Within(k_DistanceTolerance),
+                "The distance is not the way the ship flew");
+            Assert.That(runScore.FlightTime, Is.EqualTo(flightTime).Within(k_TimeTolerance),
+                "The time is not the time the ship flew");
+            Assert.That(deathMenu.NewHighscoreBadge.activeSelf, Is.True,
+                "The beaten highscore is not on the death screen");
 
             int deathScore = runScore.Score;
             yield return new WaitForSeconds(k_TimeOnDeathScreen);
@@ -164,6 +189,34 @@ namespace SpaceEscaper.Tests
             Assert.That(pauseButton.gameObject.activeInHierarchy, Is.True, "No game menu after the revive");
             Assert.That(m_shiftCount, Is.GreaterThan(shiftsBeforeRevive),
                 "The world did not move back after the revive");
+        }
+
+        // Play again and the hangar on the death screen reload the scene, like the way back to
+        // the main menu, and go on from there right away.
+        [UnityTest]
+        public IEnumerator DeathScreenStartsANewRunOrOpensTheHangar()
+        {
+            Random.InitState(k_RandomSeed);
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+
+            yield return Tap(FindScreen<MainMenuScreen>().StartButton);
+            yield return FlyUntilCrash();
+            GameManager crashedRun = GameManager.Instance;
+            yield return Tap(FindScreen<DeathMenuScreen>().PlayAgainButton);
+            yield return WaitForReload(crashedRun);
+            RunScore runScore = Object.FindAnyObjectByType<RunScore>();
+            Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Run), "Play again did not start a run");
+            Assert.That(runScore.Coins, Is.EqualTo(0), "The new run started with coins");
+            Assert.That(runScore.Distance, Is.LessThan(k_DistanceTolerance), "The new run started on the way");
+            Assert.That(FindScreen<GameMenuScreen>().PauseButton.gameObject.activeInHierarchy, Is.True,
+                "No game menu in the new run");
+
+            yield return FlyUntilCrash();
+            crashedRun = GameManager.Instance;
+            yield return Tap(FindScreen<DeathMenuScreen>().HangarButton);
+            yield return WaitForReload(crashedRun);
+            Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Hangar), "The hangar did not open");
         }
 
         // Every screen but the main menu is switched off until the game gets there.
@@ -197,6 +250,34 @@ namespace SpaceEscaper.Tests
 
             m_pendingTap = button.gameObject;
             m_pendingTapData = eventData;
+            yield return null;
+        }
+
+        // Straight down the middle lane until the next obstacle. The death screen takes taps once it has been drawn,
+        // a frame later.
+        private IEnumerator FlyUntilCrash()
+        {
+            m_continueButton = FindScreen<PauseMenuScreen>().ContinueButton;
+            float startTime = Time.time;
+            while (GameManager.Instance.State != GameState.Dead)
+            {
+                Assert.That(Time.time - startTime, Is.LessThan(k_MaxTimeToCrash), "No crash flying straight");
+                yield return NextFrame();
+            }
+
+            yield return null;
+        }
+
+        // The new scene wakes before the old one is gone, and goes on in its first frame.
+        private static IEnumerator WaitForReload(GameManager oldGameManager)
+        {
+            int frames = 0;
+            while (GameManager.Instance == oldGameManager)
+            {
+                Assert.That(frames++, Is.LessThan(k_MaxFramesToReload), "The scene did not reload");
+                yield return null;
+            }
+
             yield return null;
         }
 

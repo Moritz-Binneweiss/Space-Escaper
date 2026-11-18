@@ -9,12 +9,23 @@ namespace SpaceEscaper
     /// </summary>
     public class GameManager : MonoBehaviour
     {
+        // Where the game goes once the scene has reloaded.
+        private enum ReloadTarget
+        {
+            Menu,
+            Run,
+            Hangar,
+        }
+
         private const string k_GameSceneName = "Game";
 
         [SerializeField] private ScreenManager m_screens;
 
         private GameState m_state;
         private bool m_hasRevived;
+
+        // Survives the reload, which replaces this object.
+        private static ReloadTarget s_reloadTarget;
 
         public static GameManager Instance { get; private set; }
 
@@ -44,6 +55,7 @@ namespace SpaceEscaper
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
         private static void ResetStaticState()
         {
+            s_reloadTarget = ReloadTarget.Menu;
             Instance = null;
             RunStarted = null;
             HangarOpened = null;
@@ -59,6 +71,27 @@ namespace SpaceEscaper
             // "Exit" in the pause menu reloads the scene while the time stands still.
             Time.timeScale = 1f;
             Instance = this;
+        }
+
+        // Play again and the hangar on the death screen reload the scene first, then go on from the main menu like a
+        // tap there. Every Awake and OnEnable of the scene has run by now, and no Update yet.
+        private void Start()
+        {
+            ReloadTarget target = s_reloadTarget;
+            s_reloadTarget = ReloadTarget.Menu;
+            switch (target)
+            {
+                case ReloadTarget.Run:
+                    Play();
+                    break;
+
+                case ReloadTarget.Hangar:
+                    OpenHangar();
+                    break;
+
+                default:
+                    break;
+            }
         }
 
         // A run must not go on while the player is away from the app, and must not
@@ -126,7 +159,34 @@ namespace SpaceEscaper
         /// </summary>
         public void ReturnToMenu()
         {
-            SceneManager.LoadScene(k_GameSceneName);
+            Reload(ReloadTarget.Menu);
+        }
+
+        /// <summary>
+        /// Starts a new run from the death screen. The scene reloads first, so the run starts as fresh as one from the
+        /// main menu.
+        /// </summary>
+        public void PlayAgain()
+        {
+            if (m_state != GameState.Dead)
+            {
+                return;
+            }
+
+            Reload(ReloadTarget.Run);
+        }
+
+        /// <summary>
+        /// Opens the hangar from the death screen, after reloading the scene like the way back to the main menu.
+        /// </summary>
+        public void ReturnToHangar()
+        {
+            if (m_state != GameState.Dead)
+            {
+                return;
+            }
+
+            Reload(ReloadTarget.Hangar);
         }
 
         /// <summary>
@@ -183,6 +243,12 @@ namespace SpaceEscaper
         {
             ChangeState(GameState.Run);
             OnShipRevived();
+        }
+
+        private static void Reload(ReloadTarget target)
+        {
+            s_reloadTarget = target;
+            SceneManager.LoadScene(k_GameSceneName);
         }
 
         // Every state has its own screen, and only the pause stops the time.

@@ -33,6 +33,13 @@ namespace SpaceEscaper
         // Raise it for a slider that reaches "almost silent" sooner.
         private const float k_VolumeRangeDb = 40f;
 
+        // The lowest volume of the mixer.
+        private const float k_SilentDb = -80f;
+
+        // Volumes of the groups, exposed in GameAudio.mixer.
+        private const string k_MusicVolumeParameter = "MusicVolume";
+        private const string k_SfxVolumeParameter = "SfxVolume";
+
         // Keeps a style switch from seeking to the very end of a shorter track.
         private const float k_TrackEndMargin = 0.05f;
 
@@ -40,8 +47,10 @@ namespace SpaceEscaper
         [SerializeField] private AudioBank m_classicBank;
         [SerializeField] private AudioBank m_newBank;
 
-        [Header("Mixer Routing (optional)")]
+        [Header("Mixer Routing")]
+        [Tooltip("Its volume follows the music slider in the settings.")]
         [SerializeField] private AudioMixerGroup m_musicGroup;
+        [Tooltip("Its volume follows the slider for the sound effects in the settings.")]
         [SerializeField] private AudioMixerGroup m_sfxGroup;
 
         private AudioSource m_sfxSource;
@@ -55,7 +64,8 @@ namespace SpaceEscaper
         private bool m_useNewSounds = true;
         private bool m_isMusicMuted;
         private bool m_isSfxMuted;
-        private float m_masterVolume = 1f;
+        private float m_musicVolume = 1f;
+        private float m_sfxVolume = 1f;
         private Track m_currentTrack;
 
         // Set while the death screen is up. The track is paused rather than
@@ -70,7 +80,21 @@ namespace SpaceEscaper
 
         public bool IsSfxMuted => m_isSfxMuted;
 
-        public float MasterVolume => m_masterVolume;
+        /// <summary>
+        /// Position of the music slider from 0 to 1.
+        /// </summary>
+        public float MusicVolume => m_musicVolume;
+
+        /// <summary>
+        /// Position of the slider for the sound effects from 0 to 1.
+        /// </summary>
+        public float SfxVolume => m_sfxVolume;
+
+        // Muted or turned all the way down. Either way nothing is played, which is cheaper
+        // than playing it at volume 0: a paused track stops decoding.
+        private bool IsMusicSilent => m_isMusicMuted || m_musicVolume <= 0f;
+
+        private bool IsSfxSilent => m_isSfxMuted || m_sfxVolume <= 0f;
 
         private AudioBank EmptyBank
         {
@@ -113,7 +137,7 @@ namespace SpaceEscaper
             CreateSources();
             LoadPreferences();
 
-            m_engineSource.mute = m_isSfxMuted;
+            m_engineSource.mute = IsSfxSilent;
         }
 
         private void OnEnable()
@@ -142,8 +166,11 @@ namespace SpaceEscaper
             GameManager.ShipRevived -= GameManager_ShipRevived;
         }
 
+        // The volumes go to the mixer here rather than in Awake, where it may not take them yet.
         private void Start()
         {
+            ApplyVolume(m_musicGroup, k_MusicVolumeParameter, m_musicVolume);
+            ApplyVolume(m_sfxGroup, k_SfxVolumeParameter, m_sfxVolume);
             PlayMenuMusic();
         }
 
@@ -169,12 +196,12 @@ namespace SpaceEscaper
         }
 
         /// <summary>
-        /// Overall volume for everything the game plays, on top of the individual
-        /// mute switches.
+        /// Volume of the music, on top of its mute switch. All the way down, the track
+        /// pauses as if the music were muted.
         /// </summary>
         /// <remarks>
-        /// AudioListener.volume is global, so this covers any source, not only the
-        /// three owned by this class.
+        /// The mixer group covers any source routed into it, not only the one owned
+        /// by this class.
         ///
         /// The slider position is NOT used as the amplitude directly. Hearing is
         /// logarithmic, so on a linear scale the bottom few percent swallow most of
@@ -184,14 +211,32 @@ namespace SpaceEscaper
         /// big. Note that squaring the value does NOT fix this - a power curve
         /// stretches the whole dB range evenly and leaves the imbalance intact.
         /// </remarks>
-        public void SetMasterVolume(float sliderPosition)
+        public void SetMusicVolume(float sliderPosition)
         {
-            m_masterVolume = Mathf.Clamp01(sliderPosition);
-            AudioListener.volume = ConvertSliderToAmplitude(m_masterVolume);
+            bool wasSilent = IsMusicSilent;
+            m_musicVolume = Mathf.Clamp01(sliderPosition);
+            ApplyVolume(m_musicGroup, k_MusicVolumeParameter, m_musicVolume);
 
             // Deliberately no SaveSystem.Save() here - a slider fires this on every
             // frame while being dragged. Saved in OnApplicationPause/Quit instead.
-            SaveSystem.Data.MasterVolume = m_masterVolume;
+            SaveSystem.Data.MusicVolume = m_musicVolume;
+
+            if (IsMusicSilent != wasSilent)
+            {
+                PauseOrPlayMusic();
+            }
+        }
+
+        /// <summary>
+        /// Volume of the sound effects and the engine, like <see cref="SetMusicVolume"/>.
+        /// All the way down, nothing is played.
+        /// </summary>
+        public void SetSfxVolume(float sliderPosition)
+        {
+            m_sfxVolume = Mathf.Clamp01(sliderPosition);
+            ApplyVolume(m_sfxGroup, k_SfxVolumeParameter, m_sfxVolume);
+            SaveSystem.Data.SfxVolume = m_sfxVolume;
+            m_engineSource.mute = IsSfxSilent;
         }
 
         public void PlayButtonClick() => PlaySfx(PickClip(NewSounds.ButtonClick, ClassicSounds.ButtonClick));
@@ -231,7 +276,7 @@ namespace SpaceEscaper
             SaveSystem.Data.IsSfxMuted = m_isSfxMuted;
             SaveSystem.Save();
 
-            m_engineSource.mute = m_isSfxMuted;
+            m_engineSource.mute = IsSfxSilent;
         }
 
         public void ToggleMusicMuted()
@@ -239,17 +284,7 @@ namespace SpaceEscaper
             m_isMusicMuted = !m_isMusicMuted;
             SaveSystem.Data.IsMusicMuted = m_isMusicMuted;
             SaveSystem.Save();
-
-            // Pausing genuinely stops decoding, unlike volume 0, which keeps
-            // burning CPU and battery on a phone while you hear nothing.
-            if (m_isMusicMuted)
-            {
-                m_musicSource.Pause();
-            }
-            else
-            {
-                PlayTrack(m_currentTrack);
-            }
+            PauseOrPlayMusic();
         }
 
         private void GameManager_RunStarted()
@@ -304,7 +339,7 @@ namespace SpaceEscaper
                 m_engineSource.clip = clip;
             }
 
-            m_engineSource.mute = m_isSfxMuted;
+            m_engineSource.mute = IsSfxSilent;
             if (!m_engineSource.isPlaying)
             {
                 m_engineSource.Play();
@@ -339,6 +374,20 @@ namespace SpaceEscaper
             m_musicSource.Pause();
         }
 
+        // Pausing genuinely stops decoding, unlike volume 0, which keeps
+        // burning CPU and battery on a phone while you hear nothing.
+        private void PauseOrPlayMusic()
+        {
+            if (IsMusicSilent)
+            {
+                m_musicSource.Pause();
+            }
+            else
+            {
+                PlayTrack(m_currentTrack);
+            }
+        }
+
         private void ResumeMusic()
         {
             m_isMusicOnHold = false;
@@ -368,8 +417,8 @@ namespace SpaceEscaper
             m_useNewSounds = saveData.UseNewSounds;
             m_isMusicMuted = saveData.IsMusicMuted;
             m_isSfxMuted = saveData.IsSfxMuted;
-            m_masterVolume = Mathf.Clamp01(saveData.MasterVolume);
-            AudioListener.volume = ConvertSliderToAmplitude(m_masterVolume);
+            m_musicVolume = Mathf.Clamp01(saveData.MusicVolume);
+            m_sfxVolume = Mathf.Clamp01(saveData.SfxVolume);
         }
 
         // Prefers the active style, but falls back to the other bank so a sound
@@ -387,7 +436,7 @@ namespace SpaceEscaper
         private void PlaySfx(AudioClip clip)
         {
             // Muted SFX are not played at all - cheaper than playing them at zero volume.
-            if (m_isSfxMuted || clip == null)
+            if (IsSfxSilent || clip == null)
             {
                 return;
             }
@@ -412,9 +461,9 @@ namespace SpaceEscaper
                 m_musicSource.clip = clip;
             }
 
-            // Stay silent while muted or on hold; ToggleMusicMuted and ResumeMusic
-            // continue from the paused position.
-            if (m_isMusicMuted || m_isMusicOnHold)
+            // Stay silent while muted, turned down or on hold; ToggleMusicMuted,
+            // SetMusicVolume and ResumeMusic continue from the paused position.
+            if (IsMusicSilent || m_isMusicOnHold)
             {
                 return;
             }
@@ -457,7 +506,7 @@ namespace SpaceEscaper
             m_musicSource.clip = clip;
             m_musicSource.time = Mathf.Clamp(position, 0f, Mathf.Max(0f, clip.length - k_TrackEndMargin));
 
-            if (wasPlaying && !m_isMusicMuted)
+            if (wasPlaying && !IsMusicSilent)
             {
                 m_musicSource.Play();
             }
@@ -480,14 +529,22 @@ namespace SpaceEscaper
             m_engineSource.Play();
         }
 
-        private static float ConvertSliderToAmplitude(float sliderPosition)
+        private static void ApplyVolume(AudioMixerGroup group, string parameter, float sliderPosition)
+        {
+            if (group != null)
+            {
+                group.audioMixer.SetFloat(parameter, ConvertSliderToDb(sliderPosition));
+            }
+        }
+
+        private static float ConvertSliderToDb(float sliderPosition)
         {
             if (sliderPosition <= 0f)
             {
-                return 0f;
+                return k_SilentDb;
             }
 
-            return Mathf.Pow(10f, (sliderPosition - 1f) * k_VolumeRangeDb / 20f);
+            return (sliderPosition - 1f) * k_VolumeRangeDb;
         }
     }
 }

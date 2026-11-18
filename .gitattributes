@@ -90,6 +90,7 @@
 *.mask text eol=lf merge=binary
 *.terrainlayer text eol=lf merge=binary
 *.spriteatlas text eol=lf merge=binary
+*.spriteatlasv2 text eol=lf merge=binary
 *.shadergraph text eol=lf merge=binary
 *.shadersubgraph text eol=lf merge=binary
 *.meta text eol=lf merge=binary

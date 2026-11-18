@@ -192,6 +192,20 @@ namespace SpaceEscaper.Tests
             Assert.That(problems, Is.Empty);
         }
 
+        // All text is TextMesh Pro, which the translations build on. A legacy text would also
+        // rebuild its font texture during a run, with almost every new number.
+        [Test]
+        public void NoLegacyTextIsInTheScene()
+        {
+            List<string> legacyTexts = new List<string>();
+            foreach (Text text in GetComponentsInScene<Text>())
+            {
+                legacyTexts.Add(GetPath(text.transform));
+            }
+
+            Assert.That(legacyTexts, Is.Empty);
+        }
+
         // Asteroids and coins only turn while a SpinManager runs. They come with the tiles at
         // runtime, so a missing manager would only show in the game.
         [Test]

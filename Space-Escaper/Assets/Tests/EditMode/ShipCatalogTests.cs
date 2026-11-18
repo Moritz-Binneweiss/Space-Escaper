@@ -36,7 +36,7 @@ namespace SpaceEscaper.Tests
         }
 
         [Test]
-        public void EveryOtherShipHasPriceAndPriceTag()
+        public void EveryOtherShipHasAPrice()
         {
             foreach (ShipData ship in m_catalog.Ships)
             {
@@ -46,7 +46,6 @@ namespace SpaceEscaper.Tests
                 }
 
                 Assert.That(ship.Price, Is.GreaterThan(0), ship.name);
-                Assert.That(ship.PriceTag, Is.Not.Null, ship.name);
             }
         }
 

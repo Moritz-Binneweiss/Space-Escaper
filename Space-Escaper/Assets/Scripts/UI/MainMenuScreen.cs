@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,8 +11,8 @@ namespace SpaceEscaper
     {
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private ScreenManager m_screens;
-        [SerializeField] private Text m_coinText;
-        [SerializeField] private Text m_highscoreText;
+        [SerializeField] private TMP_Text m_coinText;
+        [SerializeField] private TMP_Text m_highscoreText;
         [SerializeField] private Button m_startButton;
         [SerializeField] private Button m_hangarButton;
         [SerializeField] private Button m_settingsButton;
@@ -28,8 +29,8 @@ namespace SpaceEscaper
             m_settingsButton.onClick.AddListener(m_screens.ShowSettings);
 
             SaveData saveData = SaveSystem.Data;
-            m_coinText.text = saveData.Coins.ToString();
-            m_highscoreText.text = saveData.Highscore.ToString();
+            m_coinText.SetText("{0}", saveData.Coins);
+            m_highscoreText.SetText("{0}", saveData.Highscore);
         }
 
         private void OnDisable()
