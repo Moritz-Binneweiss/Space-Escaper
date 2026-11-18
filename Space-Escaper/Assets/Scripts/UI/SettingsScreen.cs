@@ -7,8 +7,8 @@ namespace SpaceEscaper
     /// <summary>
     /// The settings, opened from the main menu or the pause menu. Connects its audio controls to
     /// <see cref="AudioSystem"/>, which survives scene reloads, so the audio system needs no references
-    /// into the scene, and shows the version of the game. In the editor and in builds with checks it also
-    /// has an Invincible switch for testing.
+    /// into the scene, opens the credits and shows the version of the game. In the editor and in builds
+    /// with checks it also has an Invincible switch for testing.
     /// </summary>
     public class SettingsScreen : MonoBehaviour
     {
@@ -27,6 +27,7 @@ namespace SpaceEscaper
         [SerializeField] private TMP_Text m_sfxVolumeText;
         [Tooltip("The sounds of the 2020 original. Its look comes with the remaster in v1.7.0.")]
         [SerializeField] private Toggle m_classicModeToggle;
+        [SerializeField] private Button m_creditsButton;
         [SerializeField] private TMP_Text m_versionText;
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
@@ -52,6 +53,7 @@ namespace SpaceEscaper
             m_musicSlider.onValueChanged.AddListener(MusicSlider_ValueChanged);
             m_sfxSlider.onValueChanged.AddListener(SfxSlider_ValueChanged);
             m_classicModeToggle.onValueChanged.AddListener(ClassicModeToggle_ValueChanged);
+            m_creditsButton.onClick.AddListener(m_screens.ShowCredits);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.AddListener(InvincibleToggle_ValueChanged);
             m_invincibleToggle.SetIsOnWithoutNotify(PlayerMotor.IsInvincible);
@@ -66,6 +68,7 @@ namespace SpaceEscaper
             m_musicSlider.onValueChanged.RemoveListener(MusicSlider_ValueChanged);
             m_sfxSlider.onValueChanged.RemoveListener(SfxSlider_ValueChanged);
             m_classicModeToggle.onValueChanged.RemoveListener(ClassicModeToggle_ValueChanged);
+            m_creditsButton.onClick.RemoveListener(m_screens.ShowCredits);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.RemoveListener(InvincibleToggle_ValueChanged);
 #endif

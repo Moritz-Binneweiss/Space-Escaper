@@ -37,18 +37,38 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 ---
 
-## 👥 **Contributors**
+## 👥 **Credits**
+
+_A game by ANIMO Games_
 
 ### **Current Team**
 
-- **Moritz Binneweiß** - Developer, Designer, Sound Designer
+- **Moritz Binneweiß** - Developer, Designer, Sound Designer, Composer
+- **Claude** - AI Co-Developer (Anthropic)
 
 ### **Previous Contributors**
 
-- **Anian Geist** - Lead Developer (v1.3.0)
-- **Moritz Binneweiß** - Lead Designer (v1.3.0)
+- **Anian Geist** - Lead Developer (until v1.3.0)
+- **Moritz Binneweiß** - Lead Designer (until v1.3.0)
 - **Julian Daniel Görner** - Main Menu Instrumental
-- **Hayden Folker** - "Cloud Nine" In-Game Instrumental
+- **Hayden Folker** - “Cloud Nine” In-Game Instrumental
+
+### **Third-Party Assets**
+
+- **Audiowide** - Astigmatic · SIL Open Font License 1.1
+- **Exo 2** - Natanael Gama · SIL Open Font License 1.1
+- **Bruno Ace SC** - Logo · Astigmatic · SIL Open Font License 1.1
+- **Liberation Sans** - Fallback font · Red Hat · SIL Open Font License 1.1
+- **Feather** - Icons · Cole Bemis · MIT License
+- **Lucide** - Icons · Lucide Contributors · ISC License
+- **Unity Particle Pack** - Effects · Unity Technologies · Unity Asset Store EULA
+
+### **Made With**
+
+- **Unity 6**
+
+The full license texts roll at the end of the credits in the game and lie next to the fonts and icons:
+`Assets/UI/Fonts/`, `Assets/UI/Images/2026/` and `Assets/TextMesh Pro/Fonts/`.
 
 ---
 
@@ -162,7 +182,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 <small>
 
-- [ ] Added Credits Screen
+- [x] Added Credits Screen
 - [ ] Added Achievements Screen (achievements follow in v1.8.0)
 - [ ] Added Collectibles Screen (collectibles follow in v1.8.0)
 
