@@ -1,3 +1,5 @@
-ANIMO = Pirulen
-SPACE ESCAPER = good-times
-Ingame = Neuropol X
+ANIMO = Pirulen (only as an image in AnimoLogo)
+SPACE ESCAPER = Bruno Ace SC (only as an image in UI/Images/2026/SpaceEscaperLogo, since v1.5.1)
+SPACE ESCAPER until v1.5.0 = Good Times (still as an image in TitleLogo, the third splash logo)
+Ingame = Audiowide (titles, buttons, numbers) and Exo 2 (small text), in UI/Fonts since v1.5.1
+Ingame until v1.5.0 = Neuropol X

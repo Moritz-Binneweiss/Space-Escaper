@@ -339,7 +339,6 @@ nur Ordner.
 
 | Ordner | Inhalt |
 |---|---|
-| `Animations/` | Animator Controller und Clips, nach Gruppe (seit v1.4.12 nur noch `UI/`) |
 | `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
 | `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`) |
@@ -356,9 +355,12 @@ nur Ordner.
 | `UI/` | `Images/` nach Herkunft (siehe unten), `Fonts/` (Schriften, ihre Lizenztexte und ihre Font Assets für TextMesh Pro), `UIAtlas.spriteatlasv2` (der Sprite Atlas der UI-Bilder, siehe „UI“), `Mockups.png` |
 
 - **Gruppen heißen in allen Typ-Ordnern gleich:** `Asteroids`, `Coin`, `Hangar`,
-  `Ships`, `Spaceport` und `Skybox`, bei den Animationen dazu `UI`. Was zum
+  `Ships`, `Spaceport` und `Skybox`. Was zum
   Schiff gehört, liegt also in `Models/Ships/`, `Materials/Ships/`,
-  `Textures/Ships/` und `Prefabs/Ships/`.
+  `Textures/Ships/` und `Prefabs/Ships/`. `Animations/` gibt es seit Schritt 4 von
+  v1.5.1 nicht mehr, sein letzter Inhalt war der Animator von „Tap to Start“ (siehe
+  „Keine Animatoren für Übergänge oder kurze Effekte“ unter „UI“). Ein neuer Clip bekäme
+  den Ordner wieder, mit Gruppen wie oben.
 - **Neue Assets** kommen in ihren Typ-Ordner und dort in die passende Gruppe,
   nicht lose in einen Typ-Ordner und nie in den Root von `Assets/`. Eine neue
   Gruppe bekommt in jedem Typ-Ordner, den sie braucht, denselben Namen.
@@ -377,15 +379,14 @@ nur Ordner.
   `StopAssetEditing` entstehen, kennt Unity erst danach, ein `MoveAsset` hinein
   scheitert vorher. Also erst die Ordner anlegen, dann gebündelt verschieben.
 - **UI-Bilder liegen nach Herkunft** (seit v1.4.12): `UI/Images/2020/` hat die 38
-  Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hat die 39
-  aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
-  hat die Preisschilder aus v1.4.1 und die Symbole, Platten, das Logo und die Münze aus
-  v1.5.1. Die Münze ist die aus `2020/`, auf die Mutter zugeschnitten (siehe „Nicht
-  größer importieren als gezeigt“ unter „Texturen“). Das Spiel nutzt seit Schritt 3b von
-  v1.5.1 36: aus `2021/` nur die neun Skin-Bilder in `Shop/`, dazu 27 aus `2026/`. Beim
-  Aufräumen in v1.5.1 fallen die übrigen aus `2021/` und die Preisschilder weg, die aus
-  `2020/` bleiben für einen möglichen Classic Mode (siehe „Bekannte Altlasten“). Neue
-  Bilder kommen in den Ordner ihres Jahres.
+  Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hatte die 39
+  aus dem UI-Umbau von v1.3, flach und weiß, seit Schritt 4 von v1.5.1 nur noch die neun
+  Skin-Bilder in `2021/Shop/`. `2026/` hat die 27 Symbole, Platten, Rahmen, Leuchten, das
+  Logo und die Münze aus v1.5.1, die Preisschilder aus v1.4.1 sind seit Schritt 4 weg. Die
+  Münze ist die aus `2020/`, auf die Mutter zugeschnitten (siehe „Nicht größer importieren
+  als gezeigt“ unter „Texturen“). Das Spiel nutzt 36: die neun aus `2021/Shop/` und alle
+  aus `2026/`. Die aus `2020/` nutzt es nicht, sie bleiben für einen Classic Mode (v1.9.1,
+  siehe „Bekannte Altlasten“). Neue Bilder kommen in den Ordner ihres Jahres.
 - **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
   lagen auch im Ordner `GUI/` der Quelldateien des Originals, die im Januar 2026 ins
   Repo kamen (`84f02f9`). Sieben tragen einen PNG-Zeitstempel von August oder
@@ -531,7 +532,7 @@ geliefert wurden.
   Editor, „Space Before Number in Asset Names“ aus): aus `Asteroid001.prefab` wird
   `Asteroid026.prefab`, aus `Coin.prefab` `Coin1.prefab`. Bis dahin hieß sie
   `Asteroid001 1.prefab`.
-- **Animationsclips** heißen `Ziel_Zustand` (`TapToStart_Pulse`),
+- **Animationsclips** heißen `Ziel_Zustand` (bis v1.5.1 `TapToStart_Pulse`),
   das ist der einzige erlaubte Unterstrich. Texturen enden auf `Color`
   (`Asteroid001Color.png`).
 - **Ungenutzte Doppelgänger** einer benutzten Datei tragen `Unused` am Ende
@@ -865,7 +866,7 @@ bei 8.
   Schiff sichtbar. Beide Bilder sind unkomprimiert importiert, `AppIcon` dient weiter
   als Default Icon und TV-Banner. Das graue Unity-Icon (96 px), das daneben noch in der
   APK liegt, ist nur der Ersatz für Android vor 8 und wird nie angezeigt. Ein echtes
-  adaptives Icon mit getrennten Ebenen kommt mit dem neuen Branding (v1.9.1).
+  adaptives Icon mit getrennten Ebenen kommt mit dem neuen Branding (v1.9.2).
 - **Grafik-API auf Android:** nur OpenGL ES 3 (Player Settings, „Auto Graphics API“
   aus). Unity 6.6 setzt dabei immer ES 3.1 voraus, der Haken „Require ES3.1“ wirkt
   nicht mehr (`PlayerSettings.openGLRequireES31` liefert fest `true`, egal was in
@@ -886,18 +887,20 @@ bei 8.
 
 ## Bekannte Altlasten (bewusst, noch offen)
 
-- Ungenutzte Bilder, Materialien und Modelle liegen noch im Projekt, etwa die alten
-  Preisschilder oder Doppelgänger mit `Unused` im Namen. Aufräumen gehört zum UI
-  Overhaul (v1.5.1) und zum Remaster (v1.7.0). **Was zum Look von 2020 gehört, bleibt
-  dabei** (Entscheidung 18.11.2026): Ein Classic Mode soll später das Original von 2020
-  zeigen, dessen UI, Sounds, Musik, Objekte und Schiffe, aber mit dem neuen Code und den
-  heutigen Preisen. Die Texte im Spiel setzte 2020 Neuropol X (`Branding/FontsUsed.txt`),
-  deren kostenlose Lizenz keine Apps abdeckt, dafür bräuchte er eine App-Lizenz oder eine
-  ähnliche freie Schrift. Bitgleiche Duplikate sind seit
+- Ungenutzte Materialien und Modelle liegen noch im Projekt, etwa Doppelgänger mit
+  `Unused` im Namen. Aufräumen gehört zum Remaster (v1.7.0), die UI hat Schritt 4 von
+  v1.5.1 aufgeräumt: 30 Bilder aus `2021/`, die drei Preisschilder in `2026/`, den
+  Animator von „Tap to Start“ und die alten Schriften. **Was zum Look von 2020 gehört,
+  bleibt** (Entscheidung 18.11.2026): Ein Classic Mode (v1.9.1) soll später das Original
+  von 2020 zeigen, dessen UI, Sounds, Musik, Objekte und Schiffe, aber mit dem neuen Code
+  und den heutigen Preisen. Das Remaster legt neue Modelle, Materialien, Texturen, Effekte
+  und Sounds deshalb neben die alten, statt sie zu ersetzen. Die Texte im Spiel setzte
+  2020 Neuropol X (`Branding/FontsUsed.txt`), deren kostenlose Lizenz keine Apps abdeckt.
+  Sie ist seit Schritt 4 gelöscht, im Classic Mode nehmen die Texte eventuell die
+  heutigen Schriften. Bitgleiche Duplikate sind seit
   v1.4.5 gelöscht (39 in `Assets/UI/`, 4 beim Sortieren der Ordner), alle
-  UI-Bilder liegen in `UI/Images/`. Von ihren 107 nutzt das Spiel seit Schritt 3b von
-  v1.5.1 36, ungenutzt sind alle 38 in `2020/` (sie bleiben), 30 in `2021/` und die
-  drei Preisschilder in `2026/` (siehe „Ordnerstruktur“). Gleiche Texturen
+  UI-Bilder liegen in `UI/Images/`. Von ihren 74 nutzt das Spiel 36, die übrigen 38 sind
+  die von 2020 (siehe „Ordnerstruktur“). Gleiche Texturen
   in `Models/` und `Textures/` sind Absicht: die einen gehören zu den
   `.blend`-Quellen, die anderen zu den Unity-Materialien.
 - **Play Store kommt erst mit v2.0** - als *neuer* Store-Eintrag, nicht als Update des
@@ -997,7 +1000,7 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
   bringt ~40 Münzen. Ziel: erstes Skin in der ersten Session, erster FREETER nach
   ~45 min, erster VAGOR nach ~2 h, alles nach ~3,3 h. Die Originalpreise von 2021
   (3.500 / 6.000 / 8.000) hätten über 20 h gebraucht. Der derzeit kostenlose
-  Revive hebt das Einkommen pro Run grob um 50-70 % - nach dessen Umbau (v1.9.2)
+  Revive hebt das Einkommen pro Run grob um 50-70 % - nach dessen Umbau (v1.9.3)
   die Preise gegenprüfen. Seit v1.4.9 startet das Schiff mit 13 statt 11: Ein
   gleich langer Run fliegt rund 15 % weiter und bringt entsprechend mehr Münzen,
   60 s also ~50 statt ~40. Ob Runs dadurch kürzer werden, zeigt das Spielen.
@@ -1086,7 +1089,7 @@ nicht mehr überschreiben.
 **Der Preis ist Text** (seit v1.5.1): Der Shop zeigt `ShipData.Price`, ein neuer Preis
 im `ShipData` reicht. Bis dahin waren Preisschilder Bilder (`2026/PriceTag…`, davor die
 Originale von v1.3 in `2021/`), das Feld `ShipData.PriceTag` ist weg. Die Bilder sind
-ungenutzt und fallen beim Aufräumen in v1.5.1 weg, bis dahin nicht löschen.
+seit Schritt 4 von v1.5.1 gelöscht.
 
 ## Spielzustand (GameState)
 
@@ -1237,7 +1240,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Ein fehlendes Zeichen zeichnet TextMesh Pro aus `LiberationSans SDF`, der
     Standardschrift in den TMP Settings, so das große ẞ in Audiowide. `TitleSDFShadow`
     ist ein Material-Preset mit Schatten (Underlay) für den Score im Run. Neuropol X und
-    Good Times nutzt seit v1.5.1 kein Text mehr, ihre Dateien fallen beim Aufräumen weg.
+    Good Times, die Schriften bis v1.5.0, sind seit Schritt 4 von v1.5.1 samt Font Assets
+    gelöscht, ihre kostenlose Lizenz deckt keine Apps ab.
   - **Buchstabenabstand wie in den Mockups:** `characterSpacing` zählt in Hundertsteln
     der Schriftgröße, also 100 × Abstand / Größe. Dazu kommt ein rechter Innenrand
     (`margin`) von einem Abstand: Der Browser setzt ihn auch nach dem letzten Buchstaben,
@@ -1268,8 +1272,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   v1.5.1) nicht neu gemessen. Eigene Draw Calls bleiben die Texte (ein Material pro
   Schrift) und was kein Bild aus dem Atlas zeigt.
   - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
-    Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` und `2021/`
-    liegen noch ungenutzte Bilder, die er mitpacken würde. Was fehlt oder zu viel ist,
+    Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` liegen
+    ungenutzte Bilder für den Classic Mode, die er mitpacken würde. Was fehlt oder zu viel ist,
     meldet `SpriteAtlasTests`.
   - **Einstellungen:** nicht drehen und nicht eng packen, denn ein UI-Bild zeigt das
     Rechteck seines Sprites (ein neuer Atlas hat beides an). 4 Pixel Abstand, so teilen
@@ -1349,7 +1353,9 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 - **Look aus den Mockups** (seit Schritt 3 von v1.5.1, Vorlage ist Version 6 der
   Mockups): Grund `#050607`, Leuchtfarbe `#57ff5c` mit Schatten `#2b7f2e` und Text
   `#062b08` darauf, Sternenlicht `#ffad3d`, weiße Platten mit Text `#1b1a20` und
-  Schatten `#6f7380`.
+  Schatten `#6f7380`. Das ist das Farbschema „Giftig“: In v1.5.3 sollen sich sechs
+  Farbschemata in den Settings wählen lassen (README), bis dahin stehen die Farben
+  fest an jedem Element.
   - **Platten** sind ein einziges 9-Slice-Bild, `2026/Plate` (ein weißer Kreis mit 64
     Pixel Rand): Der Radius ist 64 / `pixelsPerUnitMultiplier`. Mit großem Faktor
     zeichnet es auch Rechtecke aus dem Atlas, etwa die Abdunklungen, so bleiben sie im

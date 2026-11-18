@@ -64,7 +64,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] Android version code increased with every release
 - [ ] Optional: Google Play Games integration, e.g. for the leaderboard
 
-#### **v1.9.2** | Revive Mechanic Reworked _(------- --, 2026)_
+#### **v1.9.3** | Revive Mechanic Reworked _(------- --, 2026)_
 
 <small>
 
@@ -73,13 +73,23 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-#### **v1.9.1** | Marketing Material _(------- --, 2026)_
+#### **v1.9.2** | Marketing Material _(------- --, 2026)_
 
 <small>
 
 - [ ] New trailer
 - [ ] New marketing materials
 - [ ] New Logo, Icon, Branding
+
+</small>
+
+#### **v1.9.1** | Classic Mode _(------- --, 2026)_
+
+<small>
+
+- [ ] Classic Mode: the 2020 original with today's code and prices
+- [ ] UI, sounds and music of 2020
+- [ ] Game objects and spaceships of 2020
 
 </small>
 
@@ -122,6 +132,21 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] German language support
 - [ ] English language support
 
+#### **v1.5.3** | UI Colorways _(------- --, 2026)_
+
+<small>
+
+- [ ] Six UI colorways to choose from in the settings
+- [ ] Decide how the choice looks in the settings and whether the colorways need better names
+- [ ] "Giftig": black, toxic green and amber, the current look
+- [ ] "Classic": the orange look of the 2020 original
+- [ ] "Klassisch": midnight blue, cyan and amber
+- [ ] "Nebel": violet, magenta and light yellow
+- [ ] "Ruhig": anthracite, turquoise and cream
+- [ ] "Pastell": midnight blue, pink and cream
+
+</small>
+
 #### **v1.5.2** | Credits, Achievements & Collectibles Screens _(------- --, 2026)_
 
 <small>
@@ -145,7 +170,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [x] Separate volume for music and effects
 - [x] Time, distance and highscore progress of every run
 - [x] Play again or open the hangar right from the death screen
-- [ ] Clean up unused UI images
+- [x] Clean up unused UI images
 - [x] Decide what the leaderboard button should do (now a symbol next to the highscore)
 - [x] UI images in a sprite atlas, compressed and drawn in fewer batches
 - [x] Updated the Unity Pipeline package to 1.0.0 for the Unity CLI
