@@ -17,6 +17,7 @@ namespace SpaceEscaper.Tests
     {
         private const string k_ScenePath = "Assets/Scenes/Game.unity";
         private const string k_UiRootName = "UI";
+        private const string k_SettingsName = "Settings";
 
         // Android asks for touch targets of at least 48 dp. The narrowest common phones are 360 dp wide.
         private const float k_MinTapSizeDp = 48f;
@@ -88,7 +89,8 @@ namespace SpaceEscaper.Tests
         }
 
         // The game draws under a camera cutout, but nothing there should be needed to play. Backgrounds
-        // covering the whole screen reach under it on purpose.
+        // covering the whole screen reach under it on purpose. What a mask cuts off is neither shown nor
+        // tapped, like the end of the list in the settings until it is scrolled up.
         [TestCaseSource(nameof(s_Devices))]
         public void EverythingShownLiesInTheSafeArea(Device device)
         {
@@ -104,14 +106,15 @@ namespace SpaceEscaper.Tests
                     continue;
                 }
 
-                if (graphic.raycastTarget && graphic.GetComponentInParent<Selectable>(true) != null)
+                bool isTapArea = graphic.raycastTarget && graphic.GetComponentInParent<Selectable>(true) != null;
+                if (isTapArea && TryClip(graphic, box, out Rect tapArea))
                 {
-                    ReportOutside(problems, path + " (tap area)", box, safeArea);
+                    ReportOutside(problems, path + " (tap area)", tapArea, safeArea);
                 }
 
-                if (IsShown(graphic))
+                if (IsShown(graphic) && TryClip(graphic, GetShownRect(graphic), out Rect shown))
                 {
-                    ReportOutside(problems, path, GetShownRect(graphic), safeArea);
+                    ReportOutside(problems, path, shown, safeArea);
                 }
             }
 
@@ -180,6 +183,19 @@ namespace SpaceEscaper.Tests
             }
 
             Assert.That(problems, Is.Empty);
+        }
+
+        // Nothing in the settings should hide below the screen until someone scrolls. Their list lies in a
+        // ScrollRect all the same, for the Invincible switch that test builds add to it.
+        [TestCaseSource(nameof(s_Devices))]
+        public void TheSettingsFitWithoutScrolling(Device device)
+        {
+            LayOut(device);
+            ScrollRect list = m_ui.transform.Find(k_SettingsName).GetComponentInChildren<ScrollRect>(true);
+            float height = list.content.rect.height;
+            float room = list.viewport.rect.height;
+            Assert.That(height, Is.LessThanOrEqualTo(room + k_Tolerance), string.Format(CultureInfo.InvariantCulture,
+                "The settings are {0:0.#} high, {1:0.#} fit below the title", height, room));
         }
 
         // Sizes the copy as the CanvasScaler would on the device and fits the safe areas of the screens.
@@ -270,6 +286,35 @@ namespace SpaceEscaper.Tests
             Vector3 min = text.rectTransform.TransformPoint(bounds.min);
             Vector3 max = text.rectTransform.TransformPoint(bounds.max);
             return Rect.MinMaxRect(min.x, min.y, max.x, max.y);
+        }
+
+        // A RectMask2D draws its children only inside its own rectangle and takes taps on them only there.
+        // Returns false if nothing is left.
+        private static bool TryClip(Graphic graphic, Rect rect, out Rect clipped)
+        {
+            clipped = rect;
+            for (Transform parent = graphic.transform.parent; parent != null; parent = parent.parent)
+            {
+                RectMask2D mask = parent.GetComponent<RectMask2D>();
+                if (mask == null || !mask.enabled)
+                {
+                    continue;
+                }
+
+                Rect window = GetRect(mask.rectTransform);
+                float xMin = Mathf.Max(clipped.xMin, window.xMin);
+                float yMin = Mathf.Max(clipped.yMin, window.yMin);
+                float xMax = Mathf.Min(clipped.xMax, window.xMax);
+                float yMax = Mathf.Min(clipped.yMax, window.yMax);
+                if (xMax <= xMin || yMax <= yMin)
+                {
+                    return false;
+                }
+
+                clipped = Rect.MinMaxRect(xMin, yMin, xMax, yMax);
+            }
+
+            return true;
         }
 
         // The copy lies at the origin of its scene, unscaled and unrotated, so world space is the space of

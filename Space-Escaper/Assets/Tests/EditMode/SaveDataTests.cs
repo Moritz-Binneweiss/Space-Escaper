@@ -28,7 +28,8 @@ namespace SpaceEscaper.Tests
             Assert.That(saveData.UseNewSounds, Is.True);
             Assert.That(saveData.IsMusicMuted, Is.False);
             Assert.That(saveData.IsSfxMuted, Is.False);
-            Assert.That(saveData.MasterVolume, Is.EqualTo(1f));
+            Assert.That(saveData.MusicVolume, Is.EqualTo(1f));
+            Assert.That(saveData.SfxVolume, Is.EqualTo(1f));
         }
 
         [Test]
@@ -149,14 +150,16 @@ namespace SpaceEscaper.Tests
             saveData.UseNewSounds = false;
             saveData.IsMusicMuted = true;
             saveData.IsSfxMuted = true;
-            saveData.MasterVolume = 0.25f;
+            saveData.MusicVolume = 0.25f;
+            saveData.SfxVolume = 0.75f;
 
             SaveData loaded = SaveData.FromJson(saveData.ToJson());
 
             Assert.That(loaded.UseNewSounds, Is.False);
             Assert.That(loaded.IsMusicMuted, Is.True);
             Assert.That(loaded.IsSfxMuted, Is.True);
-            Assert.That(loaded.MasterVolume, Is.EqualTo(0.25f));
+            Assert.That(loaded.MusicVolume, Is.EqualTo(0.25f));
+            Assert.That(loaded.SfxVolume, Is.EqualTo(0.75f));
         }
 
         private static SaveData CreateSaveWithCoins(int coins)

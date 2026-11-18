@@ -79,6 +79,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 - [ ] New trailer
 - [ ] New marketing materials
+- [ ] New Logo, Icon, Branding
 
 </small>
 
@@ -107,8 +108,6 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] Remaster structures
 - [ ] Remaster effects
 - [ ] Restore the explosion distortion effect lost in the URP switch
-- [ ] Icon remaster
-- [ ] New fonts implementation
 - 🔊 New sounds for:
   - [ ] Explosion
   - [ ] Button Press
@@ -139,9 +138,13 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
  
 - [ ] UI overhaul
 - [x] Switch all UI text to TextMeshPro (needed for localization in v1.6.0)
+- [x] New fonts implementation (Audiowide and Exo 2)
 - [x] Words on buttons and titles as text instead of images
 - [x] Layout fits narrow and wide displays
 - [x] Safe area support for notches and camera cutouts
+- [x] Separate volume for music and effects
+- [x] Time, distance and highscore progress of every run
+- [x] Play again or open the hangar right from the death screen
 - [ ] Clean up unused UI images
 - [x] Decide what the leaderboard button should do (now a symbol next to the highscore)
 - [x] UI images in a sprite atlas, compressed and drawn in fewer batches

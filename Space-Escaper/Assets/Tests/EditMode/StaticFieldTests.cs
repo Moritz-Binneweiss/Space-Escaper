@@ -155,6 +155,14 @@ namespace SpaceEscaper.Tests
                 return CreateHandler(type);
             }
 
+            // The last value, which is not the first, the default, as long as there are two.
+            if (type.IsEnum)
+            {
+                Array values = Enum.GetValues(type);
+                Assert.That(values.Length, Is.GreaterThan(1), $"The test cannot fill a static {type.Name}");
+                return values.GetValue(values.Length - 1);
+            }
+
             Assert.That(type.IsValueType, Is.False, $"The test cannot fill a static {type.Name} yet");
 
             // Without a constructor, for a component also without a GameObject. That is enough to

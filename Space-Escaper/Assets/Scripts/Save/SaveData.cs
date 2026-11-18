@@ -26,7 +26,8 @@ namespace SpaceEscaper
         [SerializeField] private bool m_useNewSounds = true;
         [SerializeField] private bool m_isMusicMuted;
         [SerializeField] private bool m_isSfxMuted;
-        [SerializeField] private float m_masterVolume = 1f;
+        [SerializeField] private float m_musicVolume = 1f;
+        [SerializeField] private float m_sfxVolume = 1f;
 
         public int Coins => m_coins;
         public int Highscore => m_highscore;
@@ -51,13 +52,22 @@ namespace SpaceEscaper
         }
 
         /// <summary>
-        /// Position of the volume slider from 0 to 1, not the amplitude, so the
+        /// Position of the music slider from 0 to 1, not the amplitude, so the
         /// handle comes back where the player left it.
         /// </summary>
-        public float MasterVolume
+        public float MusicVolume
         {
-            get => m_masterVolume;
-            set => m_masterVolume = value;
+            get => m_musicVolume;
+            set => m_musicVolume = value;
+        }
+
+        /// <summary>
+        /// Position of the slider for the sound effects, like <see cref="MusicVolume"/>.
+        /// </summary>
+        public float SfxVolume
+        {
+            get => m_sfxVolume;
+            set => m_sfxVolume = value;
         }
 
         /// <summary>

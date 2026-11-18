@@ -156,16 +156,21 @@ Ebenso seit v1.5.1 legt `LayoutTests` die Screens so aus, wie zehn Displays sie 
 von Tablets in 4:3 bis zum schmalen Außendisplay eines Klapphandys, fünf davon mit
 Kameraloch oder Balken: Alles Sichtbare und jede Tippfläche liegt in der Safe Area, kein
 Text läuft aus seinem Rechteck, und jedes Bedienelement nimmt Tipps auf mindestens 48 dp
-an (siehe „Layout für alle Seitenverhältnisse“ unter „UI“).
+an (siehe „Layout für alle Seitenverhältnisse“ unter „UI“). Was eine Maske abschneidet,
+zählt dabei nicht (seit Schritt 3b von v1.5.1). Die Settings passen auf jedem der zehn
+Displays ohne Scrollen unter ihren Titel (ebenso seit 3b).
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
-„Code-Stil“): Der Test füllt alle, ruft die Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
+„Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
+Methoden mit `SubsystemRegistration` auf wie Unity und erwartet alle
 wieder leer. Danach stellt er die alten Werte wieder her, der Editor liest sie auch.
 
 Seit v1.4.11 gibt es außerdem einen PlayMode-Test in `Assets/Tests/PlayMode/`
 (`RunTests`). Er spielt einen Run über die Buttons des Spiels: Play, geradeaus bis
 zum ersten Hindernis, dann prüft er Todesbildschirm und Spielstand und seit v1.5.0,
-dass der Score dort eine Sekunde lang stehen bleibt. Dann tippt er Revive
+dass der Score dort eine Sekunde lang stehen bleibt. Seit v1.5.1 prüft er dort auch
+Strecke und Zeit des Runs (gegen den Weg und die Zeit, die das Schiff geflogen ist) und
+„NEW HIGHSCORE“: Sein Spielstand beginnt mit Highscore 5, den der Run schlägt. Dann tippt er Revive
 und prüft, dass das Schiff 25 Einheiten weiterfliegt, ohne wieder zu crashen. Mit
 dem Revive-Bug aus v1.4.4 crashte es im Frame des Revive gleich wieder (siehe
 „Bekannte Altlasten“). Seit v1.4.13 rückt die Welt dabei alle 20 statt alle 4800
@@ -174,7 +179,10 @@ dem Crash und einmal kurz nach dem Revive, während die Explosion noch brennt. I
 jedem Frame prüft er, dass nichts springt: Das Schiff bleibt nahe am Ursprung,
 Schiff und Kamera bewegen sich stetig, alles andere behält seinen Platz in der
 Welt, die Gruppen der Szene bleiben im Ursprung, und die Abschnitte liegen
-lückenlos hintereinander bis zur nächsten Spawn-Position.
+lückenlos hintereinander bis zur nächsten Spawn-Position. Ein zweiter Test
+(`DeathScreenStartsANewRunOrOpensTheHangar`, seit v1.5.1) tippt nach einem Crash „Play
+again“ und prüft, dass nach dem Neuladen gleich ein neuer Run läuft, ohne Münzen und
+Strecke, dann nach dem nächsten Crash „Hangar“.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit `unity command test run`. Sie dauern
@@ -187,8 +195,8 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
   Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
   verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
-  aus (in v1.5.1 67 Tests in gut 8 s). Mit dem Wechsel in den Play Mode dauert der
-  PlayMode-Test rund 12 s, also
+  aus (in v1.5.1 78 Tests in rund 20 s). Mit dem Wechsel in den Play Mode dauern die
+  beiden PlayMode-Tests rund 19 s, also
   vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Meldet ein asynchroner
   PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“). Die CLI legt eine
@@ -198,7 +206,10 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
 - **Szenen im Test:** Während des Laufs tauscht der Test Runner die offenen Szenen
   gegen eine leere und stellt sie danach wieder her. `SceneTests` öffnet
   `Game.unity` deshalb selbst daneben und schließt sie am Ende wieder. Ist sie schon
-  geladen, prüft der Test sie, wie sie ist, und lässt sie offen.
+  geladen, prüft der Test sie, wie sie ist, und lässt sie offen. Ungespeicherte Änderungen
+  sieht er trotzdem nicht: Der Test Runner lädt die Szene beim Wiederherstellen von der
+  Platte (gesehen in v1.5.1). Wer einen Test mit einer geänderten Szene rot sehen will,
+  speichert sie und legt danach den alten Stand zurück.
 - **Layout im Test:** `LayoutTests` legt eine Kopie der UI in eine Vorschau-Szene
   (`EditorSceneManager.NewPreviewScene`), so bleibt `Game.unity` unberührt, auch wenn
   sie offen ist. Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
@@ -207,13 +218,17 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   einmal an war. Die Displays stehen oben im Test, die Safe Areas mit Kameraloch stammen
   aus dem Device Simulator. Layout-Gruppen legt der Test vor dem Prüfen aus wie das Spiel
   vor dem Zeichnen (`LayoutRebuilder.ForceRebuildLayoutImmediate`, seit v1.5.1), sonst
-  stünden ihre Texte noch in den Rechtecken der Vorlage.
+  stünden ihre Texte noch in den Rechtecken der Vorlage. Eine `RectMask2D` zeichnet ihre
+  Kinder nur in ihrem Rechteck und nimmt Tipps auf sie nur dort an, der Test schneidet
+  sichtbare Rechtecke und Tippflächen deshalb an jeder Maske darüber ab.
 - **Der PlayMode-Test spielt echt, aber stumm und ohne den echten Spielstand.** Ein
   Tod schreibt Münzen und Highscore, deshalb lenkt `SetUp` den Spielstand mit
   `SaveSystem.LoadFrom` in einen eigenen Ordner um, im Editor
   `%LOCALAPPDATA%\Temp\ANIMO Games\Space Escaper\PlayModeTests\`. Der beginnt leer
-  wie eine Neuinstallation, nur der Lautstärkeregler steht auf 0: Musik und Sounds
-  laufen durch denselben Code wie im Spiel, man hört sie nur nicht. Den echten
+  wie eine Neuinstallation, nur mit Highscore 5. Stumm ist der Test über
+  `AudioListener.volume` 0 (seit v1.5.1, bis dahin über den Lautstärkeregler): Musik und
+  Sounds laufen durch denselben Code wie im Spiel, man hört sie nur nicht. Ein Regler auf
+  0 hielte die Musik an und spielte keine Sounds, das prüfte weniger. Den echten
   Spielstand fasst der Test nicht an (Hash vor und nach jedem Lauf gleich).
   Sichern und zurücklegen ginge nicht sauber: Beim Verlassen des Play Mode speichert
   `AudioSystem.OnApplicationQuit` noch einmal und überschriebe den zurückgelegten
@@ -258,8 +273,8 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
     > Rendering Debugger und gilt nur für den laufenden Play Mode.
   - **In den Settings** steht seit v1.5.0 dafür auch ein Schalter „Invincible“. Der
     `SettingsScreen` legt ihn in `Awake` als Kopie der Zeile „Classic Mode“ an, die
-    Layout-Gruppe ihres Abschnitts setzt ihn darunter (seit v1.5.1), in der Szene steht
-    er nicht. Auf dem Handy ist er leichter zu treffen
+    Layout-Gruppe ihres Abschnitts setzt ihn als letzte Zeile unter GAME (seit v1.5.1), in
+    der Szene steht er nicht. Auf dem Handy ist er leichter zu treffen
     als der Dreifinger-Doppeltipp, der auf dem Pixel 9 Pro nicht immer klappte, und er
     braucht den Rendering Debugger nicht. Der ist in URP 17.6 mit UI Toolkit gebaut:
     Sein erstes Öffnen kostete dort einen Frame von 561 ms und 10 MB, danach legt er
@@ -304,7 +319,15 @@ lückenlos hintereinander bis zur nächsten Spawn-Position.
   eingebauten Fehlern fand er einen Text, der umbricht, einen ohne Umbruch, der zu breit
   ist, „EXIT“ im Hangar außerhalb der `SafeArea` (auf allen vier Displays mit Kameraloch)
   und einen Pokal mit 50 statt 60. Die Texte fand er erst, seit die Kopie alle Screens
-  einschaltet, vorher prüfte er nur die des Hauptmenüs.
+  einschaltet, vorher prüfte er nur die des Hauptmenüs. In Schritt 3b von v1.5.1 konnte
+  `StaticFieldTests` den neuen statischen Enum im `GameManager` erst nicht füllen und fand
+  ohne die beiden neuen Zeilen in `ResetStaticState` genau `GameManager.s_reloadTarget` und
+  `GameMenuScreen.s_hasShownSwipeHint`. `LayoutTests` meldete vor dem Abschneiden an Masken
+  das Ende der Settings-Liste unter der Safe Area, danach mit einer Liste, die selbst unter
+  die Safe Area reicht, den INFO-Abschnitt auf vier Displays. `TheSettingsFitWithoutScrolling`
+  war mit den Abständen aus Version 6 auf 16:9, dem offenen Klapphandy und beiden Tablets
+  rot (748,8 Einheiten hoch bei 676 bis 688 Platz). Der Test für „Play again“
+  scheiterte, solange der `GameManager` nach dem Neuladen nichts tat.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -358,10 +381,11 @@ nur Ordner.
   aus dem UI-Umbau von v1.3, flach und weiß, die Shop-Bilder in `2021/Shop/`. `2026/`
   hat die Preisschilder aus v1.4.1 und die Symbole, Platten, das Logo und die Münze aus
   v1.5.1. Die Münze ist die aus `2020/`, auf die Mutter zugeschnitten (siehe „Nicht
-  größer importieren als gezeigt“ unter „Texturen“). Das Spiel nutzt seit Schritt 3a von
-  v1.5.1 30: aus `2021/` nur die neun Skin-Bilder in `Shop/`, dazu 21 aus `2026/`. Die
-  übrigen fallen beim Aufräumen in v1.5.1 weg. Neue Bilder kommen in den Ordner ihres
-  Jahres.
+  größer importieren als gezeigt“ unter „Texturen“). Das Spiel nutzt seit Schritt 3b von
+  v1.5.1 36: aus `2021/` nur die neun Skin-Bilder in `Shop/`, dazu 27 aus `2026/`. Beim
+  Aufräumen in v1.5.1 fallen die übrigen aus `2021/` und die Preisschilder weg, die aus
+  `2020/` bleiben für einen möglichen Classic Mode (siehe „Bekannte Altlasten“). Neue
+  Bilder kommen in den Ordner ihres Jahres.
 - **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
   lagen auch im Ordner `GUI/` der Quelldateien des Originals, die im Januar 2026 ins
   Repo kamen (`84f02f9`). Sieben tragen einen PNG-Zeitstempel von August oder
@@ -841,7 +865,7 @@ bei 8.
   Schiff sichtbar. Beide Bilder sind unkomprimiert importiert, `AppIcon` dient weiter
   als Default Icon und TV-Banner. Das graue Unity-Icon (96 px), das daneben noch in der
   APK liegt, ist nur der Ersatz für Android vor 8 und wird nie angezeigt. Ein echtes
-  adaptives Icon mit getrennten Ebenen kommt mit dem Icon-Remaster (v1.7.0).
+  adaptives Icon mit getrennten Ebenen kommt mit dem neuen Branding (v1.9.1).
 - **Grafik-API auf Android:** nur OpenGL ES 3 (Player Settings, „Auto Graphics API“
   aus). Unity 6.6 setzt dabei immer ES 3.1 voraus, der Haken „Require ES3.1“ wirkt
   nicht mehr (`PlayerSettings.openGLRequireES31` liefert fest `true`, egal was in
@@ -864,10 +888,16 @@ bei 8.
 
 - Ungenutzte Bilder, Materialien und Modelle liegen noch im Projekt, etwa die alten
   Preisschilder oder Doppelgänger mit `Unused` im Namen. Aufräumen gehört zum UI
-  Overhaul (v1.5.1) und zum Remaster (v1.7.0). Bitgleiche Duplikate sind seit
+  Overhaul (v1.5.1) und zum Remaster (v1.7.0). **Was zum Look von 2020 gehört, bleibt
+  dabei** (Entscheidung 18.11.2026): Ein Classic Mode soll später das Original von 2020
+  zeigen, dessen UI, Sounds, Musik, Objekte und Schiffe, aber mit dem neuen Code und den
+  heutigen Preisen. Die Texte im Spiel setzte 2020 Neuropol X (`Branding/FontsUsed.txt`),
+  deren kostenlose Lizenz keine Apps abdeckt, dafür bräuchte er eine App-Lizenz oder eine
+  ähnliche freie Schrift. Bitgleiche Duplikate sind seit
   v1.4.5 gelöscht (39 in `Assets/UI/`, 4 beim Sortieren der Ordner), alle
-  UI-Bilder liegen in `UI/Images/`. Von ihren 80 nutzt das Spiel 36, die übrigen 44
-  liegen fast alle in `UI/Images/2020/` (siehe „Ordnerstruktur“). Gleiche Texturen
+  UI-Bilder liegen in `UI/Images/`. Von ihren 107 nutzt das Spiel seit Schritt 3b von
+  v1.5.1 36, ungenutzt sind alle 38 in `2020/` (sie bleiben), 30 in `2021/` und die
+  drei Preisschilder in `2026/` (siehe „Ordnerstruktur“). Gleiche Texturen
   in `Models/` und `Textures/` sind Absicht: die einen gehören zu den
   `.blend`-Quellen, die anderen zu den Unity-Materialien.
 - **Play Store kommt erst mit v2.0** - als *neuer* Store-Eintrag, nicht als Update des
@@ -910,8 +940,12 @@ Alle Skripte lesen und ändern ihn über `SaveSystem.Data`, PlayerPrefs nutzt da
 Spiel nicht mehr.
 
 - **Gespeichert wird sofort** bei Tod, Kauf, Schiffswahl und den Audio-Schaltern,
-  dazu beim Pausieren und Beenden der App, für den Lautstärkeregler (siehe
+  dazu beim Pausieren und Beenden der App, für die Regler von Musik und Effekten (siehe
   „Audio-System“). Bis dahin stehen Änderungen nur im Speicher.
+- **Gesamtlautstärke weg** (seit Schritt 3b von v1.5.1): Statt `m_masterVolume` stehen
+  `m_musicVolume` und `m_sfxVolume` im Spielstand, beide neu mit 1. Ein alter Stand
+  behält seine Gesamtlautstärke als ungelesenen Schlüssel, Musik und Effekte stehen bei
+  ihm also wieder auf 100 % (ohne Umwandlung, es gibt nur Test-Spielstände).
 - **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 2 (seit v1.4.8, Schiffe
   als ID statt als Nummer). Einen Stand mit anderer Version verwirft
   `SaveData.FromJson`, das Spiel fängt dann neu an (Entscheidung Oktober 2026, es
@@ -982,8 +1016,8 @@ stecken die Regeln dahinter nicht mehr im `GameManager`, sondern in `SaveData` u
 - **Neuinstallation im Editor testen:** „Space Escaper > Reset Save (New Install)“
   (seit v1.4.11), oder von Hand: Play Mode beenden und `SaveData.json` samt einer
   eventuellen `SaveData.json.tmp` wegschieben. Der nächste Start beginnt mit 0
-  Münzen, Highscore 0, dem Startschiff, den neuen Sounds, Musik und SFX an und voller
-  Lautstärke.
+  Münzen, Highscore 0, dem Startschiff, den neuen Sounds, Musik und SFX an und beiden
+  Reglern auf 100 %.
 - **Die alten PlayerPrefs** liegen in der Registry unter
   `HKCU\Software\Unity\UnityEditor\ANIMO Games\Space Escaper`, daneben noch der
   Schlüssel des App-Namens bis v1.4.4, `Space-Escaper`.
@@ -1005,7 +1039,14 @@ Prefab.
   Button, `UI/Shop/SafeArea/SelectOrBuyButton`, kauft oder wählt das gezeigte Schiff
   (`SelectOrBuyShownShip`). Seine Komponente `SelectOrBuyButton` zeigt den Preis aus dem
   `ShipData` mit Münze, SELECT oder SELECTED in der Leuchtfarbe (seit v1.5.1, bis dahin
-  Bilder).
+  Bilder). Reichen die Münzen nicht, ist er halb durchsichtig (Canvas Group), ein Tipp
+  kauft dann nichts.
+- **Was der Hangar sonst zeigt** (seit v1.5.1): die Münzen oben rechts, den Namen der
+  Familie über den Skins und an jedem Skin-Button Ecken, solange sein Schiff auf dem
+  Ständer steht, und einen Haken, sobald es gekauft ist, grün unter dem geflogenen Schiff,
+  hellgrau unter den anderen (Wunsch Moritz, 18.11.2026, `ShipButton.ShowState`). Der
+  `ShopScreen` setzt das für alle neun Buttons, auch die der ausgeschalteten Familien, bei
+  jedem gezeigten Schiff, jedem Kauf und jeder Wahl.
 - **Modelle sind Prefabs** in `Prefabs/Ships/` (`AristocratSkin1.prefab` …), mit
   ihrem Platz auf dem Schiff: Versatz und Skalierung stecken in der Wurzel. Der
   `PlayerShip` setzt das Modell des geflogenen Schiffs unter `Playership/Ship` ein, der
@@ -1064,6 +1105,13 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
   nichts. `ReturnToMenu` lädt die Szene neu, der Zustand beginnt dann wieder bei
   `Menu`. Mehr macht der `GameManager` seit dem Aufteilen in v1.5.0 nicht. Bis dahin
   führte er auch den Shop, den Score und die Texte der Screens.
+- **„Play again“ und „Hangar“ auf dem Todesbildschirm** (seit v1.5.1, `PlayAgain` und
+  `ReturnToHangar`, nur aus `Dead`) laden die Szene neu wie `ReturnToMenu` und gehen
+  dann gleich weiter wie ein Tipp im Hauptmenü: `GameManager.Start` ruft `Play` oder
+  `OpenHangar`. Was nach dem Neuladen kommt, merkt sich das statische Feld
+  `s_reloadTarget`, es überlebt das Neuladen. In `Start` sind alle `Awake` und `OnEnable`
+  der Szene gelaufen und noch kein `Update`, der Run startet also wie aus dem Menü, mit
+  dem Schwenk der Kamera hinter das Schiff.
 - **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
   setzt `Time.timeScale`, 0 nur in der Pause.
 - **Die Settings sind kein Zustand,** sondern ein Screen über Hauptmenü oder Pause. Der
@@ -1081,7 +1129,8 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 | | `RunPaused`, `RunResumed` | Motor aus und wieder an, die Musik läuft weiter (siehe „Pause“) |
 | | `ShipCrashed` | Musik anhalten, Motor aus (siehe „Audio-System“) |
 | | `ShipRevived` | Musik an derselben Stelle weiter, Motor an |
-| `RunScore` | `ShipCrashed` | Münzen des Runs gutschreiben, Highscore, speichern |
+| `RunScore` | `RunStarted` | den Highscore merken, den der Run schlagen kann |
+| | `ShipCrashed` | Münzen des Runs gutschreiben, Highscore, speichern |
 | `PlayerShip` | `RunStarted` | Flamme an |
 | | `ShipCrashed`, `ShipRevived` | Modell und Flamme aus und wieder an |
 | `Spaceport` | `RunStarted` | schaltet sich 3 s später aus |
@@ -1146,12 +1195,24 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   Feld in der Komponente seines Screens und je eine Zeile in `OnEnable` und
   `OnDisable`.
 - **Die Komponente zeigt auch, was auf ihrem Screen steht** (seit v1.5.0, bis dahin
-  setzte der `GameManager` alle Texte): Hauptmenü (Münzen, Highscore) und
-  Todesbildschirm (Score, Münzen, Revive-Button nur, solange der Run ihn noch hat)
+  setzte der `GameManager` alle Texte): Hauptmenü (Münzen, Highscore), Pause (Zeit,
+  Score, Münzen, Highscore und Strecke des Runs, seit v1.5.1) und Todesbildschirm (Zeit,
+  Score, „NEW HIGHSCORE“, Münzen, Strecke, Revive-Button nur, solange der Run ihn noch hat)
   setzen ihre Texte beim Einschalten, aus dem Spielstand und dem `RunScore`. Die
   Spiel-UI folgt dem `RunScore` in `LateUpdate`, also mit dem Score dieses Frames, und
   setzt einen Text nur, wenn sich seine Zahl ändert. Steigen die Münzen, poppt das
   Icon. Der `ShopScreen` führt den Shop selbst (siehe „Shop“).
+- **Zeit, Strecke und Highscore des Runs** zählt der `RunScore` (seit v1.5.1): die Zeit
+  nur im Run, die Strecke als Tempo mal Frame-Zeit statt aus der Position, die der
+  Floating Origin zurückrückt (eine Einheit ist ein Meter), und den Highscore vom Start
+  des Runs. Den braucht „NEW HIGHSCORE“, denn ab dem ersten Crash steht im Spielstand
+  schon der Score dieses Runs. Der allererste Run hat keinen Highscore zu schlagen.
+- **Einblendungen im Run** (seit v1.5.1): Alle 100 Punkte zeigt die Spiel-UI 2,5 s lang
+  die Leiste bis zum Highscore (`m_highscoreBarStep` im Inspector), hat der Run ihn
+  geschlagen, einmal „NEW HIGHSCORE!“. Im ersten Run nach dem Start der App steht „SWIPE
+  TO CHANGE LANES“ über dem Schiff, bis zum ersten Wischer oder 6 s lang. Die Zeiten
+  laufen über `Time.time`, sie stehen in der Pause also still. Gespeichert sind alle drei
+  ausgeschaltet, `LayoutTests` prüft sie trotzdem, er schaltet in seiner Kopie alles ein.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
   Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`:
   TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
@@ -1198,15 +1259,14 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Seit Schritt 3a steht er als Multiplikator „×1.4“ in einem Chip neben dem Score,
     `LayoutTests` nimmt ihn nicht mehr aus.
 - **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle
-  UI-Bilder, die die Szene nutzt, seit Schritt 3a 30 auf einer Seite von 2048 × 1024 in
-  ETC2, 2,0 MiB. Beim Einführen waren es 36 auf 2048 × 2048, 4,0 MiB.
+  UI-Bilder, die die Szene nutzt, seit Schritt 3b 36 auf einer Seite von 2048 × 1024 in
+  ETC2, 2,0 MiB. Beim Einführen waren es 36 alte Bilder auf 2048 × 2048, 4,0 MiB.
   Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
   „Texturen“). Die Bilder eines Screens kommen damit in einem Draw Call, gemessen im
-  Editor nur fürs UI: Menü 2 statt 7, Hangar 1 statt 7, Settings 6 statt 9, Run 3 statt
-  4, Pause 2 statt 5, Tod 3 statt 6. Eigene Draw Calls bleiben die Texte (ein Material
-  pro Schrift) und was kein Bild aus dem Atlas zeigt: Unitys eingebaute Sprites
-  (Hintergrund von Pause und Settings, Toggle, Slider) und die Abdunklung hinter dem
-  Todesbildschirm.
+  Editor nur fürs UI, beim Einführen: Menü 2 statt 7, Hangar 1 statt 7, Settings 6 statt
+  9, Run 3 statt 4, Pause 2 statt 5, Tod 3 statt 6. Seit dem neuen Design (Schritt 3 von
+  v1.5.1) nicht neu gemessen. Eigene Draw Calls bleiben die Texte (ein Material pro
+  Schrift) und was kein Bild aus dem Atlas zeigt.
   - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
     Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` und `2021/`
     liegen noch ungenutzte Bilder, die er mitpacken würde. Was fehlt oder zu viel ist,
@@ -1263,7 +1323,24 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     verbreiteten. Auf dem Außendisplay eines Klapphandys (320 dp) bleiben davon 43 dp.
     Die kleinen Buttons (Zahnrad, Pause, Zurück, Prefab `IconButton`) zeigen 60 × 60 und
     nehmen Tipps über ein unsichtbares Kind `HitArea` auf 68 × 68 an, das sind auch dort
-    48 dp. Der Lautstärkeregler und die Zeilen mit Schalter sind 60 hoch.
+    48 dp. Die Zeilen mit Schalter sind 60 hoch, die Regler nehmen Tipps über ihre
+    `HitArea` auf 60 an, auch wo sie im Layout nur 44 einnehmen (Settings).
+  - **Die Settings passen ohne Scrollen** (seit Schritt 3b von v1.5.1, Wunsch Moritz):
+    Mit den Abständen von Version 6 waren sie 750 Einheiten hoch, unter dem Titel bleiben
+    auf 16:9 und Tablets aber nur 676 bis 700. Mit weniger Luft sind sie 633 hoch, mit
+    „Invincible“ in Editor und Test-Builds 693, das passt auch in ein Game-Fenster in 9:16.
+    Weniger Luft heißt: 16 statt 28 unter dem Zurück-Button, die Abschnitte 10 statt 16
+    auseinander und innen mit weniger Rand, die Zeilen von GAME direkt aufeinander, die
+    Versionszeile 44 statt 60 hoch (sie nimmt keine Tipps an). Die Regler nehmen im Layout
+    44 statt 60, ihre `HitArea` und der Weg ihres Knopfs (`HandleSlideArea`) bleiben 60 hoch
+    und reichen 8 über sie hinaus. Schriften und Tippflächen sind so groß wie vorher. Das
+    prüft `LayoutTests.TheSettingsFitWithoutScrolling` auf allen zehn Displays, ohne
+    „Invincible“, die Zeile entsteht erst im Spiel. Eine neue Zeile braucht also Platz von
+    anderswo. Die Abschnitte liegen trotzdem in `Settings/SafeArea/Scroll`, einer
+    senkrechten `ScrollRect` mit `RectMask2D` bis an den unteren Rand der Safe Area, auf
+    „Clamped“: Eine Liste, die passt, bewegt sich nicht, nur mit „Invincible“ auf dem
+    Tablet mit Balken unten (676 Platz) scrollt sie ein Stück. Ein unsichtbares Bild
+    darauf nimmt die Wischer zwischen den Bedienelementen an.
   - **Ein neues Element** kommt nach diesen Regeln in die `SafeArea` oder direkt an den
     Screen. Ob es auf allen Displays passt, prüft `LayoutTests` (siehe „Tests“). Ansehen
     im Device Simulator (Window > General > Device Simulator), er hat Handys mit
@@ -1289,18 +1366,42 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Weiß über Schwarz sieht hier aus wie 30 %. Halbtransparente Farben bekommen deshalb
     das Alpha, das über ihrem Untergrund aussieht wie im Mockup, etwa 0,014 statt 0,07
     für die Kacheln und 0,90 statt 0,72 für die Abdunklung des Todesbildschirms. Die
-    weichen Ränder von Logo und Leuchten (`SpaceEscaperLogo`, `PlateGlow`) sind pixelweise
-    so umgerechnet, für dunklen Weltraum als Untergrund.
+    weichen Ränder von Logo und Leuchten (`SpaceEscaperLogo`, `PlateGlow`, `PlateGlowAmber`)
+    sind pixelweise so umgerechnet, für dunklen Weltraum als Untergrund. Der Untergrund
+    zählt: Die Einblendungen im Run liegen vor dem dunklen Himmel, mit dem Grau der Welt
+    gerechnet sah die Füllung von „NEW HIGHSCORE!“ viel zu orange aus.
+  - **Leuchten:** `PlateGlow` ist gefüllt und für das Grün von LAUNCH gebacken (60 %),
+    `PlateGlowAmber` (seit Schritt 3b) leuchtet nur außerhalb der Platte, wie ein
+    `box-shadow` im Browser, gebacken für Bernstein mit 45 %. Unter einer durchsichtigen
+    Platte wie der Leiste zum Highscore schiene ein gefülltes Leuchten durch. Beide halten
+    einen Schein von 30 Einheiten um eine Platte mit Radius 20 bei Faktor 2: Faktor
+    40 / Radius passt ihn an eine Platte an, er reicht dann 1,5 Radien hinaus.
+  - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Achievements und
+    Collectibles im Hauptmenü, Vibration, Sprache, Credits und Datenschutz in den Settings.
+    Ausgegraut heißt feste Farben, wie CSS `opacity: 0.4` auf dem Untergrund aussähe, keine
+    Canvas Group: Mit halber Deckkraft scheinen übereinanderliegende Teile durcheinander
+    durch, etwa der Schatten durch die Platte. Daneben steht ein graues „SOON“, nicht
+    ausgegraut, über einem Button mit einem Ring in der Farbe des Grunds wie die Zahlen der
+    Mockups. Die Buttons sind nicht `interactable`, ohne Übergang.
+  - **Maße aus den Mockups:** Die Mockups setzen Texte meist mit normaler Zeilenhöhe,
+    Audiowide mit 1,275 Schriftgrößen, Exo 2 mit 1,2. Ein Text von Exo 2 hat seine
+    Grundlinie deshalb 0,1 Schriftgrößen tiefer als in einem Kasten mit Zeilenhöhe 1. Das
+    Bauen der Screens rechnet mit Kästen der Zeilenhöhe 1, Exo 2 rückt dort um 0,1
+    Schriftgrößen nach unten. Absolut gesetzte Kinder eines Kastens mit Rand zählen in CSS
+    ab dessen Innenkante, im Sheet der Pause also 2 Einheiten tiefer.
   - **Bilder** entstehen aus HTML im Browser: Die Symbole sind die SVGs der Mockups
     (Feather und Lucide, ein paar eigene) als weiße PNGs von 128 Pixeln, im Spiel
     eingefärbt. Das Logo ist Bruno Ace SC als Bild mit 3 Pixeln pro Einheit, die Schrift
-    selbst liegt nicht im Projekt. Nur die Münze ist kein HTML: Sie ist die rostige Mutter
+    selbst liegt nicht im Projekt. `SkinFrame`, die Ecken um den gezeigten Skin, ist ein
+    9-Slice mit 2 Pixeln pro Einheit. Nur die Münze ist kein HTML: Sie ist die rostige Mutter
     von 2020, enger zugeschnitten (siehe „Texturen“), ihr Rechteck zeigt also die ganze
     Mutter.
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
-  von 30 Frames), in Pause, Settings, Tod und Hangar gar nicht. Bis v1.4.9 baute der
-  ganze UI-Canvas in jedem Frame neu, außer in der Pause. Die Screen-Canvases erben
+  von 30 Frames, vor Schritt 3b) und seit v1.5.1, wenn eine Einblendung kommt oder geht,
+  in Pause, Tod und Hangar gar nicht, in den Settings beim Ziehen eines Reglers. Bis
+  v1.4.9 baute der ganze UI-Canvas in jedem Frame neu, außer in der Pause. Die
+  Screen-Canvases erben
   Render Mode und Skalierung vom Root. Ihr eigener Render Mode steht trotzdem auf
   Overlay, falls ein Screen je aus `UI` herauswandert.
 - **Jeder Screen braucht seinen eigenen `GraphicRaycaster`.** Ein Raycaster trifft nur
@@ -1468,8 +1569,11 @@ aus der Pause auf `true` stehen.
 - „Exit“ im Pause-Menü ruft `GameManager.ReturnToMenu`, also einen Szenen-Reload.
   `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
 - Die Musik läuft in der Pause bewusst weiter (Entscheidung Oktober 2026), so hört
-  man den Lautstärkeregler, wenn man die Settings aus der Pause öffnet. Beim Tod
+  man den Musikregler, wenn man die Settings aus der Pause öffnet. Beim Tod
   pausiert sie dagegen, siehe „Audio-System“.
+- Die Pause zeigt den Run bisher (Zeit, Score, Münzen, Highscore, Strecke) und hat die
+  Schalter für Musik und Effekte (seit v1.5.1, bis Schritt 3a standen sie in den
+  Settings). Die Zahlen setzt der `PauseMenuScreen` beim Einschalten, der Run steht still.
 - **Zum Testen das Schiff anhalten.** Ohne Steuerung kracht es nach 2-3 s ins
   erste Hindernis, und der Test landet auf dem Todesbildschirm. Den Run per Code
   starten und `PlayerMotor.m_speed` per Reflection auf 0 setzen: Der Run bleibt
@@ -1501,10 +1605,13 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   `Awake()`. Eine Inspector-Referenz oder ein persistenter OnClick-Aufruf darauf
   zeigt nach dem ersten Reload ins Leere. Alles geht deshalb über
   `AudioSystem.Instance`, und das AudioSystem selbst kennt nichts in der Szene:
-  - Die Bedienelemente unter `UI/Settings` (`VolumeSlider`, `MusicButton`, `SfxButton`
-    und `ClassicModeToggle`, bis v1.5.0 „Use new Sound“, seit v1.5.1 umgekehrt: an
-    heißt die Sounds von 2020) verbindet seit v1.5.0 der `SettingsScreen` am selben
-    Screen, in `OnEnable`, und zeigt dabei den Stand des AudioSystem. Ein neues Bedienelement für den Ton kommt dorthin. Bis v1.4.13
+  - Die Bedienelemente für den Ton verbindet seit v1.5.0 der Screen, auf dem sie stehen,
+    in `OnEnable`, und zeigt dabei den Stand des AudioSystem: unter `UI/Settings` der
+    `SettingsScreen` die Regler `MusicSlider` und `SfxSlider` (seit v1.5.1, bis dahin
+    eine Gesamtlautstärke) und `ClassicModeToggle` (bis v1.5.0 „Use new Sound“, seit
+    v1.5.1 umgekehrt: an heißt die Sounds von 2020), unter `UI/PauseMenu` der
+    `PauseMenuScreen` die Schalter `MusicButton` und `SfxButton` (seit v1.5.1, bis dahin in
+    den Settings). Ein neues Bedienelement für den Ton kommt in einen der beiden. Bis v1.4.13
     hielt das AudioSystem die Referenzen selbst und übernahm sie nach jedem Reload
     von seiner Szenenkopie (`AdoptSceneReferencesFrom`). Geprüft in v1.5.0 über die
     echten Buttons: Öffnen aus Hauptmenü und Pause, alle vier Elemente umschalten,
@@ -1513,7 +1620,7 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
     Die alten Klick-Events zeigten seit Februar 2026 ins Leere. Kauf-Buttons haben
     bewusst keinen Klick, sie spielen eigene Select-/Kauf-Sounds; der Start-Button
     hatte nie einen. Die beiden Stumm-Schalter spielen ihren Klick seit v1.5.0 über
-    den `SettingsScreen`, nach dem Umschalten: Wer die SFX ausschaltet, hört
+    ihren Screen (seit v1.5.1 die Pause), nach dem Umschalten: Wer die SFX ausschaltet, hört
     keinen Klick, wer sie einschaltet, hört ihn. Vorher ergab sich das nur aus der
     Reihenfolge, in der die Listener dazukamen.
   - Auf den Spielverlauf hört es über die statischen Ereignisse des `GameManager`
@@ -1532,15 +1639,26 @@ Vier Fallen, die hier schon einmal Bugs verursacht haben:
   `ShipRevived`).
   Ein eigenes Flag (`m_isMusicOnHold`) hält beides auseinander: Entstummen auf dem
   Todesbildschirm startet die Musik nicht, ein Revive startet keine
-  stummgeschaltete. Zurück ins Menü hebt `PlayMenuMusic` den Hold auf.
-- **Der Lautstärkeregler ist nicht linear.** `SetMasterVolume` bildet die
+  stummgeschaltete. Zurück ins Menü hebt `PlayMenuMusic` den Hold auf. Ein Regler ganz
+  unten wirkt wie Stummschalten (seit v1.5.1): Die Musik pausiert, Effekte und Motor
+  schweigen, beides ohne den Schalter umzulegen.
+- **Die Regler sind nicht linear.** `SetMusicVolume` und `SetSfxVolume` (seit v1.5.1,
+  bis dahin eine Gesamtlautstärke über `AudioListener.volume`) bilden die
   Reglerposition exponentiell auf einen 40-dB-Bereich ab (`k_VolumeRangeDb`), sonst
   passiert die gesamte hörbare Änderung in den unteren 20 % des Wegs. Wichtig:
   Den Wert zu quadrieren hilft **nicht** - eine Potenzkurve streckt den dB-Bereich
-  gleichmäßig und lässt das Ungleichgewicht bestehen. Im Spielstand steht die
+  gleichmäßig und lässt das Ungleichgewicht bestehen. Die Lautstärke geht an die
+  Gruppen Music und SFX in `GameAudio.mixer`, über deren freigegebene Parameter
+  `MusicVolume` und `SfxVolume`, ganz unten mit -80 dB. So gilt sie für jede Quelle in
+  der Gruppe, nicht nur für die drei des AudioSystem. Den Spielstand übernimmt der Mixer
+  in `AudioSystem.Start`, nicht in `Awake`. Im Spielstand steht die
   Reglerposition, nicht die Amplitude. Beim Ziehen wird bewusst nicht gespeichert
   (60×/Sekunde Schreibzugriff): Der Wert steht nur in `SaveSystem.Data` und kommt in
-  `OnApplicationPause`/`OnApplicationQuit` des `AudioSystem` auf die Platte.
+  `OnApplicationPause`/`OnApplicationQuit` des `AudioSystem` auf die Platte. Freigegeben
+  sind die Parameter per Text: `m_ExposedParameters` in `GameAudio.mixer` nennt je
+  Parameter die GUID der Lautstärke seiner Gruppe (`m_Volume` des
+  `AudioMixerGroupController`) und einen Namen. Nach `ImportAsset` mit `ForceUpdate` kennt
+  Unity sie, ohne die Datei umzuschreiben.
 
 **Import-Einstellungen** (September 2026 nach Unity-Empfehlung gesetzt): Musik auf
 *Streaming* + Load In Background, SFX auf *Decompress on Load* mit 22050 Hz und

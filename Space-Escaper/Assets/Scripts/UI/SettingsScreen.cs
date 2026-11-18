@@ -7,7 +7,8 @@ namespace SpaceEscaper
     /// <summary>
     /// The settings, opened from the main menu or the pause menu. Connects its audio controls to
     /// <see cref="AudioSystem"/>, which survives scene reloads, so the audio system needs no references
-    /// into the scene. In the editor and in builds with checks it also has an Invincible switch for testing.
+    /// into the scene, and shows the version of the game. In the editor and in builds with checks it also
+    /// has an Invincible switch for testing.
     /// </summary>
     public class SettingsScreen : MonoBehaviour
     {
@@ -20,11 +21,13 @@ namespace SpaceEscaper
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private Button m_backButton;
-        [SerializeField] private Button m_sfxButton;
-        [SerializeField] private Button m_musicButton;
+        [SerializeField] private Slider m_musicSlider;
+        [SerializeField] private TMP_Text m_musicVolumeText;
+        [SerializeField] private Slider m_sfxSlider;
+        [SerializeField] private TMP_Text m_sfxVolumeText;
         [Tooltip("The sounds of the 2020 original. Its look comes with the remaster in v1.7.0.")]
         [SerializeField] private Toggle m_classicModeToggle;
-        [SerializeField] private Slider m_volumeSlider;
+        [SerializeField] private TMP_Text m_versionText;
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         private Toggle m_invincibleToggle;
@@ -46,24 +49,23 @@ namespace SpaceEscaper
         private void OnEnable()
         {
             m_backButton.onClick.AddListener(BackButton_Clicked);
-            m_sfxButton.onClick.AddListener(SfxButton_Clicked);
-            m_musicButton.onClick.AddListener(MusicButton_Clicked);
+            m_musicSlider.onValueChanged.AddListener(MusicSlider_ValueChanged);
+            m_sfxSlider.onValueChanged.AddListener(SfxSlider_ValueChanged);
             m_classicModeToggle.onValueChanged.AddListener(ClassicModeToggle_ValueChanged);
-            m_volumeSlider.onValueChanged.AddListener(VolumeSlider_ValueChanged);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.AddListener(InvincibleToggle_ValueChanged);
             m_invincibleToggle.SetIsOnWithoutNotify(PlayerMotor.IsInvincible);
 #endif
+            m_versionText.SetText(Application.version);
             ShowCurrentSettings();
         }
 
         private void OnDisable()
         {
             m_backButton.onClick.RemoveListener(BackButton_Clicked);
-            m_sfxButton.onClick.RemoveListener(SfxButton_Clicked);
-            m_musicButton.onClick.RemoveListener(MusicButton_Clicked);
+            m_musicSlider.onValueChanged.RemoveListener(MusicSlider_ValueChanged);
+            m_sfxSlider.onValueChanged.RemoveListener(SfxSlider_ValueChanged);
             m_classicModeToggle.onValueChanged.RemoveListener(ClassicModeToggle_ValueChanged);
-            m_volumeSlider.onValueChanged.RemoveListener(VolumeSlider_ValueChanged);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.RemoveListener(InvincibleToggle_ValueChanged);
 #endif
@@ -76,30 +78,21 @@ namespace SpaceEscaper
             m_screens.Show(m_gameManager.State);
         }
 
-        // The click comes after the switch, so it is heard when the sound effects come back on and
-        // not when they go off.
-        private void SfxButton_Clicked()
+        private void MusicSlider_ValueChanged(float value)
         {
-            AudioSystem.Instance.ToggleSfxMuted();
-            AudioSystem.Instance.PlayButtonClick();
-            ShowCurrentSettings();
+            AudioSystem.Instance.SetMusicVolume(value);
+            ShowPercent(m_musicVolumeText, value);
         }
 
-        private void MusicButton_Clicked()
+        private void SfxSlider_ValueChanged(float value)
         {
-            AudioSystem.Instance.ToggleMusicMuted();
-            AudioSystem.Instance.PlayButtonClick();
-            ShowCurrentSettings();
+            AudioSystem.Instance.SetSfxVolume(value);
+            ShowPercent(m_sfxVolumeText, value);
         }
 
         private void ClassicModeToggle_ValueChanged(bool isOn)
         {
             AudioSystem.Instance.SetUseNewSounds(!isOn);
-        }
-
-        private void VolumeSlider_ValueChanged(float value)
-        {
-            AudioSystem.Instance.SetMasterVolume(value);
         }
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
@@ -121,15 +114,16 @@ namespace SpaceEscaper
                 return;
             }
 
-            ShowMuteState(m_sfxButton, audioSystem.IsSfxMuted);
-            ShowMuteState(m_musicButton, audioSystem.IsMusicMuted);
+            m_musicSlider.SetValueWithoutNotify(audioSystem.MusicVolume);
+            ShowPercent(m_musicVolumeText, audioSystem.MusicVolume);
+            m_sfxSlider.SetValueWithoutNotify(audioSystem.SfxVolume);
+            ShowPercent(m_sfxVolumeText, audioSystem.SfxVolume);
             m_classicModeToggle.SetIsOnWithoutNotify(!audioSystem.UseNewSounds);
-            m_volumeSlider.SetValueWithoutNotify(audioSystem.MasterVolume);
         }
 
-        private static void ShowMuteState(Button button, bool isMuted)
+        private static void ShowPercent(TMP_Text text, float sliderPosition)
         {
-            button.GetComponent<OnOffButton>().ShowState(!isMuted);
+            text.SetText("{0}%", Mathf.Round(sliderPosition * 100f));
         }
     }
 }
