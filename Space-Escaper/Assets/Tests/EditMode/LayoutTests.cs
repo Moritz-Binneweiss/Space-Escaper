@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using NUnit.Framework;
 using TMPro;
+using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -18,6 +19,7 @@ namespace SpaceEscaper.Tests
         private const string k_ScenePath = "Assets/Scenes/Game.unity";
         private const string k_UiRootName = "UI";
         private const string k_SettingsName = "Settings";
+        private const string k_AchievementCatalogPath = "Assets/Data/Achievements/AchievementCatalog.asset";
 
         // Android asks for touch targets of at least 48 dp. The narrowest common phones are 360 dp wide.
         private const float k_MinTapSizeDp = 48f;
@@ -121,8 +123,6 @@ namespace SpaceEscaper.Tests
             Assert.That(problems, Is.Empty);
         }
 
-        // A text that needs more lines than its box has runs into what is next to it. Without wrapping it
-        // runs out at the side, which TextMesh Pro does not report, so the test measures the glyphs.
         [TestCaseSource(nameof(s_Devices))]
         public void EveryTextFitsItsBox(Device device)
         {
@@ -130,26 +130,60 @@ namespace SpaceEscaper.Tests
             List<string> problems = new List<string>();
             foreach (TMP_Text text in m_ui.GetComponentsInChildren<TMP_Text>(true))
             {
-                if (text.textInfo.characterCount == 0)
-                {
-                    continue;
-                }
+                AddIfTooLarge(problems, text);
+            }
 
-                if (text.isTextOverflowing)
-                {
-                    problems.Add(GetPath(text.transform) + " needs more lines than its box has");
-                }
+            Assert.That(problems, Is.Empty);
+        }
 
-                Rect box = GetRect(text.rectTransform);
-                Rect glyphs = GetShownRect(text);
-                if (glyphs.xMin < box.xMin - k_Tolerance || glyphs.xMax > box.xMax + k_Tolerance)
+        // The card on the death screen shows one achievement at a time, with the label for more than one, but the
+        // scene keeps only the first. The card is as wide on every display, so one of them is enough.
+        [Test]
+        public void EveryAchievementFitsTheCardOfTheDeathScreen()
+        {
+            LayOut(s_Devices[0]);
+            DeathMenuScreen deathMenu = m_ui.GetComponentInChildren<DeathMenuScreen>(true);
+            RectTransform card = (RectTransform)deathMenu.UnlockedCard.transform;
+            TMP_Text[] texts = card.GetComponentsInChildren<TMP_Text>(true);
+            string[] savedTexts = System.Array.ConvertAll(texts, text => text.text);
+            AchievementCatalog catalog = AssetDatabase.LoadAssetAtPath<AchievementCatalog>(k_AchievementCatalogPath);
+            List<string> problems = new List<string>();
+            try
+            {
+                foreach (AchievementData achievement in catalog.Achievements)
                 {
-                    problems.Add(string.Format(CultureInfo.InvariantCulture,
-                        "{0} is {1:0.#} wide in a box of {2:0.#}", GetPath(text.transform), glyphs.width, box.width));
+                    deathMenu.ShowUnlocked(achievement, 2);
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(card);
+                    foreach (TMP_Text text in texts)
+                    {
+                        text.ForceMeshUpdate(true, true);
+                        AddIfTooLarge(problems, text);
+                    }
+                }
+            }
+            finally
+            {
+                for (int i = 0; i < texts.Length; i++)
+                {
+                    texts[i].text = savedTexts[i];
                 }
             }
 
             Assert.That(problems, Is.Empty);
+        }
+
+        // The card hangs under the tiles and the buttons stand on the bottom, so a short display brings them
+        // together.
+        [TestCaseSource(nameof(s_Devices))]
+        public void TheCardOfTheDeathScreenStaysAboveItsButtons(Device device)
+        {
+            LayOut(device);
+            DeathMenuScreen deathMenu = m_ui.GetComponentInChildren<DeathMenuScreen>(true);
+            float cardBottom = GetRect((RectTransform)deathMenu.UnlockedCard.transform).yMin;
+            float buttonsTop = GetRect((RectTransform)deathMenu.ReviveButton.transform).yMax;
+            string message = string.Format(CultureInfo.InvariantCulture,
+                "The card reaches {0:0.#} into the revive button", buttonsTop - cardBottom);
+            Assert.That(cardBottom, Is.GreaterThanOrEqualTo(buttonsTop - k_Tolerance), message);
         }
 
         // The UI is 450 units wide on every phone, so a unit is smallest on the narrowest ones. A control
@@ -259,6 +293,30 @@ namespace SpaceEscaper.Tests
                 default:
                     Assert.Fail("Unknown screen match mode " + scaler.screenMatchMode);
                     return 1f;
+            }
+        }
+
+        // A text that needs more lines than its box has runs into what is next to it. Without wrapping it runs out at
+        // the side, which TextMesh Pro does not report, so this measures the glyphs.
+        private static void AddIfTooLarge(List<string> problems, TMP_Text text)
+        {
+            if (text.textInfo.characterCount == 0)
+            {
+                return;
+            }
+
+            if (text.isTextOverflowing)
+            {
+                problems.Add(GetPath(text.transform) + " needs more lines than its box has");
+            }
+
+            Rect box = GetRect(text.rectTransform);
+            Rect glyphs = GetShownRect(text);
+            if (glyphs.xMin < box.xMin - k_Tolerance || glyphs.xMax > box.xMax + k_Tolerance)
+            {
+                problems.Add(string.Format(CultureInfo.InvariantCulture,
+                    "{0} \"{1}\" is {2:0.#} wide in a box of {3:0.#}", GetPath(text.transform), text.text, glyphs.width,
+                    box.width));
             }
         }
 

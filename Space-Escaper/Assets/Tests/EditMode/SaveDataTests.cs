@@ -162,6 +162,50 @@ namespace SpaceEscaper.Tests
             Assert.That(loaded.SfxVolume, Is.EqualTo(0.75f));
         }
 
+        [Test]
+        public void AchievementsSurviveSaveAndLoad()
+        {
+            SaveData saveData = SaveData.FromJson(null);
+            saveData.RecordFlight(true);
+            saveData.RecordFlight(false);
+            saveData.RecordCoin();
+            saveData.RecordCrash(812);
+            saveData.UnlockAchievement("Liftoff");
+            saveData.UnlockAchievement("ItsWorking");
+            saveData.TryClaimAchievement("Liftoff", 11);
+
+            SaveData loaded = SaveData.FromJson(saveData.ToJson());
+
+            Assert.That(loaded.Flights, Is.EqualTo(2));
+            Assert.That(loaded.FlightsInBoughtShips, Is.EqualTo(1));
+            Assert.That(loaded.CoinsCollected, Is.EqualTo(1));
+            Assert.That(loaded.Crashes, Is.EqualTo(1));
+            Assert.That(loaded.LongestRun, Is.EqualTo(812));
+            Assert.That(loaded.IsAchievementUnlocked("ItsWorking"), Is.True);
+            Assert.That(loaded.IsAchievementClaimed("ItsWorking"), Is.False);
+            Assert.That(loaded.IsAchievementClaimed("Liftoff"), Is.True);
+            Assert.That(loaded.Coins, Is.EqualTo(11));
+        }
+
+        // The achievements came with new fields and without a new version, so a save from before them loads as it
+        // is, with nothing counted yet.
+        [Test]
+        public void SaveFromBeforeTheAchievementsKeepsWhatItHas()
+        {
+            SaveData saveData = SaveData.FromJson("{\"m_version\": 2, \"m_coins\": 264, \"m_highscore\": 3890, "
+                + "\"m_currentShipId\": \"" + k_CheapShip + "\", \"m_unlockedShipIds\": [\"" + k_CheapShip + "\"]}");
+
+            saveData.RepairShips(k_StarterShip, s_knownShips);
+
+            Assert.That(saveData.Coins, Is.EqualTo(264));
+            Assert.That(saveData.Highscore, Is.EqualTo(3890));
+            Assert.That(saveData.IsShipUnlocked(k_CheapShip), Is.True);
+            Assert.That(saveData.Flights, Is.Zero);
+            Assert.That(saveData.Crashes, Is.Zero);
+            Assert.That(saveData.CoinsCollected, Is.Zero);
+            Assert.That(saveData.IsAchievementUnlocked("Liftoff"), Is.False);
+        }
+
         private static SaveData CreateSaveWithCoins(int coins)
         {
             SaveData saveData = SaveData.FromJson(null);

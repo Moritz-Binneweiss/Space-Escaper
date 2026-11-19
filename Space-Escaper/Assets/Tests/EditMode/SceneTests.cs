@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NUnit.Framework;
+using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -12,6 +13,7 @@ namespace SpaceEscaper.Tests
     {
         private const string k_ScenePath = "Assets/Scenes/Game.unity";
         private const string k_UiRootName = "UI";
+        private const string k_AchievementCatalogPath = "Assets/Data/Achievements/AchievementCatalog.asset";
 
         // Serialized names in Unity's own components, which have no other way in.
         private const string k_ScriptProperty = "m_Script";
@@ -222,6 +224,35 @@ namespace SpaceEscaper.Tests
             Assert.That(GetComponentsInScene<FloatingOrigin>(), Has.Count.EqualTo(1));
         }
 
+        // The game fills each entry from its achievement when the screen opens. The scene keeps the same texts, so
+        // LayoutTests measures the ones the game shows, and an achievement without an entry would not show at all.
+        [Test]
+        public void EveryAchievementHasOneEntryThatShowsIt()
+        {
+            AchievementCatalog catalog = AssetDatabase.LoadAssetAtPath<AchievementCatalog>(k_AchievementCatalogPath);
+            List<AchievementData> shown = new List<AchievementData>();
+            List<string> problems = new List<string>();
+            foreach (AchievementEntry entry in GetComponentsInScene<AchievementEntry>())
+            {
+                SerializedObject serialized = new SerializedObject(entry);
+                AchievementData achievement = entry.Achievement;
+                shown.Add(achievement);
+                string path = GetPath(entry.transform);
+                CompareText(problems, path, serialized, "m_titleText", achievement.Title);
+                CompareText(problems, path, serialized, "m_descriptionText", achievement.Description);
+                CompareText(problems, path, serialized, "m_rewardText", "+" + achievement.Reward);
+                CompareText(problems, path, serialized, "m_claimText", achievement.Reward.ToString());
+                Image icon = (Image)serialized.FindProperty("m_icon").objectReferenceValue;
+                if (icon.sprite != achievement.Icon)
+                {
+                    problems.Add(path + " shows the icon " + icon.sprite.name + " instead of " + achievement.Icon.name);
+                }
+            }
+
+            Assert.That(shown, Is.EquivalentTo(catalog.Achievements), "Not one entry per achievement");
+            Assert.That(problems, Is.Empty);
+        }
+
         private GameObject GetUiRoot()
         {
             foreach (GameObject root in m_scene.GetRootGameObjects())
@@ -256,6 +287,16 @@ namespace SpaceEscaper.Tests
             }
 
             return path;
+        }
+
+        private static void CompareText(List<string> problems, string path, SerializedObject entry, string field,
+            string expected)
+        {
+            TMP_Text text = (TMP_Text)entry.FindProperty(field).objectReferenceValue;
+            if (text.text != expected)
+            {
+                problems.Add(path + "." + field + " shows \"" + text.text + "\" instead of \"" + expected + "\"");
+            }
         }
     }
 }

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20ecdfab64088fe4791c976011153e59, type: 3}
+  m_Name: Hoarder
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
+  m_id: Hoarder
+  m_title: HOARDER
+  m_description: Own every ship
+  m_icon: {fileID: 21300000, guid: 694153988ff7643499a21dd15a17a826, type: 3}
+  m_goal: 5
+  m_target: 0
+  m_unit: 
+  m_reward: 900
+  m_isComingSoon: 0

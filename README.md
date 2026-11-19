@@ -126,6 +126,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 - [ ] 5 collectible logbooks
 - [ ] 3 collectible star-system cards
 - [ ] 2 collectible plants
+- [ ] The four achievements of the collectibles, and Space Achiever with them
 
 ### **v1.7.0** | Art, Visuals & Sound _(------- --, 2026)_
 
@@ -181,8 +182,8 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 <small>
 
-- [ ] Achievements System (Ingame)
-- [ ] Coin rewards to claim on the achievements screen, instead of the examples
+- [x] Achievements System (Ingame)
+- [x] Coin rewards to claim on the achievements screen, instead of the examples
 
 </small>
 
