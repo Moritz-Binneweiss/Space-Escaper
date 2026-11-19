@@ -19,10 +19,16 @@ namespace SpaceEscaper
 
         private const string k_GameSceneName = "Game";
 
+        // The first two frames of a loaded scene bring the time of loading it as Time.deltaTime, in the editor 40 to
+        // 95 ms each, on a phone up to Time.maximumDeltaTime. A run that Play again starts in the first of them flies
+        // from the third, or it would start on the way.
+        private const int k_LoadingFrames = 2;
+
         [SerializeField] private ScreenManager m_screens;
 
         private GameState m_state;
         private bool m_hasRevived;
+        private int m_firstFlyingFrame;
 
         // Survives the reload, which replaces this object.
         private static ReloadTarget s_reloadTarget;
@@ -39,6 +45,12 @@ namespace SpaceEscaper
         /// A run has one revive.
         /// </summary>
         public bool CanRevive => !m_hasRevived;
+
+        /// <summary>
+        /// Whether the ship flies on in this frame, and the camera and the score with it: in a run, but not yet while
+        /// the scene loads for a run that Play again starts.
+        /// </summary>
+        public bool IsShipFlying => m_state == GameState.Run && Time.frameCount >= m_firstFlyingFrame;
 
         // Raised right after the state has changed, in the same call. A tap reaches the buttons
         // before any Update(), so on a revive the track is fresh before the ship flies on.
@@ -82,6 +94,7 @@ namespace SpaceEscaper
             switch (target)
             {
                 case ReloadTarget.Run:
+                    m_firstFlyingFrame = Time.frameCount + k_LoadingFrames;
                     Play();
                     break;
 

@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.5.1 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.5.2 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -37,18 +37,38 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 ---
 
-## 👥 **Contributors**
+## 👥 **Credits**
+
+_A game by ANIMO Games_
 
 ### **Current Team**
 
-- **Moritz Binneweiß** - Developer, Designer, Sound Designer
+- **Moritz Binneweiß** - Developer, Designer, Sound Designer, Composer
+- **Claude** - AI Co-Developer (Anthropic)
 
 ### **Previous Contributors**
 
-- **Anian Geist** - Lead Developer (v1.3.0)
-- **Moritz Binneweiß** - Lead Designer (v1.3.0)
+- **Anian Geist** - Lead Developer (until v1.3.0)
+- **Moritz Binneweiß** - Lead Designer (until v1.3.0)
 - **Julian Daniel Görner** - Main Menu Instrumental
-- **Hayden Folker** - "Cloud Nine" In-Game Instrumental
+- **Hayden Folker** - “Cloud Nine” In-Game Instrumental
+
+### **Third-Party Assets**
+
+- **Audiowide** - Astigmatic · SIL Open Font License 1.1
+- **Exo 2** - Natanael Gama · SIL Open Font License 1.1
+- **Bruno Ace SC** - Logo · Astigmatic · SIL Open Font License 1.1
+- **Liberation Sans** - Fallback font · Red Hat · SIL Open Font License 1.1
+- **Feather** - Icons · Cole Bemis · MIT License
+- **Lucide** - Icons · Lucide Contributors · ISC License
+- **Unity Particle Pack** - Effects · Unity Technologies · Unity Asset Store EULA
+
+### **Made With**
+
+- **Unity 6**
+
+The full license texts roll at the end of the credits in the game and lie next to the fonts and icons:
+`Assets/UI/Fonts/`, `Assets/UI/Images/2026/` and `Assets/TextMesh Pro/Fonts/`.
 
 ---
 
@@ -100,13 +120,12 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] Vertical swipe controls
 - [ ] Mini tutorial system
 
-### **v1.8.0** | Achievements & Collectibles _(------- --, 2026)_
+### **v1.8.0** | Collectibles _(------- --, 2026)_
 
-- [ ] Achievements System (Ingame)
 - [ ] Collectibles System
 - [ ] 5 collectible logbooks
+- [ ] 3 collectible star-system cards
 - [ ] 2 collectible plants
-- [ ] 2 collectible star-system cards
 
 ### **v1.7.0** | Art, Visuals & Sound _(------- --, 2026)_
 
@@ -132,7 +151,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 - [ ] German language support
 - [ ] English language support
 
-#### **v1.5.4** | Transitions & Polish _(------- --, 2026)_
+#### **v1.5.5** | Transitions & Polish _(------- --, 2026)_
 
 <small>
 
@@ -143,7 +162,7 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-#### **v1.5.3** | UI Colorways _(------- --, 2026)_
+#### **v1.5.4** | UI Colorways _(------- --, 2026)_
 
 <small>
 
@@ -158,13 +177,23 @@ Then open the `Space-Escaper/` folder in **Unity 6000.6.0f1** and load the scene
 
 </small>
 
-#### **v1.5.2** | Credits, Achievements & Collectibles Screens _(------- --, 2026)_
+#### **v1.5.3** | Achievements _(------- --, 2026)_
 
 <small>
 
-- [ ] Added Credits Screen
-- [ ] Added Achievements Screen (achievements follow in v1.8.0)
-- [ ] Added Collectibles Screen (collectibles follow in v1.8.0)
+- [ ] Achievements System (Ingame)
+- [ ] Coin rewards to claim on the achievements screen, instead of the examples
+
+</small>
+
+#### **v1.5.2** | Credits, Achievements & Collectibles Screens _(November 19, 2026)_
+
+<small>
+
+- 🎬 Credits screen with the team, contributors, assets and licenses
+- 🏅 Achievements screen with examples (achievements follow in v1.5.3)
+- 📦 Collectibles screen with placeholders (collectibles follow in v1.8.0)
+- 🐛 Fixed a new run from "Play again" counting the time the scene took to load
 
 </small>
 

@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 39 Skripte, ~3300 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 43 Skripte, ~3900 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -48,8 +48,9 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
 - **Tests auf dem Handy** ausführlich erst kurz vor v2.0 (Entscheidung Oktober 2026).
   Bis dahin reichen Tests im Editor und kurze Stichproben auf dem Handy. Test-APKs
-  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 ist nur
-  im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung 18.11.2026).
+  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 und v1.5.2
+  sind nur im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung
+  18.11.2026).
 
 ## Code-Stil
 
@@ -160,6 +161,9 @@ Text läuft aus seinem Rechteck, und jedes Bedienelement nimmt Tipps auf mindest
 an (siehe „Layout für alle Seitenverhältnisse“ unter „UI“). Was eine Maske abschneidet,
 zählt dabei nicht (seit Schritt 3b von v1.5.1). Die Settings passen auf jedem der zehn
 Displays ohne Scrollen unter ihren Titel (ebenso seit 3b).
+Seit v1.5.2 prüft `CreditsTests`, dass oben in der README dieselben Credits stehen wie im
+Screen der Credits: dieselben Abschnitte mit denselben Einträgen in derselben Reihenfolge
+(Wunsch Moritz, 18.11.2026, siehe „Credits“ unter „UI“).
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
@@ -182,21 +186,23 @@ Schiff und Kamera bewegen sich stetig, alles andere behält seinen Platz in der
 Welt, die Gruppen der Szene bleiben im Ursprung, und die Abschnitte liegen
 lückenlos hintereinander bis zur nächsten Spawn-Position. Ein zweiter Test
 (`DeathScreenStartsANewRunOrOpensTheHangar`, seit v1.5.1) tippt nach einem Crash „Play
-again“ und prüft, dass nach dem Neuladen gleich ein neuer Run läuft, ohne Münzen und
-Strecke, dann nach dem nächsten Crash „Hangar“.
+again“ und prüft, dass nach dem Neuladen gleich ein neuer Run läuft, ohne Münzen und seit
+v1.5.2 nach den beiden Ladeframes ohne Zeit und Strecke (siehe „Play again“ unter
+„Spielzustand“), dann nach dem nächsten Crash „Hangar“.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit `unity command test run`. Sie dauern
   wenige Sekunden, also vor jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die
   Szene, UI-Bilder, den Atlas oder eine Methode ändert, die ein Button aufruft. Grün ist
-  ein Lauf bei Exit-Code 0, bei 8 ist ein Test rot, `--format json` gibt eine Zeile pro
-  Test aus. Den PlayMode-Test nur asynchron:
+  ein Lauf bei Exit-Code 0, bei 6 ist ein Test rot (gesehen in v1.5.2 mit dem
+  Pipeline-Paket 1.0.0, davor 8), `--format json` gibt eine Zeile pro Test aus. Den
+  PlayMode-Test nur asynchron:
   `unity command test run --mode playmode --async-tests true`, dann
   `unity command test status --detail summary` abfragen, bis es nach `running`
   `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
   Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
   verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
-  aus (in v1.5.1 78 Tests in rund 20 s). Mit dem Wechsel in den Play Mode dauern die
+  aus (in v1.5.2 79 Tests in rund 21 s). Mit dem Wechsel in den Play Mode dauern die
   beiden PlayMode-Tests rund 19 s, also
   vor Commits, die Run, Tod, Revive oder das Spawnen ändern. Meldet ein asynchroner
   PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
@@ -328,7 +334,12 @@ Strecke, dann nach dem nächsten Crash „Hangar“.
   die Safe Area reicht, den INFO-Abschnitt auf vier Displays. `TheSettingsFitWithoutScrolling`
   war mit den Abständen aus Version 6 auf 16:9, dem offenen Klapphandy und beiden Tablets
   rot (748,8 Einheiten hoch bei 676 bis 688 Platz). Der Test für „Play again“
-  scheiterte, solange der `GameManager` nach dem Neuladen nichts tat.
+  scheiterte, solange der `GameManager` nach dem Neuladen nichts tat. In v1.5.2 war
+  `CreditsTests` gegen die alte README rot (0 statt 18 Zeilen) und mit einer README, in der
+  bei Moritz „Composer“ fehlte (die Zeile an Index 1). Der Test für „Play again“ war in
+  v1.5.2 erst nur in einem von zwei Läufen rot (Strecke 1 statt unter 1). Seit er Zeit und
+  Strecke 0 nach den beiden Ladeframes verlangt, war er gegen den alten Code in jedem Lauf
+  rot (0,081 s), mit `IsShipFlying` in drei Läufen hintereinander grün.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -383,9 +394,17 @@ nur Ordner.
   Bilder von v1.0 bis v1.2, glänzend orange auf 2048er-Leinwänden. `2021/` hatte die 39
   aus dem UI-Umbau von v1.3, flach und weiß, seit Schritt 4 von v1.5.1 nur noch die neun
   Skin-Bilder in `2021/Shop/`. `2026/` hat die 27 Symbole, Platten, Rahmen, Leuchten, das
-  Logo und die Münze aus v1.5.1, die Preisschilder aus v1.4.1 sind seit Schritt 4 weg. Die
+  Logo und die Münze aus v1.5.1, die Preisschilder aus v1.4.1 sind seit Schritt 4 weg. Seit
+  v1.5.2 liegen dort auch das Schiff am Ende der Credits (`CreditsShip`, das Bild von
+  Aristocrat Skin 1 aus `2021/Shop/` ohne seine Platte) und die Lizenztexte der Symbole,
+  `FeatherMIT.txt` und `LucideISC.txt`, wie die OFL-Texte neben den Schriften, und für die
+  Achievements die Symbole ihrer Beispiele (`NutIcon`, `ZapIcon`, `FlagIcon`, `BookOpenIcon`,
+  `NavigationIcon`, `ShoppingBagIcon`, nach ihrer Form benannt, das Buch brauchen auch die
+  Logbücher der Collectibles) und der Ring um ihren Anteil (`ProgressRing`), für die
+  Collectibles das Schloss ihrer Plätze (`LockIcon`) und die Symbole zweier Abschnitte
+  (`LeafIcon`, `StarCardIcon`). Die
   Münze ist die aus `2020/`, auf die Mutter zugeschnitten (siehe „Nicht größer importieren
-  als gezeigt“ unter „Texturen“). Das Spiel nutzt 36: die neun aus `2021/Shop/` und alle
+  als gezeigt“ unter „Texturen“). Das Spiel nutzt 47: die neun aus `2021/Shop/` und alle
   aus `2026/`. Die aus `2020/` nutzt es nicht, sie bleiben für einen Classic Mode (v1.9.1,
   siehe „Bekannte Altlasten“). Neue Bilder kommen in den Ordner ihres Jahres.
 - **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
@@ -409,7 +428,7 @@ behalten dadurch ihre Weltposition.
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Shop` (`ShopScreen`), in jedem ein Kind `SafeArea`, siehe „UI“ |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Credits` (`CreditsScreen`), `Achievements` (`AchievementsScreen`), `Collectibles` (`CollectiblesScreen`), `Shop` (`ShopScreen`), in jedem ein Kind `SafeArea`, siehe „UI“ |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
@@ -902,7 +921,7 @@ bei 8.
   Sie ist seit Schritt 4 gelöscht, im Classic Mode nehmen die Texte eventuell die
   heutigen Schriften. Bitgleiche Duplikate sind seit
   v1.4.5 gelöscht (39 in `Assets/UI/`, 4 beim Sortieren der Ordner), alle
-  UI-Bilder liegen in `UI/Images/`. Von ihren 74 nutzt das Spiel 36, die übrigen 38 sind
+  UI-Bilder liegen in `UI/Images/`. Von ihren 85 nutzt das Spiel 47, die übrigen 38 sind
   die von 2020 (siehe „Ordnerstruktur“). Gleiche Texturen
   in `Models/` und `Textures/` sind Absicht: die einen gehören zu den
   `.blend`-Quellen, die anderen zu den Unity-Materialien.
@@ -1118,10 +1137,19 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
   `s_reloadTarget`, es überlebt das Neuladen. In `Start` sind alle `Awake` und `OnEnable`
   der Szene gelaufen und noch kein `Update`, der Run startet also wie aus dem Menü, mit
   dem Schwenk der Kamera hinter das Schiff.
+  - **Ladeframes:** Nach „Play again“ fliegt der Run erst ab dem dritten Frame der neuen
+    Szene (`GameManager.IsShipFlying`, seit v1.5.2), Schiff, Kamera und Score stehen bis
+    dahin. Die ersten beiden Frames bringen die Ladezeit als `Time.deltaTime` mit, gemessen
+    im Editor 75 bis 114 ms je Frame, und im zweiten wiederholt Unity den Wert des ersten.
+    Auf dem Handy sind es bis zu `Time.maximumDeltaTime` (0,33 s) je Frame. Bis dahin zählte
+    der Run beide mit und begann rund 2 Einheiten und 0,2 s weit, sichtbar wurde das erst,
+    als die Szene mit den Screens von v1.5.2 länger lud.
 - **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
   setzt `Time.timeScale`, 0 nur in der Pause.
-- **Die Settings sind kein Zustand,** sondern ein Screen über Hauptmenü oder Pause. Der
-  Zustand bleibt dabei stehen, und „Zurück“ zeigt wieder seinen Screen.
+- **Settings, Credits, Achievements und Collectibles sind kein Zustand,** sondern Screens
+  über Hauptmenü oder Pause, Achievements und Collectibles nur über dem Hauptmenü. Der
+  Zustand bleibt dabei stehen, „Zurück“ in den Settings, den Achievements und den
+  Collectibles zeigt wieder seinen Screen, „Zurück“ in den Credits die Settings.
 - **Ereignisse,** statisch am `GameManager` wie `FloatingOrigin.WorldShifted`:
   `RunStarted`, `HangarOpened`, `HangarClosed`, `RunPaused`, `RunResumed`, `ShipCrashed`
   und `ShipRevived`. Sie kommen direkt nach dem Wechsel im selben Aufruf. Ein Tipp
@@ -1144,17 +1172,18 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 | `TileManager` | `ShipRevived` | neue Abschnitte, nur mit `m_respawnsOnRevive` (die Strecke) |
 
 - **Den Zustand lesen** `PlayerMotor` (fliegt nur in `Run`), `CameraMotor` (folgt in
-  `Run`, bremst in `Dead`, steht sonst), `RunScore` (zählt nur in `Run`), der
-  Zurück-Button im `SettingsScreen` und `RunTests`. Die übrigen Screens brauchen ihn
-  nicht: Der `ScreenManager` schaltet sie ein, und sie zeigen beim Einschalten, was
-  gerade gilt (siehe „UI“).
+  `Run`, bremst in `Dead`, steht sonst) und `RunScore` (zählt nur in `Run`), für den Run
+  seit v1.5.2 über `GameManager.IsShipFlying`, das die Ladeframes von „Play again“
+  auslässt (siehe oben). Dazu die Zurück-Buttons im `SettingsScreen`, `AchievementsScreen`
+  und `CollectiblesScreen` und `RunTests`. Die übrigen Screens brauchen ihn nicht: Der `ScreenManager` schaltet sie
+  ein, und sie zeigen beim Einschalten, was gerade gilt (siehe „UI“).
 - **Münzen** melden sich über das statische Ereignis `Coin.Collected` (seit v1.5.0,
   bis dahin `GameManager.CollectCoin`), `RunScore` zählt sie. Den Multiplikator rechnet
   `RunScore` aus dem Tempo (`PlayerMotor.SpeedGain`), bis v1.4.13 schickte der
   `PlayerMotor` ihn bei jeder Tempo-Stufe.
 - **Neues, das auf den Spielverlauf reagiert,** meldet sich an einem Ereignis an (in
   `OnEnable`, ab in `OnDisable`) oder liest `State`, statt einen eigenen Schalter zu
-  führen. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
+  führen. Was mit dem Schiff mitläuft und `Time.deltaTime` zählt, liest `IsShipFlying`. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
   `ChangeState`, dann das Ereignis auslösen.
 - **Geprüft in v1.5.0** mit einem Klick-Durchlauf über die echten Buttons, vorher und
   nachher, mit festem Zufall und fester Bildrate: alle Übergänge, „Exit“ aus Pause und
@@ -1175,17 +1204,21 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 ## UI
 
 Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMenu`
-(die Anzeige im Run), `PauseMenu`, `Settings`, `Shop` und `DeathMenu`. Der Root-Canvas
+(die Anzeige im Run), `PauseMenu`, `Settings`, `Credits`, `Achievements` und
+`Collectibles` (alle drei seit v1.5.2), `Shop` und `DeathMenu`. Der Root-Canvas
 `UI` trägt den `CanvasScaler` (Referenz 450 × 800, „Expand“, siehe „Layout für alle
 Seitenverhältnisse“) und den `ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem
 Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 
 - **Es ist immer genau ein Screen an.** `ScreenManager.Show(GameState)` zeigt den
-  Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings.
-  Beide schalten ihn per `SetActive` ein und alle anderen aus, ohne Übergang
-  (Entscheidung Oktober 2026, Übergänge kommen mit v1.5.4, siehe README). Beim Start
-  zeigt er das Hauptmenü, egal welcher Screen beim Bearbeiten an blieb. Gespeichert
-  ist die Szene mit nur dem Hauptmenü an, so sieht sie im Editor aus wie beim Start.
+  Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings,
+  `ShowCredits()` die Credits, `ShowAchievements()` die Achievements und
+  `ShowCollectibles()` die Collectibles. Alle schalten ihn
+  per `SetActive` ein und alle anderen aus,
+  ohne Übergang (Entscheidung Oktober 2026, Übergänge kommen mit v1.5.5, siehe README).
+  Beim Start zeigt er das Hauptmenü, egal welcher Screen beim Bearbeiten an blieb.
+  Gespeichert ist die Szene mit nur dem Hauptmenü an, so sieht sie im Editor aus wie beim
+  Start.
   Zum Bearbeiten einen Screen einschalten, vor dem Speichern wieder nur das Hauptmenü.
   Das prüft seit v1.5.0 `SceneTests`: Ein anderer Screen wachte sonst mit der Szene
   auf, vielleicht bevor bereit ist, was er zeigt, etwa der `ShopScreen` vor dem
@@ -1219,6 +1252,75 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   TO CHANGE LANES“ über dem Schiff, bis zum ersten Wischer oder 6 s lang. Die Zeiten
   laufen über `Time.time`, sie stehen in der Pause also still. Gespeichert sind alle drei
   ausgeschaltet, `LayoutTests` prüft sie trotzdem, er schaltet in seiner Kopie alles ein.
+- **Credits** (seit v1.5.2, Vorlage Version 6 der Mockups): geöffnet über die Zeile
+  „Credits“ unter INFO in den Settings, die ganze Zeile ist der Button, ihr Label dunkelt
+  beim Tippen ab wie der Schalter der Zeilen darüber. „Zurück“ zeigt die Settings. Der Kopf
+  ist der der Settings, darunter rollt `CreditsRoll` den Inhalt mit 60 Einheiten pro Sekunde
+  durch einen Ausschnitt (`Credits/SafeArea/Roll`), in unskalierter Zeit, denn die Settings
+  öffnen auch aus der Pause. Die Rolle beginnt unter dem Ausschnitt und dort wieder, sobald
+  alles oben hinaus ist, auf 20:9 nach rund 68 s.
+  - **Wischen:** Der Ausschnitt ist eine `ScrollRect` ohne Grenzen (Unrestricted). Ein
+    Wischer schiebt die Rolle, solange der Finger liegt, steht sie, danach läuft sie von dort
+    weiter. Springt sie, ist nichts von ihr im Ausschnitt: vom Ende an den Anfang und nach
+    einem Zug über den Anfang hinaus zurück auf ihn.
+  - **Weiche Ränder:** Die `RectMask2D` des Ausschnitts blendet oben und unten aus. Unity
+    blendet über die halbe `softness` aus, 190 ergeben also 95 Einheiten, im Mockup sind es
+    Verläufe von 80 und 110. Mit 80 wie im Mockup war das Ausblenden kaum zu sehen.
+  - **Inhalt** (Moritz, 18.11.2026): Logo, „A GAME BY ANIMO GAMES“, die Abschnitte CURRENT
+    TEAM, PREVIOUS CONTRIBUTORS, THIRD-PARTY ASSETS und MADE WITH, je Eintrag Name und
+    Rolle, dann die Lizenzen und „THANK YOU FOR PLAYING“ mit dem Schiff. Die Abschnitte
+    stehen genauso oben in der README, eine Änderung braucht also beide (`CreditsTests`).
+    Liberation Sans steht dabei, weil TextMesh Pro mit ihr fehlende Zeichen zeichnet (siehe
+    „Texte“), die Sounds von 2020 brauchen vorerst keine Nennung (Moritz, 18.11.2026).
+  - **Lizenzen:** die vollen Texte, die die Schriften (SIL Open Font License) und die Symbole
+    (Feather: MIT, Lucide: ISC) in der App verlangen, mit den Copyright-Zeilen der vier
+    Schriften. Sie stehen nur im Spiel und in den Dateien neben Schriften und Symbolen, je
+    ein Text pro Absatz, so lässt die Maske die Absätze außerhalb des Ausschnitts weg. Gebaut
+    wurden sie aus genau diesen Dateien. Von der Lizenz von Lucide gilt nur der ISC-Teil, die
+    angehängte MIT-Lizenz betrifft die Symbole, die Lucide von Feather übernommen hat,
+    Pokal und Blatt sind nicht darunter.
+  - **Gemessen** im Editor: Draw Calls nur des UI 4 bis 5, je nach Stelle der Rolle. Der
+    Canvas baut beim Rollen in jedem Frame neu, im Mittel 0,006 ms.
+- **Achievements** (seit v1.5.2, Vorlage Version 6 der Mockups): geöffnet über die Medaille
+  neben LAUNCH im Hauptmenü, „Zurück“ zeigt den Screen des Zustands, also das Hauptmenü. Bis
+  die Achievements selbst mit v1.5.3 kommen (Moritz, 19.11.2026: „1.5.3 ist dann
+  achievments, mit der vollen implementation“), zeigt der Screen die sechs Beispiele der
+  Mockups in ihren Zuständen dort, und nichts darauf tut etwas (Moritz, 19.11.2026: „sample
+  achievments einbauen, die noch nicht funktionieren müssen“). Sie stehen fest in der Szene,
+  kein Code füllt sie. Die Zahl der abholbaren Belohnungen an der Medaille kommt erst mit den
+  Achievements.
+  - **Kopf:** der der Settings, der lange Titel wie im Mockup in 20 statt 24. Rechts zeigt ein
+    Ring den Anteil, der erledigt ist (`Achievements/SafeArea/Progress`): `ProgressRing` (4
+    Pixel pro Einheit) in 16 % Weiß und darüber dasselbe Bild in Grün, radial gefüllt im
+    Uhrzeigersinn von oben (`Image.Type.Filled`). Die Füllung endet gerade, zwei kleine
+    `Plate` geben ihr die runden Enden des Mockups, die zweite sitzt am Ende der Füllung.
+  - **Liste:** `Achievements/SafeArea/Scroll` wie die Liste der Settings, eine senkrechte
+    `ScrollRect` auf „Clamped“ mit `RectMask2D`, 114 unter der Safe Area bis an ihren unteren
+    Rand, nach dem letzten Eintrag 24 Luft. Auf 20:9 passt sie, auf 16:9 und den Tablets lässt
+    sie sich 44 Einheiten ziehen.
+  - **Einträge** in den drei Zuständen der Mockups: abholbar in Bernstein mit dem grünen
+    CLAIM-Button darunter (COIN COLLECTOR), unterwegs mit der Belohnung rechts und darunter
+    der Leiste mit dem Stand (SPEED DEMON, LONG HAUL, ARCHIVIST), erledigt mit grünem Haken
+    (FIRST FLIGHT, NEW WINGS). Je Eintrag eine Layout-Gruppe, Grund und Rahmen liegen als
+    `Background` und `Border` außerhalb des Layouts wie in den Settings (siehe „Maße aus den
+    Mockups“). CLAIM nimmt keine Tipps an und behält sein Aussehen (nicht `interactable`,
+    ohne Übergang).
+  - **Gemessen** im Editor: Draw Calls nur des UI 6, der Canvas baut nicht neu, solange die
+    Liste steht.
+- **Collectibles** (seit v1.5.2, Layout aus Version 6 der Mockups): geöffnet über das Paket
+  neben LAUNCH im Hauptmenü, „Zurück“ zeigt den Screen des Zustands, also das Hauptmenü. Die
+  Collectibles selbst kommen erst mit v1.8.0 (Moritz, 19.11.2026: „keine actuals ... sonder
+  nur so platzhalter aalso ausgegrautet boxen mit soon“), der Screen zeigt deshalb nur ihre
+  Plätze.
+  Der Kopf ist der der Achievements, sein Ring leer, „0%“ ausgegraut. Darunter je Abschnitt
+  (LOGBOOKS, STAR-SYSTEM CARDS, PLANTS) Symbol, Name und „0 / 5“, „0 / 3“ oder „0 / 2“,
+  ausgegraut wie alles, was später kommt. Die Karten sind drei statt zwei wie im Mockup und
+  stehen über den Plants statt darunter (Moritz, 19.11.2026). Je Abschnitt folgt eine Reihe
+  Kacheln, eine pro Collectible: wie die eines noch nicht gefundenen im Mockup, mit Schloss,
+  aber ohne „Not found“ darunter, und mit „SOON“ an der Ecke, wo das Mockup „NEW“ zeigt.
+  Außer Zurück nimmt nichts Tipps an. Die Abschnitte passen auf jedes Display, eine Liste zum
+  Scrollen braucht es nicht. Gemessen im Editor: Draw Calls nur des UI 3, der Canvas baut nie
+  neu.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
   Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`:
   TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
@@ -1266,16 +1368,17 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Seit Schritt 3a steht er als Multiplikator „×1.4“ in einem Chip neben dem Score,
     `LayoutTests` nimmt ihn nicht mehr aus.
 - **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle
-  UI-Bilder, die die Szene nutzt, seit Schritt 3b 36 auf einer Seite von 2048 × 1024 in
+  UI-Bilder, die die Szene nutzt, seit v1.5.2 47 auf einer Seite von 2048 × 1024 in
   ETC2, 2,0 MiB. Beim Einführen waren es 36 alte Bilder auf 2048 × 2048, 4,0 MiB.
   Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
   „Texturen“). Die Bilder eines Screens kommen damit in einem Draw Call, gemessen im
   Editor nur fürs UI, beim Einführen: Menü 2 statt 7, Hangar 1 statt 7, Settings 6 statt
   9, Run 3 statt 4, Pause 2 statt 5, Tod 3 statt 6. Mit dem neuen Design, gemessen zum
   Abschluss von v1.5.1: Menü 4, Hangar 4, Settings 8, Run 4 (mit der Leiste zum Highscore
-  7, mit „NEW HIGHSCORE!“ 6), Pause 3, Tod 3. Seit Schritt 3a sind alle Wörter Text, und
-  eigene Draw Calls sind die Texte (ein Material pro Schrift) und was kein Bild aus dem
-  Atlas zeigt.
+  7, mit „NEW HIGHSCORE!“ 6), Pause 3, Tod 3. In v1.5.2 kamen die Credits mit 4 bis 5 dazu,
+  je nach Stelle der Rolle, die Achievements mit 6 und die Collectibles mit 3, das Menü hat
+  ohne seine beiden „SOON“ nur noch 3. Seit Schritt 3a sind alle Wörter Text, und eigene
+  Draw Calls sind die Texte (ein Material pro Schrift) und was kein Bild aus dem Atlas zeigt.
   - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
     Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` liegen
     ungenutzte Bilder für den Classic Mode, die er mitpacken würde. Was fehlt oder zu viel ist,
@@ -1358,7 +1461,7 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 - **Look aus den Mockups** (seit Schritt 3 von v1.5.1, Vorlage ist Version 6 der
   Mockups): Grund `#050607`, Leuchtfarbe `#57ff5c` mit Schatten `#2b7f2e` und Text
   `#062b08` darauf, Sternenlicht `#ffad3d`, weiße Platten mit Text `#1b1a20` und
-  Schatten `#6f7380`. Das ist das Farbschema „Giftig“: In v1.5.3 sollen sich sechs
+  Schatten `#6f7380`. Das ist das Farbschema „Giftig“: In v1.5.4 sollen sich sechs
   Farbschemata in den Settings wählen lassen (README), bis dahin stehen die Farben
   fest an jedem Element.
   - **Platten** sind ein einziges 9-Slice-Bild, `2026/Plate` (ein weißer Kreis mit 64
@@ -1387,8 +1490,9 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Platte wie der Leiste zum Highscore schiene ein gefülltes Leuchten durch. Beide halten
     einen Schein von 30 Einheiten um eine Platte mit Radius 20 bei Faktor 2: Faktor
     40 / Radius passt ihn an eine Platte an, er reicht dann 1,5 Radien hinaus.
-  - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Achievements und
-    Collectibles im Hauptmenü, Vibration, Sprache, Credits und Datenschutz in den Settings.
+  - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Vibration, Sprache und
+    Datenschutz in den Settings und der Inhalt der Collectibles (siehe oben), bis zu ihren
+    Screens in v1.5.2 auch Credits, Achievements und Collectibles.
     Ausgegraut heißt feste Farben, wie CSS `opacity: 0.4` auf dem Untergrund aussähe, keine
     Canvas Group: Mit halber Deckkraft scheinen übereinanderliegende Teile durcheinander
     durch, etwa der Schatten durch die Platte. Daneben steht ein graues „SOON“, nicht
@@ -1400,17 +1504,28 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Bauen der Screens rechnet mit Kästen der Zeilenhöhe 1, Exo 2 rückt dort um 0,1
     Schriftgrößen nach unten. Absolut gesetzte Kinder eines Kastens mit Rand zählen in CSS
     ab dessen Innenkante, im Sheet der Pause also 2 Einheiten tiefer.
+  - **In Layout-Gruppen** bekommt ein Text die Höhe, die TextMesh Pro für ihn will, eine
+    Zeile so hoch wie die normale Zeilenhöhe im Browser. Oben ausgerichtet (`Top`) sitzt er
+    dann wie dort, „Midline“ zentriert stattdessen seine Glyphen: Die Zahlen der Achievements
+    saßen damit eine halbe Einheit zu hoch (gesehen in v1.5.2). Ein Bild als Grund einer
+    Layout-Gruppe liegt als Kind außerhalb des Layouts (`LayoutElement` mit „Ignore Layout“):
+    Ein 9-Slice-Bild meldet seine Ränder als Wunschgröße, ohne den Faktor
+    `pixelsPerUnitMultiplier`, bei `Plate` 122 Einheiten. Auf demselben Objekt wie die Gruppe
+    gilt der größere Wert, ein Eintrag der Achievements war so erst 122 statt 82 hoch.
   - **Bilder** entstehen aus HTML im Browser: Die Symbole sind die SVGs der Mockups
     (Feather und Lucide, ein paar eigene) als weiße PNGs von 128 Pixeln, im Spiel
     eingefärbt. Das Logo ist Bruno Ace SC als Bild mit 3 Pixeln pro Einheit, die Schrift
     selbst liegt nicht im Projekt. `SkinFrame`, die Ecken um den gezeigten Skin, ist ein
-    9-Slice mit 2 Pixeln pro Einheit. Nur die Münze ist kein HTML: Sie ist die rostige Mutter
-    von 2020, enger zugeschnitten (siehe „Texturen“), ihr Rechteck zeigt also die ganze
-    Mutter.
+    9-Slice mit 2 Pixeln pro Einheit. Nur die Münze und das Schiff der Credits sind kein
+    HTML: Die Münze ist die rostige Mutter von 2020, enger zugeschnitten (siehe „Texturen“),
+    ihr Rechteck zeigt also die ganze Mutter. Das Schiff (`CreditsShip`, seit v1.5.2) ist das
+    Bild von Aristocrat Skin 1 aus `2021/Shop/` ohne seine Platte, 122 × 124 Pixel.
 - **Ein Canvas pro Screen,** damit eine Änderung nur ihren eigenen Screen neu baut. Im
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames, vor Schritt 3b) und seit v1.5.1, wenn eine Einblendung kommt oder geht,
-  in Pause, Tod und Hangar gar nicht, in den Settings beim Ziehen eines Reglers. Bis
+  in Pause, Tod und Hangar gar nicht, in den Settings beim Ziehen eines Reglers, in den
+  Credits in jedem Frame, solange sie rollen, in den Achievements nur beim Ziehen der Liste,
+  in den Collectibles nie. Bis
   v1.4.9 baute der ganze UI-Canvas in jedem Frame neu, außer in der Pause. Die
   Screen-Canvases erben
   Render Mode und Skalierung vom Root. Ihr eigener Render Mode steht trotzdem auf
@@ -1452,7 +1567,13 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   `Canvas.BuildBatch`.
   So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an. Zum Abschluss von v1.5.1
   kamen alle 41 Tipps eines Durchlaufs durch alle Zustände an, nach jedem Wechsel des
-  Screens in einem neuen Aufruf von `script eval`. Texte vergleicht man an
+  Screens in einem neuen Aufruf von `script eval`. In v1.5.2 prüfte die Achievements ein
+  Durchlauf mit 6 Tipps aus dem Hauptmenü (einer auf CLAIM) und einem Wischer, die
+  Collectibles einer mit 6 Tipps (ein Finger auf einer Kachel trifft nichts), die Credits
+  einer mit 11 Tipps aus Hauptmenü und Pause, dem Neubeginn am Ende und einem Wischer:
+  `ExecuteEvents` mit `initializePotentialDrag`, `beginDragHandler`, `dragHandler` und
+  `endDragHandler` auf dem Ausschnitt, die Strecke in Pixeln ist die in Einheiten mal
+  `scaleFactor` des Root-Canvas. Texte vergleicht man an
   ihren Glyphen: TextMesh Pro rechnet sie aus `textInfo.characterInfo` (Ursprung,
   Grundlinie, Skalierung und Maße der Glyphe, die Eckpunkte dort enthalten das Padding
   des Atlas), ein Legacy-`Text` hatte sie in `cachedTextGenerator.verts`. Draw Calls
