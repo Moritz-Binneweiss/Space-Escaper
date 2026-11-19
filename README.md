@@ -183,7 +183,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 <small>
 
 - [x] Added Credits Screen
-- [ ] Added Achievements Screen (achievements follow in v1.8.0)
+- [x] Added Achievements Screen (achievements follow in v1.8.0)
 - [ ] Added Collectibles Screen (collectibles follow in v1.8.0)
 
 </small>

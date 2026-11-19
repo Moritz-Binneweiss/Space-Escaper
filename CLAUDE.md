@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 41 Skripte, ~3800 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 42 Skripte, ~3850 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -392,9 +392,12 @@ nur Ordner.
   Logo und die Münze aus v1.5.1, die Preisschilder aus v1.4.1 sind seit Schritt 4 weg. Seit
   v1.5.2 liegen dort auch das Schiff am Ende der Credits (`CreditsShip`, das Bild von
   Aristocrat Skin 1 aus `2021/Shop/` ohne seine Platte) und die Lizenztexte der Symbole,
-  `FeatherMIT.txt` und `LucideISC.txt`, wie die OFL-Texte neben den Schriften. Die
+  `FeatherMIT.txt` und `LucideISC.txt`, wie die OFL-Texte neben den Schriften, und für die
+  Achievements die Symbole ihrer Beispiele (`NutIcon`, `ZapIcon`, `FlagIcon`, `BookOpenIcon`,
+  `NavigationIcon`, `ShoppingBagIcon`, nach ihrer Form benannt, das Buch brauchen auch die
+  Logbücher der Collectibles) und der Ring um ihren Anteil (`ProgressRing`). Die
   Münze ist die aus `2020/`, auf die Mutter zugeschnitten (siehe „Nicht größer importieren
-  als gezeigt“ unter „Texturen“). Das Spiel nutzt 37: die neun aus `2021/Shop/` und alle
+  als gezeigt“ unter „Texturen“). Das Spiel nutzt 44: die neun aus `2021/Shop/` und alle
   aus `2026/`. Die aus `2020/` nutzt es nicht, sie bleiben für einen Classic Mode (v1.9.1,
   siehe „Bekannte Altlasten“). Neue Bilder kommen in den Ordner ihres Jahres.
 - **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
@@ -418,7 +421,7 @@ behalten dadurch ihre Weltposition.
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Credits` (`CreditsScreen`), `Shop` (`ShopScreen`), in jedem ein Kind `SafeArea`, siehe „UI“ |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Credits` (`CreditsScreen`), `Achievements` (`AchievementsScreen`), `Shop` (`ShopScreen`), in jedem ein Kind `SafeArea`, siehe „UI“ |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
@@ -911,7 +914,7 @@ bei 8.
   Sie ist seit Schritt 4 gelöscht, im Classic Mode nehmen die Texte eventuell die
   heutigen Schriften. Bitgleiche Duplikate sind seit
   v1.4.5 gelöscht (39 in `Assets/UI/`, 4 beim Sortieren der Ordner), alle
-  UI-Bilder liegen in `UI/Images/`. Von ihren 75 nutzt das Spiel 37, die übrigen 38 sind
+  UI-Bilder liegen in `UI/Images/`. Von ihren 82 nutzt das Spiel 44, die übrigen 38 sind
   die von 2020 (siehe „Ordnerstruktur“). Gleiche Texturen
   in `Models/` und `Textures/` sind Absicht: die einen gehören zu den
   `.blend`-Quellen, die anderen zu den Unity-Materialien.
@@ -1129,8 +1132,9 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
   dem Schwenk der Kamera hinter das Schiff.
 - **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
   setzt `Time.timeScale`, 0 nur in der Pause.
-- **Die Settings und die Credits sind kein Zustand,** sondern Screens über Hauptmenü oder
-  Pause. Der Zustand bleibt dabei stehen, „Zurück“ in den Settings zeigt wieder seinen Screen,
+- **Die Settings, die Credits und die Achievements sind kein Zustand,** sondern Screens über
+  Hauptmenü oder Pause, die Achievements nur über dem Hauptmenü. Der Zustand bleibt dabei
+  stehen, „Zurück“ in den Settings und in den Achievements zeigt wieder seinen Screen,
   „Zurück“ in den Credits die Settings.
 - **Ereignisse,** statisch am `GameManager` wie `FloatingOrigin.WorldShifted`:
   `RunStarted`, `HangarOpened`, `HangarClosed`, `RunPaused`, `RunResumed`, `ShipCrashed`
@@ -1154,8 +1158,8 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 | `TileManager` | `ShipRevived` | neue Abschnitte, nur mit `m_respawnsOnRevive` (die Strecke) |
 
 - **Den Zustand lesen** `PlayerMotor` (fliegt nur in `Run`), `CameraMotor` (folgt in
-  `Run`, bremst in `Dead`, steht sonst), `RunScore` (zählt nur in `Run`), der
-  Zurück-Button im `SettingsScreen` und `RunTests`. Die übrigen Screens brauchen ihn
+  `Run`, bremst in `Dead`, steht sonst), `RunScore` (zählt nur in `Run`), die
+  Zurück-Buttons im `SettingsScreen` und im `AchievementsScreen` und `RunTests`. Die übrigen Screens brauchen ihn
   nicht: Der `ScreenManager` schaltet sie ein, und sie zeigen beim Einschalten, was
   gerade gilt (siehe „UI“).
 - **Münzen** melden sich über das statische Ereignis `Coin.Collected` (seit v1.5.0,
@@ -1185,15 +1189,16 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 ## UI
 
 Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMenu`
-(die Anzeige im Run), `PauseMenu`, `Settings`, `Credits` (seit v1.5.2), `Shop` und
-`DeathMenu`. Der Root-Canvas
+(die Anzeige im Run), `PauseMenu`, `Settings`, `Credits` und `Achievements` (beide seit
+v1.5.2), `Shop` und `DeathMenu`. Der Root-Canvas
 `UI` trägt den `CanvasScaler` (Referenz 450 × 800, „Expand“, siehe „Layout für alle
 Seitenverhältnisse“) und den `ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem
 Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 
 - **Es ist immer genau ein Screen an.** `ScreenManager.Show(GameState)` zeigt den
-  Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings und
-  `ShowCredits()` die Credits. Alle schalten ihn per `SetActive` ein und alle anderen aus,
+  Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings,
+  `ShowCredits()` die Credits und `ShowAchievements()` die Achievements. Alle schalten ihn
+  per `SetActive` ein und alle anderen aus,
   ohne Übergang (Entscheidung Oktober 2026, Übergänge kommen mit v1.5.4, siehe README).
   Beim Start zeigt er das Hauptmenü, egal welcher Screen beim Bearbeiten an blieb.
   Gespeichert ist die Szene mit nur dem Hauptmenü an, so sieht sie im Editor aus wie beim
@@ -1260,6 +1265,31 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Pokal und Blatt sind nicht darunter.
   - **Gemessen** im Editor: Draw Calls nur des UI 4 bis 5, je nach Stelle der Rolle. Der
     Canvas baut beim Rollen in jedem Frame neu, im Mittel 0,006 ms.
+- **Achievements** (seit v1.5.2, Vorlage Version 6 der Mockups): geöffnet über die Medaille
+  neben LAUNCH im Hauptmenü, „Zurück“ zeigt den Screen des Zustands, also das Hauptmenü. Bis
+  die Achievements mit v1.8.0 kommen, zeigt der Screen die sechs Beispiele der Mockups in
+  ihren Zuständen dort, und nichts darauf tut etwas (Moritz, 19.11.2026: „sample achievments
+  einbauen, die noch nicht funktionieren müssen“). Sie stehen fest in der Szene, kein Code
+  füllt sie. Die Zahl der abholbaren Belohnungen an der Medaille kommt erst mit den
+  Achievements.
+  - **Kopf:** der der Settings, der lange Titel wie im Mockup in 20 statt 24. Rechts zeigt ein
+    Ring den Anteil, der erledigt ist (`Achievements/SafeArea/Progress`): `ProgressRing` (4
+    Pixel pro Einheit) in 16 % Weiß und darüber dasselbe Bild in Grün, radial gefüllt im
+    Uhrzeigersinn von oben (`Image.Type.Filled`). Die Füllung endet gerade, zwei kleine
+    `Plate` geben ihr die runden Enden des Mockups, die zweite sitzt am Ende der Füllung.
+  - **Liste:** `Achievements/SafeArea/Scroll` wie die Liste der Settings, eine senkrechte
+    `ScrollRect` auf „Clamped“ mit `RectMask2D`, 114 unter der Safe Area bis an ihren unteren
+    Rand, nach dem letzten Eintrag 24 Luft. Auf 20:9 passt sie, auf 16:9 und den Tablets lässt
+    sie sich 44 Einheiten ziehen.
+  - **Einträge** in den drei Zuständen der Mockups: abholbar in Bernstein mit dem grünen
+    CLAIM-Button darunter (COIN COLLECTOR), unterwegs mit der Belohnung rechts und darunter
+    der Leiste mit dem Stand (SPEED DEMON, LONG HAUL, ARCHIVIST), erledigt mit grünem Haken
+    (FIRST FLIGHT, NEW WINGS). Je Eintrag eine Layout-Gruppe, Grund und Rahmen liegen als
+    `Background` und `Border` außerhalb des Layouts wie in den Settings (siehe „Maße aus den
+    Mockups“). CLAIM nimmt keine Tipps an und behält sein Aussehen (nicht `interactable`,
+    ohne Übergang).
+  - **Gemessen** im Editor: Draw Calls nur des UI 6, der Canvas baut nicht neu, solange die
+    Liste steht.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
   Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`:
   TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
@@ -1307,7 +1337,7 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Seit Schritt 3a steht er als Multiplikator „×1.4“ in einem Chip neben dem Score,
     `LayoutTests` nimmt ihn nicht mehr aus.
 - **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle
-  UI-Bilder, die die Szene nutzt, seit v1.5.2 37 auf einer Seite von 2048 × 1024 in
+  UI-Bilder, die die Szene nutzt, seit v1.5.2 44 auf einer Seite von 2048 × 1024 in
   ETC2, 2,0 MiB. Beim Einführen waren es 36 alte Bilder auf 2048 × 2048, 4,0 MiB.
   Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
   „Texturen“). Die Bilder eines Screens kommen damit in einem Draw Call, gemessen im
@@ -1315,7 +1345,7 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   9, Run 3 statt 4, Pause 2 statt 5, Tod 3 statt 6. Mit dem neuen Design, gemessen zum
   Abschluss von v1.5.1: Menü 4, Hangar 4, Settings 8, Run 4 (mit der Leiste zum Highscore
   7, mit „NEW HIGHSCORE!“ 6), Pause 3, Tod 3, dazu seit v1.5.2 die Credits mit 4 bis 5, je
-  nach Stelle der Rolle. Seit Schritt 3a sind alle Wörter Text, und eigene Draw Calls sind
+  nach Stelle der Rolle, und die Achievements mit 6. Seit Schritt 3a sind alle Wörter Text, und eigene Draw Calls sind
   die Texte (ein Material pro Schrift) und was kein Bild aus dem Atlas zeigt.
   - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
     Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` liegen
@@ -1428,9 +1458,9 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Platte wie der Leiste zum Highscore schiene ein gefülltes Leuchten durch. Beide halten
     einen Schein von 30 Einheiten um eine Platte mit Radius 20 bei Faktor 2: Faktor
     40 / Radius passt ihn an eine Platte an, er reicht dann 1,5 Radien hinaus.
-  - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Achievements und
-    Collectibles im Hauptmenü, Vibration, Sprache und Datenschutz in den Settings, bis v1.5.2
-    auch die Credits.
+  - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Collectibles im Hauptmenü,
+    Vibration, Sprache und Datenschutz in den Settings, bis zu ihren Screens in v1.5.2 auch
+    die Credits und die Achievements.
     Ausgegraut heißt feste Farben, wie CSS `opacity: 0.4` auf dem Untergrund aussähe, keine
     Canvas Group: Mit halber Deckkraft scheinen übereinanderliegende Teile durcheinander
     durch, etwa der Schatten durch die Platte. Daneben steht ein graues „SOON“, nicht
@@ -1442,6 +1472,14 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Bauen der Screens rechnet mit Kästen der Zeilenhöhe 1, Exo 2 rückt dort um 0,1
     Schriftgrößen nach unten. Absolut gesetzte Kinder eines Kastens mit Rand zählen in CSS
     ab dessen Innenkante, im Sheet der Pause also 2 Einheiten tiefer.
+  - **In Layout-Gruppen** bekommt ein Text die Höhe, die TextMesh Pro für ihn will, eine
+    Zeile so hoch wie die normale Zeilenhöhe im Browser. Oben ausgerichtet (`Top`) sitzt er
+    dann wie dort, „Midline“ zentriert stattdessen seine Glyphen: Die Zahlen der Achievements
+    saßen damit eine halbe Einheit zu hoch (gesehen in v1.5.2). Ein Bild als Grund einer
+    Layout-Gruppe liegt als Kind außerhalb des Layouts (`LayoutElement` mit „Ignore Layout“):
+    Ein 9-Slice-Bild meldet seine Ränder als Wunschgröße, ohne den Faktor
+    `pixelsPerUnitMultiplier`, bei `Plate` 122 Einheiten. Auf demselben Objekt wie die Gruppe
+    gilt der größere Wert, ein Eintrag der Achievements war so erst 122 statt 82 hoch.
   - **Bilder** entstehen aus HTML im Browser: Die Symbole sind die SVGs der Mockups
     (Feather und Lucide, ein paar eigene) als weiße PNGs von 128 Pixeln, im Spiel
     eingefärbt. Das Logo ist Bruno Ace SC als Bild mit 3 Pixeln pro Einheit, die Schrift
@@ -1454,7 +1492,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   Run baut der Canvas nur noch neu, wenn sich Score oder Münzen ändern (gemessen in 2
   von 30 Frames, vor Schritt 3b) und seit v1.5.1, wenn eine Einblendung kommt oder geht,
   in Pause, Tod und Hangar gar nicht, in den Settings beim Ziehen eines Reglers, in den
-  Credits in jedem Frame, solange sie rollen. Bis
+  Credits in jedem Frame, solange sie rollen, in den Achievements nur beim Ziehen der Liste.
+  Bis
   v1.4.9 baute der ganze UI-Canvas in jedem Frame neu, außer in der Pause. Die
   Screen-Canvases erben
   Render Mode und Skalierung vom Root. Ihr eigener Render Mode steht trotzdem auf
@@ -1467,8 +1506,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   `…Screen`-Komponente für die Buttons, als letztes Kind eine `SafeArea` (ebenso
   gestreckt, mit der gleichnamigen Komponente) für alles Bedienbare. Im `ScreenManager`
   bekommt er ein Feld und einen Platz in `m_screens`, dazu einen Fall in `GetScreen`, wenn er
-  zu einem Zustand gehört, sonst eine eigene `Show…`-Methode wie `ShowSettings` und
-  `ShowCredits`. Dass
+  zu einem Zustand gehört, sonst eine eigene `Show…`-Methode wie `ShowSettings`,
+  `ShowCredits` und `ShowAchievements`. Dass
   Canvas, Raycaster und `m_screens` stimmen, prüft `SceneTests`.
 - **Keine Animatoren für Übergänge oder kurze Effekte.** Ein Animator am UI markiert
   seine Grafiken in jedem Frame neu, auch wenn sich nichts bewegt, und dann baut der
@@ -1497,8 +1536,9 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   `Canvas.BuildBatch`.
   So in v1.4.10: 16 Zustände gleich, alle 53 Klicks kommen an. Zum Abschluss von v1.5.1
   kamen alle 41 Tipps eines Durchlaufs durch alle Zustände an, nach jedem Wechsel des
-  Screens in einem neuen Aufruf von `script eval`. Die Credits prüfte in v1.5.2 ein
-  Durchlauf mit 11 Tipps aus Hauptmenü und Pause, dem Neubeginn am Ende und einem Wischer:
+  Screens in einem neuen Aufruf von `script eval`. In v1.5.2 prüfte die Achievements ein
+  Durchlauf mit 6 Tipps aus dem Hauptmenü (einer auf CLAIM) und einem Wischer, die Credits
+  einer mit 11 Tipps aus Hauptmenü und Pause, dem Neubeginn am Ende und einem Wischer:
   `ExecuteEvents` mit `initializePotentialDrag`, `beginDragHandler`, `dragHandler` und
   `endDragHandler` auf dem Ausschnitt, die Strecke in Pixeln ist die in Einheiten mal
   `scaleFactor` des Root-Canvas. Texte vergleicht man an
