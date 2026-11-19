@@ -128,6 +128,24 @@ namespace SpaceEscaper.Tests
             Assert.That(m_saveData.IsAchievementUnlocked(m_longestRun.Id), Is.True);
         }
 
+        // The distance counts while the run grows, so the run gets the achievement before it crashes.
+        [Test]
+        public void DistanceUnlocksWhileTheRunGoesOn()
+        {
+            m_saveData.RecordRunDistance(1500);
+            m_saveData.RecordRunDistance(1997);
+            m_progress.UnlockReached(m_saveData, m_unlocked);
+            Assert.That(m_saveData.IsAchievementUnlocked(m_longestRun.Id), Is.False);
+
+            m_saveData.RecordRunDistance(1998);
+            m_progress.UnlockReached(m_saveData, m_unlocked);
+            Assert.That(m_saveData.IsAchievementUnlocked(m_longestRun.Id), Is.True);
+            Assert.That(m_saveData.Crashes, Is.Zero, "The run counted as a crash");
+
+            m_saveData.RecordRunDistance(400);
+            Assert.That(m_saveData.LongestRun, Is.EqualTo(1998), "The next run made the longest one shorter");
+        }
+
         // Rewards add to the coins to spend, not to the coins collected.
         [Test]
         public void OnlyCoinsFromRunsCountAsCollected()

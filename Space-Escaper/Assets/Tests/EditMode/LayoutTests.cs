@@ -172,6 +172,51 @@ namespace SpaceEscaper.Tests
             Assert.That(problems, Is.Empty);
         }
 
+        // The popup in the run shows one achievement at a time, the scene keeps the first. The reward grows to the left
+        // with its number, toward the label. The popup is as wide on every display, so one of them is enough.
+        [Test]
+        public void EveryAchievementFitsThePopupOfTheRun()
+        {
+            LayOut(s_Devices[0]);
+            GameMenuScreen gameMenu = m_ui.GetComponentInChildren<GameMenuScreen>(true);
+            RectTransform popup = (RectTransform)gameMenu.AchievementPopup.transform;
+            TMP_Text label = popup.Find("LabelText").GetComponent<TMP_Text>();
+            RectTransform reward = (RectTransform)popup.Find("Reward");
+            TMP_Text[] texts = popup.GetComponentsInChildren<TMP_Text>(true);
+            string[] savedTexts = System.Array.ConvertAll(texts, text => text.text);
+            AchievementCatalog catalog = AssetDatabase.LoadAssetAtPath<AchievementCatalog>(k_AchievementCatalogPath);
+            List<string> problems = new List<string>();
+            try
+            {
+                foreach (AchievementData achievement in catalog.Achievements)
+                {
+                    gameMenu.ShowAchievement(achievement);
+                    LayoutRebuilder.ForceRebuildLayoutImmediate(reward);
+                    foreach (TMP_Text text in texts)
+                    {
+                        text.ForceMeshUpdate(true, true);
+                        AddIfTooLarge(problems, text);
+                    }
+
+                    float gap = GetRect(reward).xMin - GetShownRect(label).xMax;
+                    if (gap < -k_Tolerance)
+                    {
+                        problems.Add(string.Format(CultureInfo.InvariantCulture,
+                            "The reward of {0} reaches {1:0.#} into the label", achievement.Id, -gap));
+                    }
+                }
+            }
+            finally
+            {
+                for (int i = 0; i < texts.Length; i++)
+                {
+                    texts[i].text = savedTexts[i];
+                }
+            }
+
+            Assert.That(problems, Is.Empty);
+        }
+
         // The card hangs under the tiles and the buttons stand on the bottom, so a short display brings them
         // together.
         [TestCaseSource(nameof(s_Devices))]

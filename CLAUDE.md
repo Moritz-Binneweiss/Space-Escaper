@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 52 Skripte, ~4800 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 52 Skripte, ~4900 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -19,7 +19,7 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `Save/SaveData.cs` (Spielstand), `Ship/ShipData.cs` / `Ship/ShipCatalog.cs`
   (Schiffe), `Achievements/AchievementTracker.cs` und
   `Achievements/AchievementProgress.cs` (Achievements, siehe „Achievements“ unter „UI“).
-- `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, ein PlayMode-Test in
+- `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, die PlayMode-Tests in
   `PlayMode/`, siehe „Tests“. Dort liegt auch `TestFrameworkFix`, siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“.
 - `Space-Escaper/Assets/Editor/` - das Test-Menü im Editor, siehe „Tests“.
@@ -168,9 +168,9 @@ Screen der Credits: dieselben Abschnitte mit denselben Einträgen in derselben R
 Seit v1.5.3 prüft `AchievementProgressTests` die Regeln der Achievements an eigenen
 Achievements des Tests, so ändert eine Änderung an den echten nicht, was er prüft: was
 zählt (Flüge, Flüge in gekauften Schiffen, Crashes über alle Runs, der längste Run statt
-der Summe, Münzen aus Runs ohne Belohnungen, alle Schiffe), dass das für alle anderen im
-selben Aufruf nach dem letzten von ihnen freischaltet und auf die späteren wartet, dass
-„später“ nie freischaltet, Freigeschaltetes freigeschaltet bleibt, eine Belohnung einmal
+der Summe und schon, während er wächst, Münzen aus Runs ohne Belohnungen, alle Schiffe),
+dass das für alle anderen im selben Aufruf nach dem letzten von ihnen freischaltet und auf
+die späteren wartet, dass „später“ nie freischaltet, Freigeschaltetes freigeschaltet bleibt, eine Belohnung einmal
 ausgezahlt wird und eine gesperrte gar nicht, und den Anteil im Ring. `AchievementCatalogTests`
 prüft die Daten wie `ShipCatalogTests` die Schiffe: jedes `AchievementData` genau einmal im
 Katalog, eindeutige IDs, Titel in Großbuchstaben, Beschreibung, Symbol, Belohnung, ein Ziel,
@@ -179,7 +179,8 @@ wo es zählt, und „später“ genau bei den vier der Collectibles und SPACE AC
 Spielstand von davor seine Münzen behält. `SceneTests` prüft, dass jedes Achievement genau
 einen Eintrag hat, der in der Szene dieselben Texte, dasselbe Symbol und dieselbe Belohnung
 zeigt wie seine Daten, `LayoutTests`, dass jedes Achievement auf die Karte des
-Todesbildschirms passt und die Karte auf allen zehn Displays über REVIVE bleibt (siehe
+Todesbildschirms passt und die Karte auf allen zehn Displays über REVIVE bleibt, und dass
+jedes ins Popup im Run passt, ohne dass seine Belohnung ins Label reicht (siehe
 „Achievements“ unter „UI“).
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
@@ -211,7 +212,12 @@ dem ersten Run LIFTOFF, nach dem zweiten keine. Ein dritter
 (`RewardsWaitOnTheMedalUntilTheyAreClaimed`) beginnt mit zwei Crashes im Spielstand, sein
 Run schaltet also LIFTOFF und ANOTHER HAPPY LANDING frei. Er prüft die Karte mit „· +1“, tippt
 MENU, prüft die 2 an der Medaille, öffnet die Achievements, findet beide oben, tippt CLAIM,
-prüft Münzen und Spielstand und nach „Zurück“ die 1 an der Medaille.
+prüft Münzen und Spielstand und nach „Zurück“ die 1 an der Medaille. Ein vierter
+(`AchievementsPopUpAsTheRunUnlocksThem`) beginnt eine Münze vor MONEY, MONEY, MONEY und legt eine
+Münze aus der Strecke 15 Einheiten vor das Schiff, denn geradeaus bis zum ersten Hindernis liegt
+keine. Er prüft das Popup mit LIFTOFF beim Start, dass der längste Run mitzählt, während der Run
+wächst, dass die Münze ihr Achievement mitten im Run freischaltet und gleich speichert, dass es
+nach LIFTOFF aufpoppt und die Karte danach „· +1“ zeigt.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit `unity command test run`. Sie dauern
@@ -226,8 +232,8 @@ prüft Münzen und Spielstand und nach „Zurück“ die 1 an der Medaille.
   `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
   Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
   verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
-  aus (in v1.5.3 113 Tests in rund 27 s). Mit dem Wechsel in den Play Mode dauern die
-  drei PlayMode-Tests rund 21 bis 24 s, also
+  aus (in v1.5.3 116 Tests in rund 31 s). Mit dem Wechsel in den Play Mode dauern die
+  vier PlayMode-Tests rund 27 s, also
   vor Commits, die Run, Tod, Revive, das Spawnen oder die Achievements ändern. Meldet ein asynchroner
   PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“). Die CLI legt eine
@@ -379,7 +385,10 @@ prüft Münzen und Spielstand und nach „Zurück“ die 1 an der Medaille.
   Einheiten tiefer (rot auf den vier kurzen Displays). Im PlayMode-Test: ein Crash, der nicht
   zählt, eine Karte, die nie oder mit dem Freigeschalteten des Spielstands statt des Runs
   erscheint, eine Liste ohne Sortierung, eine Medaille, die Abgeholtes mitzählt, und ein
-  Abholen, das nicht speichert.
+  Abholen, das nicht speichert. Für das Popup im Run: der längste Run nur beim Crash und eine
+  Münze, die nichts freischaltet, beides wie vorher, eine, die freischaltet, ohne zu speichern,
+  eine Spielanzeige ohne Popup, eine, die verliert, was freischaltet, während eins zu sehen ist,
+  und ein Popup von 300 statt 330 Breite (die Belohnung ab „+200“ rund 10 Einheiten im Label).
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -723,9 +732,10 @@ bei 8.
   `SaveSystem.LoadFrom` und `SaveSystem.Delete`, den PlayMode-Tests seit v1.4.13
   auch für `FloatingOrigin.Distance`, `TileManager.Tiles` und
   `TileManager.NextSpawnZ`, seit v1.5.0 für die Buttons der Screens
-  (`MainMenuScreen.StartButton` usw.), seit v1.5.3 für Einträge, Karte und Medaille der
+  (`MainMenuScreen.StartButton` usw.), seit v1.5.3 für Einträge, Karte, Medaille und Popup der
   Achievements. Seit v1.5.1 öffnet sie auch den EditMode-Tests `internal`, für
-  `SafeArea.Fit`, seit v1.5.3 für `DeathMenuScreen.ShowUnlocked`. Test-Assemblies kommen an
+  `SafeArea.Fit`, seit v1.5.3 für `DeathMenuScreen.ShowUnlocked` und
+  `GameMenuScreen.ShowAchievement`. Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket**, gehört dessen Assembly in
   die References der `SpaceEscaper.asmdef`, sonst findet der Compiler es nicht.
@@ -1020,8 +1030,9 @@ Spiel nicht mehr.
   `m_flights` (jeder Start eines Runs, aus dem Hauptmenü und mit „Play again“, ein Revive
   nicht), `m_flightsInBoughtShips` (davon die in einem anderen Schiff als dem Startschiff),
   `m_crashes` (jeder Crash, auch vor einem Revive), `m_longestRun` (Meter des längsten Runs,
-  beim Crash, ein Revive setzt den Run fort) und `m_coinsCollected` (beim Einsammeln, auch in
-  einem Run, der über „Exit“ endet; Belohnungen und „Add 1000 Coins“ zählen nicht). Dazu die
+  gezählt, sobald der Run ihn überholt, ein Revive setzt den Run fort) und
+  `m_coinsCollected` (beim Einsammeln; Belohnungen und „Add 1000 Coins“ zählen nicht).
+  Beide zählen auch in einem Run, der über „Exit“ endet. Dazu die
   IDs der freigeschalteten und der abgeholten Achievements (`m_unlockedAchievementIds`,
   `m_claimedAchievementIds`). Alles neue Felder ohne neue Version: Ein Spielstand von davor
   beginnt mit 0, nur die Schiffe zählen, was er schon besitzt. Freigeschaltet bleibt
@@ -1241,7 +1252,8 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
   ein, und sie zeigen beim Einschalten, was gerade gilt (siehe „UI“).
 - **Münzen** melden sich über das statische Ereignis `Coin.Collected` (seit v1.5.0,
   bis dahin `GameManager.CollectCoin`), `RunScore` zählt sie, seit v1.5.3 auch der
-  `AchievementTracker`, für die Achievements. Den Multiplikator rechnet
+  `AchievementTracker`, für die Achievements: Er schaltet dabei frei, was die Münze erreicht,
+  und speichert dann gleich. Den Multiplikator rechnet
   `RunScore` aus dem Tempo (`PlayerMotor.SpeedGain`), bis v1.4.13 schickte der
   `PlayerMotor` ihn bei jeder Tempo-Stufe.
 - **Neues, das auf den Spielverlauf reagiert,** meldet sich an einem Ereignis an (in
@@ -1305,7 +1317,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   `AchievementTracker`, Hauptmenü und Todesbildschirm auch bei `AchievementTracker.Unlocked`. Die
   Spiel-UI folgt dem `RunScore` in `LateUpdate`, also mit dem Score dieses Frames, und
   setzt einen Text nur, wenn sich seine Zahl ändert. Steigen die Münzen, poppt das
-  Icon. Der `ShopScreen` führt den Shop selbst (siehe „Shop“).
+  Icon. Seit v1.5.3 hört auch sie auf `AchievementTracker.Unlocked`, für das Popup im Run. Der
+  `ShopScreen` führt den Shop selbst (siehe „Shop“).
 - **Zeit, Strecke und Highscore des Runs** zählt der `RunScore` (seit v1.5.1): die Zeit
   nur im Run, die Strecke als Tempo mal Frame-Zeit statt aus der Position, die der
   Floating Origin zurückrückt (eine Einheit ist ein Meter), und den Highscore vom Start
@@ -1314,9 +1327,11 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 - **Einblendungen im Run** (seit v1.5.1): Alle 100 Punkte zeigt die Spiel-UI 2,5 s lang
   die Leiste bis zum Highscore (`m_highscoreBarStep` im Inspector), hat der Run ihn
   geschlagen, einmal „NEW HIGHSCORE!“. Im ersten Run nach dem Start der App steht „SWIPE
-  TO CHANGE LANES“ über dem Schiff, bis zum ersten Wischer oder 6 s lang. Die Zeiten
-  laufen über `Time.time`, sie stehen in der Pause also still. Gespeichert sind alle drei
-  ausgeschaltet, `LayoutTests` prüft sie trotzdem, er schaltet in seiner Kopie alles ein.
+  TO CHANGE LANES“ über dem Schiff, bis zum ersten Wischer oder 6 s lang. Seit v1.5.3 kommt
+  unter der Leiste 2,5 s lang, was der Run an Achievements freischaltet (siehe „Achievements“).
+  Die Zeiten laufen über `Time.time`, sie stehen in der Pause also still. Gespeichert sind
+  alle vier ausgeschaltet, `LayoutTests` prüft sie trotzdem, er schaltet in seiner Kopie alles
+  ein.
 - **Credits** (seit v1.5.2, Vorlage Version 6 der Mockups): geöffnet über die Zeile
   „Credits“ unter INFO in den Settings, die ganze Zeile ist der Button, ihr Label dunkelt
   beim Tippen ab wie der Schalter der Zeilen darüber. „Zurück“ zeigt die Settings. Der Kopf
@@ -1363,11 +1378,14 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Regeln** in der einfachen Klasse `AchievementProgress`: Fortschritt, Ziel, Zustand
     (`AchievementState`: unterwegs, abholbar, abgeholt, später), Freischalten und Anteil,
     geprüft von `AchievementProgressTests`. Zählen, freischalten und auszahlen tut der
-    `AchievementTracker` unter `Systems` (siehe „Spielzustand“): beim Start jedes Runs, beim
-    Crash, beim Schließen des Hangars (dort kauft man das letzte Schiff) und beim Laden der
-    Szene (für einen Spielstand, der schon etwas erreicht hat). SPACE ACHIEVER schaltet im
-    selben Aufruf frei wie das letzte der anderen. Was neu freigeschaltet ist, meldet
-    `AchievementTracker.Unlocked`. Hauptmenü und Todesbildschirm hören darauf, denn sie gehen
+    `AchievementTracker` unter `Systems` (siehe „Spielzustand“): beim Start jedes Runs, bei
+    jeder Münze, während des Flugs, sobald der Run den längsten bisher überholt (in
+    `LateUpdate`, bei kürzeren Runs tut er dort nichts), beim Crash, beim Schließen des Hangars
+    (dort kauft man das letzte Schiff) und beim Laden der Szene (für einen Spielstand, der schon
+    etwas erreicht hat). Was mitten im Run freischaltet, speichert er gleich, das kommt pro
+    Achievement einmal vor. SPACE ACHIEVER schaltet im selben Aufruf frei wie das letzte der
+    anderen. Was neu freigeschaltet ist, meldet `AchievementTracker.Unlocked`, mit den gerade
+    freigeschalteten. Hauptmenü, Spielanzeige und Todesbildschirm hören darauf, denn sie gehen
     beim Wechsel des Zustands an, vor dem Ereignis des `GameManager`, das das Freischalten
     auslöst.
   - **Kopf:** der der Settings, der lange Titel wie im Mockup in 20 statt 24. Rechts zeigt ein
@@ -1411,6 +1429,19 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Medaille:** die Zahl der abholbaren Belohnungen an ihrer Ecke wie im Mockup, Bernstein
     mit einem Ring von 3 in der Farbe des Grunds, Exo 2 Bold 14, 8 über die Ecke hinaus, ohne
     etwas zum Abholen aus (`MainMenu/SafeArea/Bottom/AchievementsButton/RewardsBadge`).
+  - **Im Run** (Wunsch Moritz, 19.11.2026: ein Popup „ähnlich wie highscore anzeige alle paar
+    hundert“): Was der Run freischaltet, zeigt die Spielanzeige 2,5 s lang 14 Einheiten unter
+    der Leiste zum Highscore, wie die Spalte der Einblendungen in Version 6
+    (`GameMenu/SafeArea/AchievementPopup`). Der Platz ist fest, so springt nichts, wenn beide
+    zugleich kommen. Rahmen, Grund und Leuchten sind die der Leiste, Medaille, „ACHIEVEMENT
+    UNLOCKED“, Titel und Belohnung die der Karte des Todesbildschirms, in Bernstein und Weiß. Es
+    ist 330 statt 300 breit wie die Leiste, sonst stieße „+1000“ ans Label. Mehrere kommen
+    nacheinander, in der Pause steht die Zeit. Beim Start des Runs kommen LIFTOFF, IT’S WORKING
+    und IT’S JUST AN EMPTY CUP, mitten im Run FLY AWAY und MONEY, MONEY, MONEY. Was erst der
+    Crash freischaltet (ANOTHER HAPPY LANDING), zeigt nur die Karte: Die Spielanzeige ist dann
+    schon aus und hört nicht mit, nach einem Revive kommt es also nicht noch einmal. Dazu klingt
+    `AchievementUnlocked` aus der `AudioBank`, bis zu eigenen neuen Sounds (v1.7.0) `ShipSelect`
+    von 2020. Ob jedes Achievement hineinpasst, prüft `LayoutTests`.
   - **Todesbildschirm:** die Karte „ACHIEVEMENT UNLOCKED“ des Mockups unter den Kacheln
     (`DeathMenu/SafeArea/Top/UnlockedCard`), sobald der Run etwas freigeschaltet hat, auch vor
     einem Revive: das erste mit seiner Belohnung, mehr als eins zählt das Label als „· +1“. Ihr
@@ -1419,7 +1450,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Displays über REVIVE bleibt und jedes Achievement auf sie passt, prüft `LayoutTests`.
   - **Gemessen** im Editor in v1.5.3: Draw Calls nur des UI im Screen 6 wie in v1.5.2, auf
     dem Todesbildschirm mit Karte 3, im Hauptmenü mit Zahl an der Medaille 5 statt 3 (Exo 2
-    ist dort eine Schrift mehr, und die Zahl liegt zwischen Bildern). Der Canvas baut nicht
+    ist dort eine Schrift mehr, und die Zahl liegt zwischen Bildern), im Run mit dem Popup 5
+    statt 4, mit Leiste und Popup 7 wie mit der Leiste allein. Der Canvas baut nicht
     neu, solange die Liste steht (gemessen in v1.5.2, der Screen hat kein `Update`, er ändert
     sich nur beim Öffnen, beim Ziehen und beim Abholen).
 - **Collectibles** (seit v1.5.2, Layout aus Version 6 der Mockups): geöffnet über das Paket
@@ -1493,7 +1525,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   7, mit „NEW HIGHSCORE!“ 6), Pause 3, Tod 3. In v1.5.2 kamen die Credits mit 4 bis 5 dazu,
   je nach Stelle der Rolle, die Achievements mit 6 und die Collectibles mit 3, das Menü hat
   ohne seine beiden „SOON“ nur noch 3. In v1.5.3 hat das Menü mit der Zahl an der Medaille 5,
-  der Todesbildschirm mit der Karte der Achievements bleibt bei 3. Seit Schritt 3a sind alle Wörter Text, und eigene
+  der Todesbildschirm mit der Karte der Achievements bleibt bei 3, der Run hat mit dem Popup
+  der Achievements 5, mit Leiste und Popup 7 wie mit der Leiste allein. Seit Schritt 3a sind alle Wörter Text, und eigene
   Draw Calls sind die Texte (ein Material pro Schrift) und was kein Bild aus dem Atlas zeigt.
   - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
     Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` liegen
@@ -1854,7 +1887,11 @@ Bank wechseln. Wichtig für die Erweiterung:
 - Ein leerer Slot fällt automatisch auf die andere Bank zurück. `NewBank` enthält
   aktuell nur die zwei neuen Musikstücke; alle SFX kommen deshalb noch aus Classic.
   Das ist gewollt und kein Fehler. Die neuen SFX sind auf **v1.7.0** verschoben
-  (Art- und Sound-Remaster); v1.4.0 wurde ohne sie abgeschlossen.
+  (Art- und Sound-Remaster); v1.4.0 wurde ohne sie abgeschlossen. Seit v1.5.3 haben die
+  Banks einen Slot `AchievementUnlocked` für das Popup der Achievements im Run, in Classic
+  vorerst mit `ShipSelect` von 2020, in `NewBank` leer wie die übrigen SFX. Über Unity
+  gespeichert ändert eine Bank nur die Zeilen, die sich ändern, der alte Eintrag
+  `Assembly-CSharp::AudioBank` bleibt stehen (geprüft in v1.5.3 an Kopien beider Banks).
 
 Vier Fallen, die hier schon einmal Bugs verursacht haben:
 

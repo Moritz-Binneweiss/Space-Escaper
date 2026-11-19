@@ -182,13 +182,21 @@ namespace SpaceEscaper
         }
 
         /// <summary>
+        /// Keeps the distance of the run so far if it is the longest, while the run goes on.
+        /// </summary>
+        public void RecordRunDistance(int runDistance)
+        {
+            m_longestRun = Mathf.Max(m_longestRun, runDistance);
+        }
+
+        /// <summary>
         /// Counts a crash and keeps the distance of the run if it is the longest. A revive goes on with the run, so
         /// its next crash brings the distance of the whole run.
         /// </summary>
         public void RecordCrash(int runDistance)
         {
             m_crashes++;
-            m_longestRun = Mathf.Max(m_longestRun, runDistance);
+            RecordRunDistance(runDistance);
         }
 
         public bool IsAchievementUnlocked(string achievementId)

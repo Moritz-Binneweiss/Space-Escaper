@@ -5,15 +5,16 @@ using UnityEngine;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// Counts what the achievements need while the game goes on, unlocks the ones the save has reached and pays out
-    /// their rewards. It remembers what the current run has unlocked, for the death screen.
+    /// Counts what the achievements need while the game goes on, unlocks the ones the save has reached as soon as it
+    /// gets there, also in the middle of a run, and pays out their rewards. It remembers what the current run has
+    /// unlocked, for the death screen.
     /// </summary>
     public class AchievementTracker : MonoBehaviour
     {
         [SerializeField] private AchievementCatalog m_achievementCatalog;
         [Tooltip("The starter ship is the one not bought, and owning all ships is an achievement.")]
         [SerializeField] private ShipCatalog m_shipCatalog;
-        [Tooltip("Brings the distance of the run at a crash.")]
+        [Tooltip("Brings the distance of the run, while it grows and at a crash.")]
         [SerializeField] private RunScore m_runScore;
 
         private readonly List<AchievementData> m_unlockedThisRun = new List<AchievementData>();
@@ -52,9 +53,11 @@ namespace SpaceEscaper
         }
 
         /// <summary>
-        /// Raised when achievements unlock, once the save holds them. A screen that shows them may already be on.
+        /// Raised when achievements unlock, once the save holds them, with the ones that just unlocked. The list is
+        /// the tracker's own and changes with the next unlock, so a screen copies what it keeps. A screen that shows
+        /// them may already be on.
         /// </summary>
-        public event Action Unlocked;
+        public event Action<IReadOnlyList<AchievementData>> Unlocked;
 
         private void OnEnable()
         {
@@ -76,6 +79,25 @@ namespace SpaceEscaper
         // bought, or one where the app was closed in the hangar right after buying the last ship.
         private void Start()
         {
+            if (UnlockReached())
+            {
+                SaveSystem.Save();
+            }
+        }
+
+        // The longest run counts while it grows, so its achievement unlocks the moment the run gets there, and a run
+        // that ends with Exit instead of a crash counts as well. Most runs stay short of the longest, then nothing
+        // happens here.
+        private void LateUpdate()
+        {
+            int distance = m_runScore.Distance;
+            SaveData saveData = SaveSystem.Data;
+            if (distance <= saveData.LongestRun)
+            {
+                return;
+            }
+
+            saveData.RecordRunDistance(distance);
             if (UnlockReached())
             {
                 SaveSystem.Save();
@@ -121,9 +143,15 @@ namespace SpaceEscaper
             SaveSystem.Save();
         }
 
+        // A coin can reach the achievement for coins in the middle of a run. What unlocks there is written to disk
+        // right away, as at the start of a run, and that happens once per achievement.
         private void Coin_Collected()
         {
             SaveSystem.Data.RecordCoin();
+            if (UnlockReached())
+            {
+                SaveSystem.Save();
+            }
         }
 
         // RunScore adds the coins and the highscore of the crash as well and saves them itself, so neither needs to
@@ -158,6 +186,6 @@ namespace SpaceEscaper
             return true;
         }
 
-        private void OnUnlocked() => Unlocked?.Invoke();
+        private void OnUnlocked() => Unlocked?.Invoke(m_newlyUnlocked);
     }
 }

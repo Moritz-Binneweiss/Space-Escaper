@@ -99,7 +99,7 @@ namespace SpaceEscaper
             m_unlockedRewardText.SetText("+{0}", first.Reward);
         }
 
-        private void AchievementTracker_Unlocked()
+        private void AchievementTracker_Unlocked(IReadOnlyList<AchievementData> achievements)
         {
             ShowUnlocked();
         }

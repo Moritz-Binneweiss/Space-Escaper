@@ -184,6 +184,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 - [x] Achievements System (Ingame)
 - [x] Coin rewards to claim on the achievements screen, instead of the examples
+- [x] Popup during the run when an achievement unlocks
 
 </small>
 

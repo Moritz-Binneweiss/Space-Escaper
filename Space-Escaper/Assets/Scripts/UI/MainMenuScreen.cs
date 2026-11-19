@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -62,7 +63,7 @@ namespace SpaceEscaper
         }
 
         // The menu is on when the scene loads and when the hangar closes, and achievements unlock right after both.
-        private void AchievementTracker_Unlocked()
+        private void AchievementTracker_Unlocked(IReadOnlyList<AchievementData> achievements)
         {
             ShowRewardsToClaim();
         }
