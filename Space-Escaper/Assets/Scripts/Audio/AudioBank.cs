@@ -34,6 +34,8 @@ namespace SpaceEscaper
         [SerializeField] private AudioClip m_shipSelect;
         [SerializeField] private AudioClip m_shipDeselect;
         [SerializeField] private AudioClip m_shipPurchase;
+        [Tooltip("Plays as an achievement the run unlocks pops up.")]
+        [SerializeField] private AudioClip m_achievementUnlocked;
 
         public string StyleName => m_styleName;
         public AudioClip MenuMusic => m_menuMusic;
@@ -45,5 +47,6 @@ namespace SpaceEscaper
         public AudioClip ShipSelect => m_shipSelect;
         public AudioClip ShipDeselect => m_shipDeselect;
         public AudioClip ShipPurchase => m_shipPurchase;
+        public AudioClip AchievementUnlocked => m_achievementUnlocked;
     }
 }

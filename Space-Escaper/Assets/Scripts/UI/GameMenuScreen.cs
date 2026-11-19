@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,8 +7,8 @@ namespace SpaceEscaper
 {
     /// <summary>
     /// The screen during a run: score, coins and score multiplier, and the pause button. Every few hundred points it
-    /// shows how far the highscore is and says when the run beats it. The first run after the app starts shows how to
-    /// change lanes.
+    /// shows how far the highscore is and says when the run beats it, and an achievement the run unlocks pops up
+    /// under it for a moment. The first run after the app starts shows how to change lanes.
     /// </summary>
     public class GameMenuScreen : MonoBehaviour
     {
@@ -34,9 +35,17 @@ namespace SpaceEscaper
         [SerializeField] private RectTransform m_highscoreBarFill;
         [SerializeField] private GameObject m_newHighscoreBanner;
 
+        [Header("Achievements")]
+        [SerializeField] private AchievementTracker m_achievements;
+        [Tooltip("An achievement the run has just unlocked, shown for a moment under the way to the highscore.")]
+        [SerializeField] private GameObject m_achievementPopup;
+        [SerializeField] private TMP_Text m_achievementTitleText;
+        [SerializeField] private TMP_Text m_achievementRewardText;
+
         [Header("First Run")]
         [SerializeField] private GameObject m_swipeHint;
 
+        private readonly List<AchievementData> m_achievementsToShow = new List<AchievementData>();
         private int m_shownScore;
         private int m_shownCoins;
         private float m_shownModifier;
@@ -44,6 +53,7 @@ namespace SpaceEscaper
         private float m_highscoreBarEndTime;
         private bool m_hasShownNewHighscore;
         private float m_newHighscoreBannerEndTime;
+        private float m_achievementPopupEndTime;
         private float m_swipeHintEndTime;
 
         // Once per start of the app, so a run after a reload does not show it again.
@@ -51,6 +61,11 @@ namespace SpaceEscaper
 
         // For tests, which check that the screen is up during the run.
         internal Button PauseButton => m_pauseButton;
+
+        // For tests, which check what pops up during the run.
+        internal GameObject AchievementPopup => m_achievementPopup;
+
+        internal TMP_Text AchievementTitleText => m_achievementTitleText;
 
         // The editor starts Play Mode without a domain reload, so static fields would keep their
         // values from the last one.
@@ -64,6 +79,7 @@ namespace SpaceEscaper
         private void OnEnable()
         {
             m_pauseButton.onClick.AddListener(m_gameManager.Pause);
+            m_achievements.Unlocked += AchievementTracker_Unlocked;
             ShowScore();
             ShowCoins();
             ShowModifier();
@@ -79,6 +95,7 @@ namespace SpaceEscaper
         private void OnDisable()
         {
             m_pauseButton.onClick.RemoveListener(m_gameManager.Pause);
+            m_achievements.Unlocked -= AchievementTracker_Unlocked;
         }
 
         // After every Update, so the screen shows the score of this frame. A text only changes
@@ -105,7 +122,26 @@ namespace SpaceEscaper
 
             HideWhenDone(m_highscoreBar, m_highscoreBarEndTime);
             HideWhenDone(m_newHighscoreBanner, m_newHighscoreBannerEndTime);
+            ShowAchievementsUnlocked();
             HideSwipeHint();
+        }
+
+        /// <summary>
+        /// Shows an achievement on the popup. For tests also outside a run.
+        /// </summary>
+        internal void ShowAchievement(AchievementData achievement)
+        {
+            m_achievementTitleText.SetText(achievement.Title);
+            m_achievementRewardText.SetText("+{0}", achievement.Reward);
+        }
+
+        // Only what unlocks while the screen is up. What the crash unlocks comes with the death screen, on its card.
+        private void AchievementTracker_Unlocked(IReadOnlyList<AchievementData> achievements)
+        {
+            for (int i = 0; i < achievements.Count; i++)
+            {
+                m_achievementsToShow.Add(achievements[i]);
+            }
         }
 
         private void ShowScore()
@@ -163,6 +199,22 @@ namespace SpaceEscaper
                 m_pointsToGoText.SetText("{0} TO GO", highscore - m_shownScore);
                 m_highscoreBarFill.anchorMax = new Vector2((float)m_shownScore / highscore, 1f);
             }
+        }
+
+        // Several that unlock together come one after another, each as long as the other popups.
+        private void ShowAchievementsUnlocked()
+        {
+            HideWhenDone(m_achievementPopup, m_achievementPopupEndTime);
+            if (m_achievementPopup.activeSelf || m_achievementsToShow.Count == 0)
+            {
+                return;
+            }
+
+            ShowAchievement(m_achievementsToShow[0]);
+            m_achievementsToShow.RemoveAt(0);
+            m_achievementPopup.SetActive(true);
+            m_achievementPopupEndTime = Time.time + k_PopupDuration;
+            AudioSystem.Instance.PlayAchievementUnlocked();
         }
 
         // Time.time stands still in the pause, so a popup keeps its time left.

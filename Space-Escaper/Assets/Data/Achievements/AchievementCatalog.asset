@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e415f7f8aaae3c442976739292bdb6fc, type: 3}
+  m_Name: AchievementCatalog
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementCatalog
+  m_achievements:
+  - {fileID: 11400000, guid: 9d1c393378b517d4ab0d0d8d7375961c, type: 2}
+  - {fileID: 11400000, guid: 4ae0ff800632e8c4cb935c7dd8b4c483, type: 2}
+  - {fileID: 11400000, guid: 5b025f182d1f0f948809e131c5de7a4f, type: 2}
+  - {fileID: 11400000, guid: 3bd4a0d5be1bc164e9da16924adf4bc3, type: 2}
+  - {fileID: 11400000, guid: fe5727ca6277ec943b5bcb97bd843714, type: 2}
+  - {fileID: 11400000, guid: e7df979c53f5a37498526987228123a1, type: 2}
+  - {fileID: 11400000, guid: 53c5a55b26689ba4f9a14aa86bf706f2, type: 2}
+  - {fileID: 11400000, guid: c7009c273802b2b4a96cac1cdaf7cb61, type: 2}
+  - {fileID: 11400000, guid: c2d2d55dd5ca105478e08c968386b8a3, type: 2}
+  - {fileID: 11400000, guid: 9b7a761a5f257ab4387271ad11917594, type: 2}
+  - {fileID: 11400000, guid: 1bbb97518f33ae447a252be0500fdde0, type: 2}
+  - {fileID: 11400000, guid: 9fc5cef802da0b642a4b12568f8b35aa, type: 2}

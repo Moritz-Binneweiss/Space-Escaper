@@ -30,6 +30,15 @@ namespace SpaceEscaper.Tests
         // The first run beats it on the way to its first obstacle, at about 13 points.
         private const int k_HighscoreToBeat = 5;
 
+        // The achievements of the first flight, the third crash and the coins collected, which the runs of the test
+        // reach.
+        private const string k_FirstFlightId = "Liftoff";
+        private const string k_ThirdCrashId = "AnotherHappyLanding";
+        private const string k_CoinsId = "MoneyMoneyMoney";
+
+        // Far enough ahead of the ship to be collected a good while before the first obstacle.
+        private const float k_CoinDistance = 15f;
+
         // The test reads time and place after the frame of a tap, the score counts that frame
         // too. A frame of flight is a fraction of a unit, and the ship stops short of the full
         // step when it crashes.
@@ -167,6 +176,13 @@ namespace SpaceEscaper.Tests
                 "The time is not the time the ship flew");
             Assert.That(deathMenu.NewHighscoreBadge.activeSelf, Is.True,
                 "The beaten highscore is not on the death screen");
+            AssertRunIsCounted(runScore, 1);
+            Assert.That(SaveSystem.Data.IsAchievementUnlocked(k_FirstFlightId), Is.True,
+                "The first flight did not unlock its achievement");
+            Assert.That(deathMenu.UnlockedCard.activeSelf, Is.True,
+                "The death screen does not show what the run unlocked");
+            Assert.That(deathMenu.UnlockedTitleText.text, Is.EqualTo(FindAchievement(k_FirstFlightId).Title),
+                "The card shows another achievement than the first flight");
 
             int deathScore = runScore.Score;
             yield return new WaitForSeconds(k_TimeOnDeathScreen);
@@ -217,10 +233,130 @@ namespace SpaceEscaper.Tests
                 "No game menu in the new run");
 
             yield return FlyUntilCrash();
+            AssertRunIsCounted(Object.FindAnyObjectByType<RunScore>(), 2);
+            Assert.That(FindScreen<DeathMenuScreen>().UnlockedCard.activeSelf, Is.False,
+                "The second run shows what the first unlocked");
             crashedRun = GameManager.Instance;
             yield return Tap(FindScreen<DeathMenuScreen>().HangarButton);
             yield return WaitForReload(crashedRun);
             Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Hangar), "The hangar did not open");
+        }
+
+        // A save with two crashes, so the first run unlocks two achievements: the first flight as it starts and the
+        // third crash as it ends. Their rewards wait on the medal in the main menu and at the top of the achievements
+        // screen, and each is paid out once.
+        [UnityTest]
+        public IEnumerator RewardsWaitOnTheMedalUntilTheyAreClaimed()
+        {
+            SaveSystem.Data.RecordCrash(0);
+            SaveSystem.Data.RecordCrash(0);
+            Random.InitState(k_RandomSeed);
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+
+            MainMenuScreen mainMenu = FindScreen<MainMenuScreen>();
+            Assert.That(mainMenu.RewardsBadge.activeSelf, Is.False, "A save without achievements has rewards to claim");
+            yield return Tap(mainMenu.StartButton);
+            yield return FlyUntilCrash();
+            DeathMenuScreen deathMenu = FindScreen<DeathMenuScreen>();
+            Assert.That(deathMenu.UnlockedTitleText.text, Is.EqualTo(FindAchievement(k_FirstFlightId).Title),
+                "The card does not show the first achievement of the run");
+            Assert.That(deathMenu.UnlockedLabelText.text, Is.EqualTo("ACHIEVEMENT UNLOCKED · +1"),
+                "The card does not count the second achievement of the run");
+            GameManager crashedRun = GameManager.Instance;
+            yield return Tap(deathMenu.MenuButton);
+            yield return WaitForReload(crashedRun);
+
+            mainMenu = FindScreen<MainMenuScreen>();
+            Assert.That(mainMenu.RewardsBadge.activeSelf, Is.True, "The medal does not show the rewards to claim");
+            Assert.That(mainMenu.RewardsText.text, Is.EqualTo("2"), "The medal counts the rewards wrong");
+            yield return Tap(mainMenu.AchievementsButton);
+
+            // The screen takes taps once it has been drawn, a frame later.
+            yield return null;
+            AchievementsScreen achievements = FindScreen<AchievementsScreen>();
+            AchievementEntry entry = achievements.Entries[0];
+            Assert.That(entry.Achievement.Id, Is.EqualTo(k_FirstFlightId), "The first flight is not at the top");
+            Assert.That(achievements.Entries[1].Achievement.Id, Is.EqualTo(k_ThirdCrashId),
+                "The second reward to claim is not right after the first");
+            int coins = SaveSystem.Data.Coins;
+            yield return Tap(entry.ClaimButton);
+            Assert.That(SaveSystem.Data.Coins, Is.EqualTo(coins + entry.Achievement.Reward),
+                "The reward was not paid out");
+            Assert.That(SaveSystem.Data.IsAchievementClaimed(k_FirstFlightId), Is.True,
+                "The reward is not marked claimed");
+            Assert.That(entry.ClaimButton.gameObject.activeInHierarchy, Is.False, "The reward can be claimed again");
+            AssertSaveIsWritten("The claim was not saved");
+
+            yield return Tap(achievements.BackButton);
+            Assert.That(mainMenu.RewardsText.text, Is.EqualTo("1"), "The medal still counts the claimed reward");
+            Assert.That(SaveSystem.Data.Coins, Is.EqualTo(coins + entry.Achievement.Reward),
+                "Going back changed the coins");
+        }
+
+        // A save one coin short of the achievement for coins, and a coin put in the way of the ship, as the straight
+        // way to the first obstacle has none. The first flight pops up as the run starts, the coins as soon as the
+        // first flight is done. What unlocks in the middle of the run is saved at once, and the longest run counts
+        // while the run grows.
+        [UnityTest]
+        public IEnumerator AchievementsPopUpAsTheRunUnlocksThem()
+        {
+            Random.InitState(k_RandomSeed);
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+
+            AchievementData coinsAchievement = FindAchievement(k_CoinsId);
+            for (int i = 1; i < coinsAchievement.Target; i++)
+            {
+                SaveSystem.Data.RecordCoin();
+            }
+
+            GameMenuScreen gameMenu = FindScreen<GameMenuScreen>();
+            RunScore runScore = Object.FindAnyObjectByType<RunScore>();
+            Transform ship = Object.FindAnyObjectByType<PlayerMotor>().transform;
+            m_continueButton = FindScreen<PauseMenuScreen>().ContinueButton;
+            yield return Tap(FindScreen<MainMenuScreen>().StartButton);
+
+            // The popup comes at the end of the frame of the tap.
+            yield return null;
+            Assert.That(gameMenu.AchievementPopup.activeSelf, Is.True, "The first flight does not pop up");
+            Assert.That(gameMenu.AchievementTitleText.text, Is.EqualTo(FindAchievement(k_FirstFlightId).Title),
+                "The popup shows another achievement than the first flight");
+
+            Coin coin = Object.FindAnyObjectByType<Coin>();
+            Assert.That(coin, Is.Not.Null, "No coin on the track");
+            coin.transform.position = ship.position + Vector3.forward * k_CoinDistance;
+
+            float startTime = Time.time;
+            int lastDistance = 0;
+            bool isCoinChecked = false;
+            bool hasCoinsPoppedUp = false;
+            while (GameManager.Instance.State != GameState.Dead)
+            {
+                Assert.That(Time.time - startTime, Is.LessThan(k_MaxTimeToCrash), "No crash flying straight");
+                Assert.That(SaveSystem.Data.LongestRun, Is.GreaterThanOrEqualTo(lastDistance),
+                    "The longest run does not count while the run grows");
+                if (runScore.Coins > 0 && !isCoinChecked)
+                {
+                    isCoinChecked = true;
+                    Assert.That(SaveSystem.Data.IsAchievementUnlocked(k_CoinsId), Is.True,
+                        "The coin did not unlock its achievement in the run");
+                    AssertSavedFileHas(k_CoinsId, "The achievement of the coin was not saved at once");
+                }
+
+                hasCoinsPoppedUp |= gameMenu.AchievementPopup.activeSelf
+                    && gameMenu.AchievementTitleText.text == coinsAchievement.Title;
+                lastDistance = runScore.Distance;
+                yield return NextFrame();
+            }
+
+            Assert.That(isCoinChecked, Is.True, "The ship did not collect the coin in its way");
+            Assert.That(hasCoinsPoppedUp, Is.True, "The coins did not pop up after the first flight");
+            DeathMenuScreen deathMenu = FindScreen<DeathMenuScreen>();
+            Assert.That(deathMenu.UnlockedTitleText.text, Is.EqualTo(FindAchievement(k_FirstFlightId).Title),
+                "The card does not show the first achievement of the run");
+            Assert.That(deathMenu.UnlockedLabelText.text, Is.EqualTo("ACHIEVEMENT UNLOCKED · +1"),
+                "The card does not count the achievement of the coin");
         }
 
         // Every screen but the main menu is switched off until the game gets there.
@@ -286,12 +422,14 @@ namespace SpaceEscaper.Tests
         }
 
         // Losing focus in the editor pauses the run, as leaving the app does on a phone.
-        // The test then taps Continue like a player would.
+        // The test then taps Continue like a player would, once the pause menu has been drawn:
+        // a screen switched on in this frame takes no taps yet.
         private IEnumerator NextFrame()
         {
             if (GameManager.Instance.State == GameState.Paused)
             {
                 TestContext.WriteLine("Paused by a focus change, tapping Continue");
+                yield return null;
                 yield return Tap(m_continueButton);
             }
             else
@@ -315,10 +453,55 @@ namespace SpaceEscaper.Tests
         // A death writes coins and highscore right away, here into the test folder.
         private void AssertDeathIsSaved()
         {
-            string path = Path.Combine(m_saveDirectory, k_SaveFileName);
-            Assert.That(File.Exists(path), Is.True, "The death was not saved");
             Assert.That(SaveSystem.Data.Highscore, Is.GreaterThan(0), "The death did not record the score");
-            Assert.That(File.ReadAllText(path), Is.EqualTo(SaveSystem.Data.ToJson()), "The save file is out of date");
+            AssertSaveIsWritten("The death was not saved");
+        }
+
+        private void AssertSaveIsWritten(string message)
+        {
+            string path = Path.Combine(m_saveDirectory, k_SaveFileName);
+            Assert.That(File.Exists(path), Is.True, message);
+            Assert.That(File.ReadAllText(path), Is.EqualTo(SaveSystem.Data.ToJson()), message + ": out of date");
+        }
+
+        // What the achievements count after the crash of a run in the starter ship, the runs before counted too. The
+        // test always flies straight into the first obstacle, so every run is about as long.
+        private static void AssertRunIsCounted(RunScore runScore, int runs)
+        {
+            SaveData saveData = SaveSystem.Data;
+            Assert.That(saveData.Flights, Is.EqualTo(runs), "The flights are not counted");
+            Assert.That(saveData.FlightsInBoughtShips, Is.Zero, "The starter ship counted as bought");
+            Assert.That(saveData.Crashes, Is.EqualTo(runs), "The crashes are not counted");
+            Assert.That(saveData.LongestRun, Is.GreaterThanOrEqualTo(runScore.Distance),
+                "The distance of the run is not counted");
+            if (runs == 1)
+            {
+                Assert.That(saveData.LongestRun, Is.EqualTo(runScore.Distance), "The longest run is not this one");
+                Assert.That(saveData.CoinsCollected, Is.EqualTo(runScore.Coins), "The coins are not counted");
+            }
+        }
+
+        private static AchievementData FindAchievement(string id)
+        {
+            foreach (AchievementData achievement in Object.FindAnyObjectByType<AchievementTracker>().Achievements)
+            {
+                if (achievement.Id == id)
+                {
+                    return achievement;
+                }
+            }
+
+            Assert.Fail("No achievement " + id);
+            return null;
+        }
+
+        // The file on disk, not the save in memory, whose longest run grows with every meter of the run.
+        private void AssertSavedFileHas(string achievementId, string message)
+        {
+            string path = Path.Combine(m_saveDirectory, k_SaveFileName);
+            Assert.That(File.Exists(path), Is.True, message);
+            SaveData saved = SaveData.FromJson(File.ReadAllText(path));
+            Assert.That(saved.IsAchievementUnlocked(achievementId), Is.True, message);
         }
 
         private void FloatingOrigin_WorldShifted(Vector3 offset)

@@ -5,8 +5,8 @@ using UnityEngine;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// Everything the game keeps between sessions: coins, highscore, ships and audio
-    /// settings. <see cref="SaveSystem"/> stores it as one JSON file.
+    /// Everything the game keeps between sessions: coins, highscore, ships, audio
+    /// settings and the achievements. <see cref="SaveSystem"/> stores it as one JSON file.
     /// </summary>
     /// <remarks>
     /// The field names are the keys in the file. A renamed field loses its value in
@@ -28,10 +28,39 @@ namespace SpaceEscaper
         [SerializeField] private bool m_isSfxMuted;
         [SerializeField] private float m_musicVolume = 1f;
         [SerializeField] private float m_sfxVolume = 1f;
+        [SerializeField] private int m_flights;
+        [SerializeField] private int m_flightsInBoughtShips;
+        [SerializeField] private int m_crashes;
+        [SerializeField] private int m_longestRun;
+        [SerializeField] private int m_coinsCollected;
+        [SerializeField] private List<string> m_unlockedAchievementIds = new List<string>();
+        [SerializeField] private List<string> m_claimedAchievementIds = new List<string>();
 
         public int Coins => m_coins;
         public int Highscore => m_highscore;
         public string CurrentShipId => m_currentShipId;
+
+        /// <summary>
+        /// Runs started, from the main menu or with Play again. A revive goes on with the run.
+        /// </summary>
+        public int Flights => m_flights;
+
+        /// <summary>
+        /// Runs started in a ship other than the starter ship, so in one that was bought.
+        /// </summary>
+        public int FlightsInBoughtShips => m_flightsInBoughtShips;
+
+        public int Crashes => m_crashes;
+
+        /// <summary>
+        /// Meters of the longest run so far.
+        /// </summary>
+        public int LongestRun => m_longestRun;
+
+        /// <summary>
+        /// Coins collected in runs, without the rewards of achievements.
+        /// </summary>
+        public int CoinsCollected => m_coinsCollected;
 
         public bool UseNewSounds
         {
@@ -133,6 +162,74 @@ namespace SpaceEscaper
         public void SelectShip(string shipId)
         {
             m_currentShipId = shipId;
+        }
+
+        public void RecordFlight(bool isBoughtShip)
+        {
+            m_flights++;
+            if (isBoughtShip)
+            {
+                m_flightsInBoughtShips++;
+            }
+        }
+
+        /// <summary>
+        /// Counts a coin collected in a run, as it is collected.
+        /// </summary>
+        public void RecordCoin()
+        {
+            m_coinsCollected++;
+        }
+
+        /// <summary>
+        /// Keeps the distance of the run so far if it is the longest, while the run goes on.
+        /// </summary>
+        public void RecordRunDistance(int runDistance)
+        {
+            m_longestRun = Mathf.Max(m_longestRun, runDistance);
+        }
+
+        /// <summary>
+        /// Counts a crash and keeps the distance of the run if it is the longest. A revive goes on with the run, so
+        /// its next crash brings the distance of the whole run.
+        /// </summary>
+        public void RecordCrash(int runDistance)
+        {
+            m_crashes++;
+            RecordRunDistance(runDistance);
+        }
+
+        public bool IsAchievementUnlocked(string achievementId)
+        {
+            return m_unlockedAchievementIds.Contains(achievementId);
+        }
+
+        public bool IsAchievementClaimed(string achievementId)
+        {
+            return m_claimedAchievementIds.Contains(achievementId);
+        }
+
+        public void UnlockAchievement(string achievementId)
+        {
+            if (!IsAchievementUnlocked(achievementId))
+            {
+                m_unlockedAchievementIds.Add(achievementId);
+            }
+        }
+
+        /// <summary>
+        /// Pays out the reward of an unlocked achievement, once.
+        /// </summary>
+        public bool TryClaimAchievement(string achievementId, int reward)
+        {
+            if (!IsAchievementUnlocked(achievementId) || IsAchievementClaimed(achievementId))
+            {
+                return false;
+            }
+
+            m_claimedAchievementIds.Add(achievementId);
+            m_coins += reward;
+            return true;
         }
 
         /// <summary>

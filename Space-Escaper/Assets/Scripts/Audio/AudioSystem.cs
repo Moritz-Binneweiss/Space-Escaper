@@ -251,6 +251,11 @@ namespace SpaceEscaper
 
         public void PlayShipPurchase() => PlaySfx(PickClip(NewSounds.ShipPurchase, ClassicSounds.ShipPurchase));
 
+        public void PlayAchievementUnlocked()
+        {
+            PlaySfx(PickClip(NewSounds.AchievementUnlocked, ClassicSounds.AchievementUnlocked));
+        }
+
         /// <summary>
         /// Switches between the classic and the new sound set. Public so the style
         /// can also be changed from somewhere other than the toggle.

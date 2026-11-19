@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 20ecdfab64088fe4791c976011153e59, type: 3}
+  m_Name: Collector
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
+  m_id: Collector
+  m_title: COLLECTOR
+  m_description: Find every collectible
+  m_icon: {fileID: 21300000, guid: 8ab07c24d2683544cba4106f9cefc95b, type: 3}
+  m_goal: 9
+  m_target: 10
+  m_unit: 
+  m_reward: 1000
+  m_isComingSoon: 1

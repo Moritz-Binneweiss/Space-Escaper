@@ -3,6 +3,7 @@
     "rootNamespace": "SpaceEscaper.Tests",
     "references": [
         "SpaceEscaper",
+        "Unity.TextMeshPro",
         "UnityEngine.UI",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"

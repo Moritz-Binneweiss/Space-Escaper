@@ -22,3 +22,4 @@ MonoBehaviour:
   m_shipSelect: {fileID: 8300000, guid: d057a4fbd9a096c4e8409e9697760cc8, type: 3}
   m_shipDeselect: {fileID: 0}
   m_shipPurchase: {fileID: 0}
+  m_achievementUnlocked: {fileID: 8300000, guid: d057a4fbd9a096c4e8409e9697760cc8, type: 3}
