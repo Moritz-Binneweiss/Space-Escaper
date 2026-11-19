@@ -4,7 +4,7 @@ using UnityEngine.UI;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// The achievements, opened from the main menu. Until the achievements come with v1.8.0, the screen
+    /// The achievements, opened from the main menu. Until the achievements come with v1.5.3, the screen
     /// shows six examples from the mockups, which do nothing yet.
     /// </summary>
     public class AchievementsScreen : MonoBehaviour

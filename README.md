@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.5.1 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.5.2 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -120,9 +120,8 @@ The full license texts roll at the end of the credits in the game and lie next t
 - [ ] Vertical swipe controls
 - [ ] Mini tutorial system
 
-### **v1.8.0** | Achievements & Collectibles _(------- --, 2026)_
+### **v1.8.0** | Collectibles _(------- --, 2026)_
 
-- [ ] Achievements System (Ingame)
 - [ ] Collectibles System
 - [ ] 5 collectible logbooks
 - [ ] 3 collectible star-system cards
@@ -152,7 +151,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 - [ ] German language support
 - [ ] English language support
 
-#### **v1.5.4** | Transitions & Polish _(------- --, 2026)_
+#### **v1.5.5** | Transitions & Polish _(------- --, 2026)_
 
 <small>
 
@@ -163,7 +162,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 </small>
 
-#### **v1.5.3** | UI Colorways _(------- --, 2026)_
+#### **v1.5.4** | UI Colorways _(------- --, 2026)_
 
 <small>
 
@@ -178,14 +177,23 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 </small>
 
-#### **v1.5.2** | Credits, Achievements & Collectibles Screens _(------- --, 2026)_
+#### **v1.5.3** | Achievements _(------- --, 2026)_
 
 <small>
 
-- [x] Added Credits Screen
-- [x] Added Achievements Screen (achievements follow in v1.8.0)
-- [x] Added Collectibles Screen (collectibles follow in v1.8.0)
-- [x] Fixed a new run from "Play again" counting the time the scene took to load
+- [ ] Achievements System (Ingame)
+- [ ] Coin rewards to claim on the achievements screen, instead of the examples
+
+</small>
+
+#### **v1.5.2** | Credits, Achievements & Collectibles Screens _(November 19, 2026)_
+
+<small>
+
+- 🎬 Credits screen with the team, contributors, assets and licenses
+- 🏅 Achievements screen with examples (achievements follow in v1.5.3)
+- 📦 Collectibles screen with placeholders (collectibles follow in v1.8.0)
+- 🐛 Fixed a new run from "Play again" counting the time the scene took to load
 
 </small>
 

@@ -48,8 +48,9 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
 - **Tests auf dem Handy** ausführlich erst kurz vor v2.0 (Entscheidung Oktober 2026).
   Bis dahin reichen Tests im Editor und kurze Stichproben auf dem Handy. Test-APKs
-  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 ist nur
-  im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung 18.11.2026).
+  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 und v1.5.2
+  sind nur im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung
+  18.11.2026).
 
 ## Code-Stil
 
@@ -1214,7 +1215,7 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   `ShowCredits()` die Credits, `ShowAchievements()` die Achievements und
   `ShowCollectibles()` die Collectibles. Alle schalten ihn
   per `SetActive` ein und alle anderen aus,
-  ohne Übergang (Entscheidung Oktober 2026, Übergänge kommen mit v1.5.4, siehe README).
+  ohne Übergang (Entscheidung Oktober 2026, Übergänge kommen mit v1.5.5, siehe README).
   Beim Start zeigt er das Hauptmenü, egal welcher Screen beim Bearbeiten an blieb.
   Gespeichert ist die Szene mit nur dem Hauptmenü an, so sieht sie im Editor aus wie beim
   Start.
@@ -1282,11 +1283,11 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Canvas baut beim Rollen in jedem Frame neu, im Mittel 0,006 ms.
 - **Achievements** (seit v1.5.2, Vorlage Version 6 der Mockups): geöffnet über die Medaille
   neben LAUNCH im Hauptmenü, „Zurück“ zeigt den Screen des Zustands, also das Hauptmenü. Bis
-  die Achievements selbst kommen (gleich nach den Screens von v1.5.2, Moritz, 19.11.2026),
-  zeigt der Screen die sechs Beispiele der Mockups in
-  ihren Zuständen dort, und nichts darauf tut etwas (Moritz, 19.11.2026: „sample achievments
-  einbauen, die noch nicht funktionieren müssen“). Sie stehen fest in der Szene, kein Code
-  füllt sie. Die Zahl der abholbaren Belohnungen an der Medaille kommt erst mit den
+  die Achievements selbst mit v1.5.3 kommen (Moritz, 19.11.2026: „1.5.3 ist dann
+  achievments, mit der vollen implementation“), zeigt der Screen die sechs Beispiele der
+  Mockups in ihren Zuständen dort, und nichts darauf tut etwas (Moritz, 19.11.2026: „sample
+  achievments einbauen, die noch nicht funktionieren müssen“). Sie stehen fest in der Szene,
+  kein Code füllt sie. Die Zahl der abholbaren Belohnungen an der Medaille kommt erst mit den
   Achievements.
   - **Kopf:** der der Settings, der lange Titel wie im Mockup in 20 statt 24. Rechts zeigt ein
     Ring den Anteil, der erledigt ist (`Achievements/SafeArea/Progress`): `ProgressRing` (4
@@ -1308,8 +1309,9 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Liste steht.
 - **Collectibles** (seit v1.5.2, Layout aus Version 6 der Mockups): geöffnet über das Paket
   neben LAUNCH im Hauptmenü, „Zurück“ zeigt den Screen des Zustands, also das Hauptmenü. Die
-  Collectibles selbst kommen erst später (Moritz, 19.11.2026: „keine actuals ... sonder nur so
-  platzhalter aalso ausgegrautet boxen mit soon“), der Screen zeigt deshalb nur ihre Plätze.
+  Collectibles selbst kommen erst mit v1.8.0 (Moritz, 19.11.2026: „keine actuals ... sonder
+  nur so platzhalter aalso ausgegrautet boxen mit soon“), der Screen zeigt deshalb nur ihre
+  Plätze.
   Der Kopf ist der der Achievements, sein Ring leer, „0%“ ausgegraut. Darunter je Abschnitt
   (LOGBOOKS, STAR-SYSTEM CARDS, PLANTS) Symbol, Name und „0 / 5“, „0 / 3“ oder „0 / 2“,
   ausgegraut wie alles, was später kommt. Die Karten sind drei statt zwei wie im Mockup und
@@ -1459,7 +1461,7 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 - **Look aus den Mockups** (seit Schritt 3 von v1.5.1, Vorlage ist Version 6 der
   Mockups): Grund `#050607`, Leuchtfarbe `#57ff5c` mit Schatten `#2b7f2e` und Text
   `#062b08` darauf, Sternenlicht `#ffad3d`, weiße Platten mit Text `#1b1a20` und
-  Schatten `#6f7380`. Das ist das Farbschema „Giftig“: In v1.5.3 sollen sich sechs
+  Schatten `#6f7380`. Das ist das Farbschema „Giftig“: In v1.5.4 sollen sich sechs
   Farbschemata in den Settings wählen lassen (README), bis dahin stehen die Farben
   fest an jedem Element.
   - **Platten** sind ein einziges 9-Slice-Bild, `2026/Plate` (ein weißer Kreis mit 64
