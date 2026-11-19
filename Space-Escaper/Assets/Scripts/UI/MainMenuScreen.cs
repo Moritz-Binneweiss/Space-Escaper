@@ -5,8 +5,8 @@ using UnityEngine.UI;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// The main menu: shows the coins and the highscore, starts a run and opens the hangar, the settings or
-    /// the achievements.
+    /// The main menu: shows the coins and the highscore, starts a run and opens the hangar, the settings,
+    /// the achievements or the collectibles.
     /// </summary>
     public class MainMenuScreen : MonoBehaviour
     {
@@ -18,6 +18,7 @@ namespace SpaceEscaper
         [SerializeField] private Button m_hangarButton;
         [SerializeField] private Button m_settingsButton;
         [SerializeField] private Button m_achievementsButton;
+        [SerializeField] private Button m_collectiblesButton;
 
         // For tests, which tap it like a player.
         internal Button StartButton => m_startButton;
@@ -30,6 +31,7 @@ namespace SpaceEscaper
             m_hangarButton.onClick.AddListener(m_gameManager.OpenHangar);
             m_settingsButton.onClick.AddListener(m_screens.ShowSettings);
             m_achievementsButton.onClick.AddListener(m_screens.ShowAchievements);
+            m_collectiblesButton.onClick.AddListener(m_screens.ShowCollectibles);
 
             SaveData saveData = SaveSystem.Data;
             m_coinText.SetText("{0}", saveData.Coins);
@@ -42,6 +44,7 @@ namespace SpaceEscaper
             m_hangarButton.onClick.RemoveListener(m_gameManager.OpenHangar);
             m_settingsButton.onClick.RemoveListener(m_screens.ShowSettings);
             m_achievementsButton.onClick.RemoveListener(m_screens.ShowAchievements);
+            m_collectiblesButton.onClick.RemoveListener(m_screens.ShowCollectibles);
         }
     }
 }

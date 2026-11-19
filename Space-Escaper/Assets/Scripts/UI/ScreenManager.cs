@@ -4,7 +4,7 @@ namespace SpaceEscaper
 {
     /// <summary>
     /// Shows one screen of the UI at a time and switches the others off: the screen of the state
-    /// the game is in, or the settings, the credits or the achievements over it.
+    /// the game is in, or the settings, the credits, the achievements or the collectibles over it.
     /// </summary>
     public class ScreenManager : MonoBehaviour
     {
@@ -14,6 +14,7 @@ namespace SpaceEscaper
         [SerializeField] private GameObject m_settings;
         [SerializeField] private GameObject m_credits;
         [SerializeField] private GameObject m_achievements;
+        [SerializeField] private GameObject m_collectibles;
         [SerializeField] private GameObject m_shop;
         [SerializeField] private GameObject m_deathMenu;
 
@@ -23,7 +24,8 @@ namespace SpaceEscaper
         {
             m_screens = new[]
             {
-                m_mainMenu, m_gameMenu, m_pauseMenu, m_settings, m_credits, m_achievements, m_shop, m_deathMenu
+                m_mainMenu, m_gameMenu, m_pauseMenu, m_settings, m_credits, m_achievements, m_collectibles, m_shop,
+                m_deathMenu
             };
 
             // The game starts in the main menu, whichever screen was left switched on
@@ -49,6 +51,11 @@ namespace SpaceEscaper
         public void ShowAchievements()
         {
             Show(m_achievements);
+        }
+
+        public void ShowCollectibles()
+        {
+            Show(m_collectibles);
         }
 
         private GameObject GetScreen(GameState state)

@@ -125,8 +125,8 @@ The full license texts roll at the end of the credits in the game and lie next t
 - [ ] Achievements System (Ingame)
 - [ ] Collectibles System
 - [ ] 5 collectible logbooks
+- [ ] 3 collectible star-system cards
 - [ ] 2 collectible plants
-- [ ] 2 collectible star-system cards
 
 ### **v1.7.0** | Art, Visuals & Sound _(------- --, 2026)_
 
@@ -184,7 +184,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 - [x] Added Credits Screen
 - [x] Added Achievements Screen (achievements follow in v1.8.0)
-- [ ] Added Collectibles Screen (collectibles follow in v1.8.0)
+- [x] Added Collectibles Screen (collectibles follow in v1.8.0)
 
 </small>
 
