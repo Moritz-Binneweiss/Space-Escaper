@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.5.2 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.5.3 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -178,13 +178,13 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 </small>
 
-#### **v1.5.3** | Achievements _(------- --, 2026)_
+#### **v1.5.3** | Achievements _(November 19, 2026)_
 
 <small>
 
-- [x] Achievements System (Ingame)
-- [x] Coin rewards to claim on the achievements screen, instead of the examples
-- [x] Popup during the run when an achievement unlocks
+- 🏆 Twelve achievements that count and unlock in the game
+- 🪙 Coin rewards to claim on the achievements screen, counted on the medal in the main menu
+- 🔔 Popup during the run when an achievement unlocks
 
 </small>
 

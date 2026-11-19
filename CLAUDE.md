@@ -49,7 +49,7 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
 - **Tests auf dem Handy** ausführlich erst kurz vor v2.0 (Entscheidung Oktober 2026).
   Bis dahin reichen Tests im Editor und kurze Stichproben auf dem Handy. Test-APKs
-  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 und v1.5.2
+  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 bis v1.5.3
   sind nur im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung
   18.11.2026).
 
