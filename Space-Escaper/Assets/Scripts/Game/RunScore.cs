@@ -77,7 +77,7 @@ namespace SpaceEscaper
         // origin moves back every few thousand units.
         private void Update()
         {
-            if (m_gameManager.State != GameState.Run)
+            if (!m_gameManager.IsShipFlying)
             {
                 return;
             }

@@ -39,7 +39,12 @@ namespace SpaceEscaper
             switch (GameManager.Instance.State)
             {
                 case GameState.Run:
-                    FollowShip();
+                    // While the scene loads for a run that Play again starts, the ship waits, and the camera with it.
+                    if (GameManager.Instance.IsShipFlying)
+                    {
+                        FollowShip();
+                    }
+
                     break;
 
                 case GameState.Dead:

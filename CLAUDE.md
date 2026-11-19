@@ -185,8 +185,9 @@ Schiff und Kamera bewegen sich stetig, alles andere behält seinen Platz in der
 Welt, die Gruppen der Szene bleiben im Ursprung, und die Abschnitte liegen
 lückenlos hintereinander bis zur nächsten Spawn-Position. Ein zweiter Test
 (`DeathScreenStartsANewRunOrOpensTheHangar`, seit v1.5.1) tippt nach einem Crash „Play
-again“ und prüft, dass nach dem Neuladen gleich ein neuer Run läuft, ohne Münzen und
-Strecke, dann nach dem nächsten Crash „Hangar“.
+again“ und prüft, dass nach dem Neuladen gleich ein neuer Run läuft, ohne Münzen und seit
+v1.5.2 nach den beiden Ladeframes ohne Zeit und Strecke (siehe „Play again“ unter
+„Spielzustand“), dann nach dem nächsten Crash „Hangar“.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit `unity command test run`. Sie dauern
@@ -334,7 +335,10 @@ Strecke, dann nach dem nächsten Crash „Hangar“.
   rot (748,8 Einheiten hoch bei 676 bis 688 Platz). Der Test für „Play again“
   scheiterte, solange der `GameManager` nach dem Neuladen nichts tat. In v1.5.2 war
   `CreditsTests` gegen die alte README rot (0 statt 18 Zeilen) und mit einer README, in der
-  bei Moritz „Composer“ fehlte (die Zeile an Index 1).
+  bei Moritz „Composer“ fehlte (die Zeile an Index 1). Der Test für „Play again“ war in
+  v1.5.2 erst nur in einem von zwei Läufen rot (Strecke 1 statt unter 1). Seit er Zeit und
+  Strecke 0 nach den beiden Ladeframes verlangt, war er gegen den alten Code in jedem Lauf
+  rot (0,081 s), mit `IsShipFlying` in drei Läufen hintereinander grün.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -1132,6 +1136,13 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
   `s_reloadTarget`, es überlebt das Neuladen. In `Start` sind alle `Awake` und `OnEnable`
   der Szene gelaufen und noch kein `Update`, der Run startet also wie aus dem Menü, mit
   dem Schwenk der Kamera hinter das Schiff.
+  - **Ladeframes:** Nach „Play again“ fliegt der Run erst ab dem dritten Frame der neuen
+    Szene (`GameManager.IsShipFlying`, seit v1.5.2), Schiff, Kamera und Score stehen bis
+    dahin. Die ersten beiden Frames bringen die Ladezeit als `Time.deltaTime` mit, gemessen
+    im Editor 75 bis 114 ms je Frame, und im zweiten wiederholt Unity den Wert des ersten.
+    Auf dem Handy sind es bis zu `Time.maximumDeltaTime` (0,33 s) je Frame. Bis dahin zählte
+    der Run beide mit und begann rund 2 Einheiten und 0,2 s weit, sichtbar wurde das erst,
+    als die Szene mit den Screens von v1.5.2 länger lud.
 - **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
   setzt `Time.timeScale`, 0 nur in der Pause.
 - **Settings, Credits, Achievements und Collectibles sind kein Zustand,** sondern Screens
@@ -1160,9 +1171,10 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 | `TileManager` | `ShipRevived` | neue Abschnitte, nur mit `m_respawnsOnRevive` (die Strecke) |
 
 - **Den Zustand lesen** `PlayerMotor` (fliegt nur in `Run`), `CameraMotor` (folgt in
-  `Run`, bremst in `Dead`, steht sonst), `RunScore` (zählt nur in `Run`), die
-  Zurück-Buttons im `SettingsScreen`, `AchievementsScreen` und `CollectiblesScreen` und
-  `RunTests`. Die übrigen Screens brauchen ihn nicht: Der `ScreenManager` schaltet sie
+  `Run`, bremst in `Dead`, steht sonst) und `RunScore` (zählt nur in `Run`), für den Run
+  seit v1.5.2 über `GameManager.IsShipFlying`, das die Ladeframes von „Play again“
+  auslässt (siehe oben). Dazu die Zurück-Buttons im `SettingsScreen`, `AchievementsScreen`
+  und `CollectiblesScreen` und `RunTests`. Die übrigen Screens brauchen ihn nicht: Der `ScreenManager` schaltet sie
   ein, und sie zeigen beim Einschalten, was gerade gilt (siehe „UI“).
 - **Münzen** melden sich über das statische Ereignis `Coin.Collected` (seit v1.5.0,
   bis dahin `GameManager.CollectCoin`), `RunScore` zählt sie. Den Multiplikator rechnet
@@ -1170,7 +1182,7 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
   `PlayerMotor` ihn bei jeder Tempo-Stufe.
 - **Neues, das auf den Spielverlauf reagiert,** meldet sich an einem Ereignis an (in
   `OnEnable`, ab in `OnDisable`) oder liest `State`, statt einen eigenen Schalter zu
-  führen. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
+  führen. Was mit dem Schiff mitläuft und `Time.deltaTime` zählt, liest `IsShipFlying`. Ein neuer Übergang ist eine Methode im `GameManager`: Zustand prüfen,
   `ChangeState`, dann das Ereignis auslösen.
 - **Geprüft in v1.5.0** mit einem Klick-Durchlauf über die echten Buttons, vorher und
   nachher, mit festem Zufall und fester Bildrate: alle Übergänge, „Exit“ aus Pause und

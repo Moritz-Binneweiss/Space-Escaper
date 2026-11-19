@@ -208,7 +208,11 @@ namespace SpaceEscaper.Tests
             RunScore runScore = Object.FindAnyObjectByType<RunScore>();
             Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Run), "Play again did not start a run");
             Assert.That(runScore.Coins, Is.EqualTo(0), "The new run started with coins");
-            Assert.That(runScore.Distance, Is.LessThan(k_DistanceTolerance), "The new run started on the way");
+
+            // The test is in the second frame of the new scene now. Both bring the time of loading it as
+            // Time.deltaTime, so the run must not have counted anything yet.
+            Assert.That(runScore.FlightTime, Is.Zero, "The new run counted the time of loading the scene");
+            Assert.That(runScore.Distance, Is.Zero, "The new run started on the way");
             Assert.That(FindScreen<GameMenuScreen>().PauseButton.gameObject.activeInHierarchy, Is.True,
                 "No game menu in the new run");
 

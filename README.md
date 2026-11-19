@@ -185,6 +185,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 - [x] Added Credits Screen
 - [x] Added Achievements Screen (achievements follow in v1.8.0)
 - [x] Added Collectibles Screen (collectibles follow in v1.8.0)
+- [x] Fixed a new run from "Play again" counting the time the scene took to load
 
 </small>
 

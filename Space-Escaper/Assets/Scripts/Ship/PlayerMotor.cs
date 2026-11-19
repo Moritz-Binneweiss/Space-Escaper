@@ -68,7 +68,7 @@ namespace SpaceEscaper
 
         private void Update()
         {
-            if (GameManager.Instance.State != GameState.Run)
+            if (!GameManager.Instance.IsShipFlying)
             {
                 return;
             }
