@@ -162,8 +162,8 @@ namespace SpaceEscaper
             m_modifierText.SetText("×{0:0.0}", m_shownModifier);
         }
 
-        // The highscore to beat is the one the run started with. Once the run has beaten it, the banner says so once and
-        // the bar is done for this run.
+        // The highscore to beat is the one the run started with. Once the run has beaten it, the banner says so once
+        // and the bar is done for this run.
         private void ShowHighscoreProgress()
         {
             int highscore = m_runScore.PreviousHighscore;
