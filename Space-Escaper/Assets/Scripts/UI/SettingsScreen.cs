@@ -7,8 +7,8 @@ namespace SpaceEscaper
     /// <summary>
     /// The settings, opened from the main menu or the pause menu. Connects its audio controls to
     /// <see cref="AudioSystem"/>, which survives scene reloads, so the audio system needs no references
-    /// into the scene, opens the credits and shows the version of the game. In the editor and in builds
-    /// with checks it also has an Invincible switch for testing.
+    /// into the scene, opens the colorways and the credits and shows the version of the game. In the editor and
+    /// in builds with checks it also has an Invincible switch for testing.
     /// </summary>
     public class SettingsScreen : MonoBehaviour
     {
@@ -27,12 +27,24 @@ namespace SpaceEscaper
         [SerializeField] private TMP_Text m_sfxVolumeText;
         [Tooltip("The sounds of the 2020 original. Its look comes with the remaster in v1.7.0.")]
         [SerializeField] private Toggle m_classicModeToggle;
+        [SerializeField] private Button m_colorwayButton;
+        [Tooltip("The name of the colorway the UI shows.")]
+        [SerializeField] private TMP_Text m_colorwayText;
         [SerializeField] private Button m_creditsButton;
         [SerializeField] private TMP_Text m_versionText;
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         private Toggle m_invincibleToggle;
+#endif
 
+        // For tests, which tap them like a player.
+        internal Button BackButton => m_backButton;
+
+        internal Button ColorwayButton => m_colorwayButton;
+
+        internal TMP_Text ColorwayText => m_colorwayText;
+
+#if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         // The switch is a copy of the classic mode row made at runtime, so the scene stays as it is and release
         // builds have no trace of it. The layout of its section puts it below. On a phone it is easier to hit than
         // the three-finger double tap of the test panel, and it does not need the Rendering Debugger, whose first
@@ -53,12 +65,14 @@ namespace SpaceEscaper
             m_musicSlider.onValueChanged.AddListener(MusicSlider_ValueChanged);
             m_sfxSlider.onValueChanged.AddListener(SfxSlider_ValueChanged);
             m_classicModeToggle.onValueChanged.AddListener(ClassicModeToggle_ValueChanged);
+            m_colorwayButton.onClick.AddListener(m_screens.ShowColorways);
             m_creditsButton.onClick.AddListener(m_screens.ShowCredits);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.AddListener(InvincibleToggle_ValueChanged);
             m_invincibleToggle.SetIsOnWithoutNotify(PlayerMotor.IsInvincible);
 #endif
             m_versionText.SetText(Application.version);
+            m_colorwayText.SetText(ColorwayManager.Current.Title);
             ShowCurrentSettings();
         }
 
@@ -68,6 +82,7 @@ namespace SpaceEscaper
             m_musicSlider.onValueChanged.RemoveListener(MusicSlider_ValueChanged);
             m_sfxSlider.onValueChanged.RemoveListener(SfxSlider_ValueChanged);
             m_classicModeToggle.onValueChanged.RemoveListener(ClassicModeToggle_ValueChanged);
+            m_colorwayButton.onClick.RemoveListener(m_screens.ShowColorways);
             m_creditsButton.onClick.RemoveListener(m_screens.ShowCredits);
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.RemoveListener(InvincibleToggle_ValueChanged);

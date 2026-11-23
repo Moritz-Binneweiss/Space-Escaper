@@ -60,6 +60,11 @@ namespace SpaceEscaper.Tests
         private const float k_MaxStepPerFrame = k_FloatingOriginDistance / 2f;
         private const float k_PlaceTolerance = 0.001f;
 
+        // A new installation shows the default colorway. The test chooses one that differs from it in every color.
+        private const string k_DefaultColorwayId = "Toxic";
+        private const string k_ChosenColorwayId = "Nebula";
+        private const float k_ColorTolerance = 0.001f;
+
         private readonly Dictionary<Transform, float> m_places = new Dictionary<Transform, float>();
         private readonly List<TileManager> m_tileManagers = new List<TileManager>();
         private readonly List<Transform> m_groups = new List<Transform>();
@@ -360,6 +365,74 @@ namespace SpaceEscaper.Tests
         }
 
         // Every screen but the main menu is switched off until the game gets there.
+        // Through the settings to the colorways and back with the buttons of the game. A card shows its colorway at
+        // once on the screen it is on, on the screens that come on later and on the button of the hangar, which
+        // showed the colorway of before already. It keeps the choice in the save and shows it again after a reload.
+        [UnityTest]
+        public IEnumerator ColorwaysRecolorTheWholeUi()
+        {
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+
+            MainMenuScreen mainMenu = FindScreen<MainMenuScreen>();
+            SettingsScreen settings = FindScreen<SettingsScreen>();
+            ColorwaysScreen colorways = FindScreen<ColorwaysScreen>();
+            ShopScreen shop = FindScreen<ShopScreen>();
+            Assert.That(ColorwayManager.Current.Id, Is.EqualTo(k_DefaultColorwayId), "A new install has a colorway");
+
+            yield return Tap(mainMenu.HangarButton);
+            yield return null;
+            yield return Tap(shop.BackButton);
+            yield return null;
+            yield return Tap(mainMenu.SettingsButton);
+            yield return null;
+            Assert.That(settings.ColorwayText.text, Is.EqualTo(ColorwayManager.Current.Title));
+            yield return Tap(settings.ColorwayButton);
+            yield return null;
+
+            ColorwayCard chosenCard = null;
+            foreach (ColorwayCard card in colorways.Cards)
+            {
+                if (card.Colorway.Id == k_ChosenColorwayId)
+                {
+                    chosenCard = card;
+                }
+            }
+
+            ColorwayData chosen = chosenCard.Colorway;
+            yield return Tap(chosenCard.Button);
+            Assert.That(ColorwayManager.Current, Is.EqualTo(chosen), "The card did not choose its colorway");
+            Assert.That(SaveSystem.Data.ColorwayId, Is.EqualTo(chosen.Id));
+            AssertSaveIsWritten("The colorway was not saved");
+            foreach (ColorwayCard card in colorways.Cards)
+            {
+                Assert.That(card.Check.activeSelf, Is.EqualTo(card == chosenCard), $"The check at {card.name}");
+            }
+
+            AssertShowsColorway(colorways, chosen);
+
+            yield return null;
+            yield return Tap(colorways.BackButton);
+            yield return null;
+            Assert.That(settings.ColorwayText.text, Is.EqualTo(chosen.Title));
+            AssertShowsColorway(settings, chosen);
+            yield return Tap(settings.BackButton);
+            yield return null;
+            AssertShowsColorway(mainMenu, chosen);
+            yield return Tap(mainMenu.HangarButton);
+            yield return null;
+            AssertShowsColorway(shop, chosen);
+            Color buttonColor = shop.SelectOrBuyLook.Plate.color;
+            Assert.That(GetColorDifference(buttonColor, chosen.Glow), Is.LessThan(k_ColorTolerance),
+                "The hangar shows its button in the colorway of before");
+
+            GameManager oldGameManager = GameManager.Instance;
+            oldGameManager.ReturnToMenu();
+            yield return WaitForReload(oldGameManager);
+            Assert.That(ColorwayManager.Current, Is.EqualTo(chosen), "The reload forgot the colorway");
+            AssertShowsColorway(FindScreen<MainMenuScreen>(), chosen);
+        }
+
         private static T FindScreen<T>() where T : Object
         {
             T screen = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
@@ -406,6 +479,31 @@ namespace SpaceEscaper.Tests
             }
 
             yield return null;
+        }
+
+        // Every element with a role on a screen that is on shows it in the colorway, a glow with the image of its
+        // color.
+        private static void AssertShowsColorway(Component screen, ColorwayData colorway)
+        {
+            ColorwayTint[] tints = screen.GetComponentsInChildren<ColorwayTint>();
+            Assert.That(tints, Is.Not.Empty, $"Nothing on {screen.name} follows the colorway");
+            foreach (ColorwayTint tint in tints)
+            {
+                Graphic graphic = tint.GetComponent<Graphic>();
+                Assert.That(GetColorDifference(graphic.color, tint.GetColor(colorway)), Is.LessThan(k_ColorTolerance),
+                    $"{tint.name} on {screen.name} is not in {colorway.Title}");
+                if (tint.IsGlow)
+                {
+                    Assert.That(((Image)graphic).sprite, Is.EqualTo(tint.GetGlowImage(colorway)),
+                        $"{tint.name} on {screen.name} shows the glow of another colorway");
+                }
+            }
+        }
+
+        private static float GetColorDifference(Color a, Color b)
+        {
+            return Mathf.Max(Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Abs(a.g - b.g)),
+                Mathf.Max(Mathf.Abs(a.b - b.b), Mathf.Abs(a.a - b.a)));
         }
 
         // The new scene wakes before the old one is gone, and goes on in its first frame.

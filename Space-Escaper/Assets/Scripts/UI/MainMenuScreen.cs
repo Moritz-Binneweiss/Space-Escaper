@@ -30,6 +30,10 @@ namespace SpaceEscaper
 
         internal Button AchievementsButton => m_achievementsButton;
 
+        internal Button HangarButton => m_hangarButton;
+
+        internal Button SettingsButton => m_settingsButton;
+
         // For tests, which check them before and after claiming.
         internal GameObject RewardsBadge => m_rewardsBadge;
 

@@ -4,15 +4,15 @@ using UnityEngine.UI;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// Shows a toggle as a switch: the knob sits right and the track takes the accent color while it is on.
+    /// Shows a toggle as a switch: the knob sits right and the track takes the glow color while it is on.
     /// </summary>
     [RequireComponent(typeof(Toggle))]
     public class ToggleSwitch : MonoBehaviour
     {
         [SerializeField] private Graphic m_track;
         [SerializeField] private RectTransform m_knob;
-        [SerializeField] private Color m_onColor;
-        [SerializeField] private Color m_offColor;
+        [SerializeField] private ColorwayColor m_onColor = new ColorwayColor(ColorwayRole.Glow);
+        [SerializeField] private ColorwayColor m_offColor = new ColorwayColor(ColorwayRole.Fixed);
         [Tooltip("Horizontal position of the knob in the track while the toggle is off.")]
         [SerializeField] private float m_offX = -12f;
         [Tooltip("Horizontal position of the knob in the track while the toggle is on.")]
@@ -44,7 +44,7 @@ namespace SpaceEscaper
         private void Show()
         {
             m_isShownOn = m_toggle.isOn;
-            m_track.color = m_isShownOn ? m_onColor : m_offColor;
+            m_track.color = (m_isShownOn ? m_onColor : m_offColor).Resolve(ColorwayManager.Current);
             m_knob.anchoredPosition = new Vector2(m_isShownOn ? m_onX : m_offX, m_knob.anchoredPosition.y);
         }
     }

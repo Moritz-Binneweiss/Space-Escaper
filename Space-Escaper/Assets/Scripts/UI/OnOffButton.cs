@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// The look of a button that switches something on and off, like the music: in the accent color while it is on,
+    /// The look of a button that switches something on and off, like the music: in the glow color while it is on,
     /// grey while it is off, with the state written on it.
     /// </summary>
     public class OnOffButton : MonoBehaviour
@@ -18,20 +18,22 @@ namespace SpaceEscaper
         [Tooltip("Icon, label and state, which all take the color of the text.")]
         [SerializeField] private Graphic[] m_texts;
         [SerializeField] private TMP_Text m_stateText;
-        [SerializeField] private Color m_onFillColor;
-        [SerializeField] private Color m_onBorderColor;
-        [SerializeField] private Color m_onTextColor;
-        [SerializeField] private Color m_offFillColor;
-        [SerializeField] private Color m_offBorderColor;
-        [SerializeField] private Color m_offTextColor;
+        [SerializeField] private ColorwayColor m_onFillColor = new ColorwayColor(ColorwayRole.Glow);
+        [SerializeField] private ColorwayColor m_onBorderColor = new ColorwayColor(ColorwayRole.Glow);
+        [SerializeField] private ColorwayColor m_onTextColor = new ColorwayColor(ColorwayRole.Glow);
+        [SerializeField] private ColorwayColor m_offFillColor = new ColorwayColor(ColorwayRole.Fixed);
+        [SerializeField] private ColorwayColor m_offBorderColor = new ColorwayColor(ColorwayRole.Fixed);
+        [SerializeField] private ColorwayColor m_offTextColor = new ColorwayColor(ColorwayRole.Fixed);
 
         public void ShowState(bool isOn)
         {
-            m_fill.color = isOn ? m_onFillColor : m_offFillColor;
-            m_border.color = isOn ? m_onBorderColor : m_offBorderColor;
+            ColorwayData colorway = ColorwayManager.Current;
+            m_fill.color = (isOn ? m_onFillColor : m_offFillColor).Resolve(colorway);
+            m_border.color = (isOn ? m_onBorderColor : m_offBorderColor).Resolve(colorway);
+            Color textColor = (isOn ? m_onTextColor : m_offTextColor).Resolve(colorway);
             foreach (Graphic text in m_texts)
             {
-                text.color = isOn ? m_onTextColor : m_offTextColor;
+                text.color = textColor;
             }
 
             m_stateText.text = isOn ? k_OnText : k_OffText;

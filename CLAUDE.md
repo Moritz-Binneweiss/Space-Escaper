@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 52 Skripte, ~4900 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 60 Skripte, ~5500 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -18,7 +18,9 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   `Ship/MobileInput.cs`, `World/TileManager.cs` (Spawning), `Save/SaveSystem.cs` /
   `Save/SaveData.cs` (Spielstand), `Ship/ShipData.cs` / `Ship/ShipCatalog.cs`
   (Schiffe), `Achievements/AchievementTracker.cs` und
-  `Achievements/AchievementProgress.cs` (Achievements, siehe „Achievements“ unter „UI“).
+  `Achievements/AchievementProgress.cs` (Achievements, siehe „Achievements“ unter „UI“),
+  `Colorways/ColorwayManager.cs` und `Colorways/ColorwayColor.cs` (Farbschemata, siehe
+  „Farbschemata“ unter „UI“).
 - `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, die PlayMode-Tests in
   `PlayMode/`, siehe „Tests“. Dort liegt auch `TestFrameworkFix`, siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“.
@@ -182,6 +184,19 @@ zeigt wie seine Daten, `LayoutTests`, dass jedes Achievement auf die Karte des
 Todesbildschirms passt und die Karte auf allen zehn Displays über REVIVE bleibt, und dass
 jedes ins Popup im Run passt, ohne dass seine Belohnung ins Label reicht (siehe
 „Achievements“ unter „UI“).
+Seit v1.5.4 prüft `ColorwayCatalogTests` die Farbschemata wie `ShipCatalogTests` die Schiffe: jedes
+`ColorwayData` genau einmal im Katalog, eindeutige IDs, Titel in Großbuchstaben, nur deckende
+Farben, beide Leuchten, TOXIC als Schema einer Neuinstallation, eine unbekannte oder leere ID
+findet es, und jeder Text erreicht in jedem Schema mindestens 4,5:1 Kontrast (WCAG AA): auf
+Leuchtfarbe und Sternenlicht, beide auf dem Grund und Weiß, Beschreibungen und Labels darauf.
+`ColorwayColorTests` prüft die Rollen an eigenen Schemata des Tests: Rolle und feste Farbe,
+Durchsichtiges so hell wie im Browser, über einem helleren Grund mit mehr Alpha, über der Welt
+unabhängig vom Grund, Ausgegrautes deckend gemischt über dem Abschnitt. `SceneTests` prüft, dass
+jedes Element in einer Farbe von TOXIC eine Rolle hat (außer dem, was Skripte nach Zustand
+färben, und den Karten), dass jede Rolle in der Szene TOXIC zeigt, auch die Bilder der Leuchten,
+und dass es genau einen `ColorwayManager` mit dem Katalog gibt und je Schema eine Karte in seiner
+Reihenfolge, die Titel und Farben ihrer Daten zeigt. `SaveDataTests` prüft die Wahl im Spielstand
+(siehe „Farbschemata“ unter „UI“).
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
@@ -217,13 +232,17 @@ prüft Münzen und Spielstand und nach „Zurück“ die 1 an der Medaille. Ein 
 Münze aus der Strecke 15 Einheiten vor das Schiff, denn geradeaus bis zum ersten Hindernis liegt
 keine. Er prüft das Popup mit LIFTOFF beim Start, dass der längste Run mitzählt, während der Run
 wächst, dass die Münze ihr Achievement mitten im Run freischaltet und gleich speichert, dass es
-nach LIFTOFF aufpoppt und die Karte danach „· +1“ zeigt.
+nach LIFTOFF aufpoppt und die Karte danach „· +1“ zeigt. Ein fünfter
+(`ColorwaysRecolorTheWholeUi`, seit v1.5.4) öffnet erst den Hangar, dann über die Settings die
+Farbschemata und tippt NEBULA. Er prüft Spielstand und Haken und dass jedes Element mit Rolle auf
+dem Screen sofort NEBULA zeigt, danach in Settings, Hauptmenü und Hangar samt dem Button unter
+dem Schiff, und nach dem Neuladen der Szene noch immer.
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit `unity command test run`. Sie dauern
   wenige Sekunden, also vor jedem Commit, der `SaveData`, `SaveSystem`, `RunCoins`, die
-  Szene, UI-Bilder, den Atlas, die Achievements oder eine Methode ändert, die ein Button
-  aufruft. Grün ist
+  Szene, UI-Bilder, den Atlas, die Achievements, die Farbschemata oder eine Methode ändert,
+  die ein Button aufruft. Grün ist
   ein Lauf bei Exit-Code 0, bei 6 ist ein Test rot (gesehen in v1.5.2 mit dem
   Pipeline-Paket 1.0.0, davor 8), `--format json` gibt eine Zeile pro Test aus. Den
   PlayMode-Test nur asynchron:
@@ -232,9 +251,9 @@ nach LIFTOFF aufpoppt und die Karte danach „· +1“ zeigt.
   `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
   Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
   verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
-  aus (in v1.5.3 116 Tests in rund 31 s). Mit dem Wechsel in den Play Mode dauern die
-  vier PlayMode-Tests rund 27 s, also
-  vor Commits, die Run, Tod, Revive, das Spawnen oder die Achievements ändern. Meldet ein asynchroner
+  aus (in v1.5.4 133 Tests in rund 33 s). Mit dem Wechsel in den Play Mode dauern die
+  fünf PlayMode-Tests rund 28 s, also
+  vor Commits, die Run, Tod, Revive, das Spawnen, die Achievements oder die Farbschemata ändern. Meldet ein asynchroner
   PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“). Die CLI legt eine
   `TestResults.xml` neben den Spielstand, die darf weg. Ist die offene Szene
@@ -389,6 +408,17 @@ nach LIFTOFF aufpoppt und die Karte danach „· +1“ zeigt.
   Münze, die nichts freischaltet, beides wie vorher, eine, die freischaltet, ohne zu speichern,
   eine Spielanzeige ohne Popup, eine, die verliert, was freischaltet, während eins zu sehen ist,
   und ein Popup von 300 statt 330 Breite (die Belohnung ab „+200“ rund 10 Einheiten im Label).
+  In v1.5.4 war jeder neue Test der Farbschemata rot, mit eingebauten Fehlern in mehreren Runden.
+  In den Daten: ein Schema, das im Katalog fehlt, eine doppelte ID, ein Titel in
+  Kleinbuchstaben, CLASSIC als erstes Schema und Text auf dem Orange mit 2,18:1. Im Code: Sternenlicht
+  als Leuchtfarbe, eine feste Farbe, die sich ändert, Durchsichtiges ohne Umrechnung (zu hell und
+  über jedem Grund gleich), Ausgegrautes über dem Grund statt dem Abschnitt, „über der Welt“ über
+  dem Grund des Schemas, eine unbekannte ID ohne Schema und eine Wahl, die der Spielstand nicht
+  schreibt. In der Szene: LAUNCH ohne Rolle, GAME mit der Rolle Sternenlicht, zwei vertauschte
+  Karten und drei Karten mit je einer falschen Farbe, am Punkt der Leuchtfarbe, am Punkt des
+  Sternenlichts und am Haken. Im PlayMode-Test: Elemente, die nicht auf den Wechsel hören (der Screen der Farbschemata
+  blieb TOXIC), der Button unter dem Schiff, der nur beim ersten Öffnen des Hangars färbt (so war es
+  beim Bauen wirklich, gefunden an Bildern der Screens), und eine Wahl ohne Speichern.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -402,7 +432,7 @@ nur Ordner.
 |---|---|
 | `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
-| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`, `Achievements/`: ein `AchievementData` pro Achievement und der `AchievementCatalog`) |
+| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`, `Achievements/`: ein `AchievementData` pro Achievement und der `AchievementCatalog`, `Colorways/`: ein `ColorwayData` pro Farbschema und der `ColorwayCatalog`) |
 | `Editor/` | Werkzeuge für den Editor: das Test-Menü und seine Assembly Definition |
 | `Materials/` | Materialien, nach Gruppe |
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
@@ -431,7 +461,8 @@ nur Ordner.
   `Models/` beieinander und nicht in `Textures/`.
 - **Skripte liegen nach Bereich** (seit v1.5.0, bis dahin flach, Entscheidung Oktober
   2026): `Achievements/` (Daten, Regeln und Zählen der Achievements, seit v1.5.3),
-  `Audio/` (`AudioSystem`, `AudioBank`), `Game/` (Spielzustand, Score, Bildrate,
+  `Audio/` (`AudioSystem`, `AudioBank`), `Colorways/` (Daten, Rollen und Wahl der
+  Farbschemata, seit v1.5.4), `Game/` (Spielzustand, Score, Bildrate,
   Test-Panel), `Save/` (Spielstand), `Ship/` (das Schiff, seine Eingabe und die
   Schiffsdaten), `UI/` (die Screens und ihre Bausteine) und `World/` (Strecke,
   Floating Origin, Drehen, Münze, Raumhafen, Hangar, Kamera). Ein neues Skript kommt in
@@ -454,9 +485,12 @@ nur Ordner.
   ihrer Form benannt) und der Ring um ihren Anteil (`ProgressRing`), für die
   Collectibles das Schloss ihrer Plätze (`LockIcon`) und die Symbole zweier Abschnitte
   (`LeafIcon`, `StarCardIcon`). Buch, Blatt und Karte teilen sich Collectibles und
-  Achievements, Paket und Medaille die Achievements mit dem Hauptmenü. Die
+  Achievements, Paket und Medaille die Achievements mit dem Hauptmenü. Seit v1.5.4 hat jede
+  Leuchtfarbe und jedes Sternenlicht eines Farbschemas eine eigene Leuchte, nach ihrer Farbe
+  benannt (`PlateGlowOrange`, `PlateGlowCyan` … und `PlateGlowGold`, `PlateGlowYellow`,
+  `PlateGlowCream`, siehe „Farbschemata“ unter „UI“). Die
   Münze ist die aus `2020/`, auf die Mutter zugeschnitten (siehe „Nicht größer importieren
-  als gezeigt“ unter „Texturen“). Das Spiel nutzt 49: die neun aus `2021/Shop/` und alle
+  als gezeigt“ unter „Texturen“). Das Spiel nutzt 57: die neun aus `2021/Shop/` und alle
   aus `2026/`. Die aus `2020/` nutzt es nicht, sie bleiben für einen Classic Mode (v1.9.1,
   siehe „Bekannte Altlasten“). Neue Bilder kommen in den Ordner ihres Jahres.
 - **Woher die Zuordnung stammt** (die Namen verraten es nicht): Die Bilder von 2020
@@ -475,12 +509,12 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager`, `RunScore`, `AchievementTracker`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem` |
+| `Systems` | `GameManager`, `RunScore`, `AchievementTracker`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem`, `ColorwayManager` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
 | `Environment` | `DirectionalLight`, `Spaceport`, `Hangar`, `ShopShips` |
-| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Credits` (`CreditsScreen`), `Achievements` (`AchievementsScreen`), `Collectibles` (`CollectiblesScreen`), `Shop` (`ShopScreen`), in jedem ein Kind `SafeArea`, siehe „UI“ |
+| `UI` | Canvas mit `ScreenManager`, darin je ein Canvas pro Screen mit seiner Komponente: `DeathMenu` (`DeathMenuScreen`), `MainMenu` (`MainMenuScreen`), `GameMenu` (`GameMenuScreen`), `PauseMenu` (`PauseMenuScreen`), `Settings` (`SettingsScreen`), `Colorways` (`ColorwaysScreen`), `Credits` (`CreditsScreen`), `Achievements` (`AchievementsScreen`), `Collectibles` (`CollectiblesScreen`), `Shop` (`ShopScreen`), in jedem ein Kind `SafeArea`, siehe „UI“ |
 
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
@@ -733,7 +767,8 @@ bei 8.
   auch für `FloatingOrigin.Distance`, `TileManager.Tiles` und
   `TileManager.NextSpawnZ`, seit v1.5.0 für die Buttons der Screens
   (`MainMenuScreen.StartButton` usw.), seit v1.5.3 für Einträge, Karte, Medaille und Popup der
-  Achievements. Seit v1.5.1 öffnet sie auch den EditMode-Tests `internal`, für
+  Achievements, seit v1.5.4 für die Karten der Farbschemata, die Zeile der Settings und den
+  Button unter dem Schiff im Hangar. Seit v1.5.1 öffnet sie auch den EditMode-Tests `internal`, für
   `SafeArea.Fit`, seit v1.5.3 für `DeathMenuScreen.ShowUnlocked` und
   `GameMenuScreen.ShowAchievement`. Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
@@ -1019,8 +1054,8 @@ Szene, und schreibt ihn als `SaveData.json` nach `Application.persistentDataPath
 Alle Skripte lesen und ändern ihn über `SaveSystem.Data`, PlayerPrefs nutzt das
 Spiel nicht mehr.
 
-- **Gespeichert wird sofort** bei Tod, Kauf, Schiffswahl und den Audio-Schaltern,
-  dazu beim Pausieren und Beenden der App, für die Regler von Musik und Effekten (siehe
+- **Gespeichert wird sofort** bei Tod, Kauf, Schiffswahl, den Audio-Schaltern und der Wahl
+  eines Farbschemas, dazu beim Pausieren und Beenden der App, für die Regler von Musik und Effekten (siehe
   „Audio-System“). Bis dahin stehen Änderungen nur im Speicher.
 - **Gesamtlautstärke weg** (seit Schritt 3b von v1.5.1): Statt `m_masterVolume` stehen
   `m_musicVolume` und `m_sfxVolume` im Spielstand, beide neu mit 1. Ein alter Stand
@@ -1038,6 +1073,9 @@ Spiel nicht mehr.
   beginnt mit 0, nur die Schiffe zählen, was er schon besitzt. Freigeschaltet bleibt
   freigeschaltet, auch wenn das Ziel später wächst, etwa mit einem neuen Schiff. Abgeholt wird
   einmal (`SaveData.TryClaimAchievement`), die Belohnung geht auf die Münzen.
+- **Farbschema** (seit v1.5.4, siehe „Farbschemata“ unter „UI“): `m_colorwayId` ist die ID
+  des gewählten, leer, bis eins gewählt ist, auch in einem Spielstand von davor. Eine leere
+  oder unbekannte ID zeigt TOXIC. Gespeichert wird sofort beim Wählen.
 - **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 2 (seit v1.4.8, Schiffe
   als ID statt als Nummer). Einen Stand mit anderer Version verwirft
   `SaveData.FromJson`, das Spiel fängt dann neu an (Entscheidung Oktober 2026, es
@@ -1216,10 +1254,11 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
     als die Szene mit den Screens von v1.5.2 länger lud.
 - **Jeder Wechsel** zeigt den Screen des Zustands (`ScreenManager.Show(GameState)`) und
   setzt `Time.timeScale`, 0 nur in der Pause.
-- **Settings, Credits, Achievements und Collectibles sind kein Zustand,** sondern Screens
-  über Hauptmenü oder Pause, Achievements und Collectibles nur über dem Hauptmenü. Der
+- **Settings, Farbschemata, Credits, Achievements und Collectibles sind kein Zustand,** sondern
+  Screens über Hauptmenü oder Pause, Achievements und Collectibles nur über dem Hauptmenü. Der
   Zustand bleibt dabei stehen, „Zurück“ in den Settings, den Achievements und den
-  Collectibles zeigt wieder seinen Screen, „Zurück“ in den Credits die Settings.
+  Collectibles zeigt wieder seinen Screen, „Zurück“ in den Farbschemata und den Credits die
+  Settings.
 - **Ereignisse,** statisch am `GameManager` wie `FloatingOrigin.WorldShifted`:
   `RunStarted`, `HangarOpened`, `HangarClosed`, `RunPaused`, `RunResumed`, `ShipCrashed`
   und `ShipRevived`. Sie kommen direkt nach dem Wechsel im selben Aufruf. Ein Tipp
@@ -1279,15 +1318,17 @@ hinter dem Todesbildschirm weiter, bis ein Revive ihn zurücksetzte.
 ## UI
 
 Seit v1.4.10 ist jeder Screen ein eigener Canvas unter `UI`: `MainMenu`, `GameMenu`
-(die Anzeige im Run), `PauseMenu`, `Settings`, `Credits`, `Achievements` und
-`Collectibles` (alle drei seit v1.5.2), `Shop` und `DeathMenu`. Der Root-Canvas
+(die Anzeige im Run), `PauseMenu`, `Settings`, `Colorways` (die Farbschemata, seit v1.5.4),
+`Credits`, `Achievements` und `Collectibles` (alle drei seit v1.5.2), `Shop` und `DeathMenu`. Der
+Root-Canvas
 `UI` trägt den `CanvasScaler` (Referenz 450 × 800, „Expand“, siehe „Layout für alle
 Seitenverhältnisse“) und den `ScreenManager`. Bis v1.4.9 lagen alle Screens auf einem
 Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 
 - **Es ist immer genau ein Screen an.** `ScreenManager.Show(GameState)` zeigt den
   Screen des Spielzustands (siehe „Spielzustand“), `ShowSettings()` die Settings,
-  `ShowCredits()` die Credits, `ShowAchievements()` die Achievements und
+  `ShowColorways()` die Farbschemata, `ShowCredits()` die Credits, `ShowAchievements()` die
+  Achievements und
   `ShowCollectibles()` die Collectibles. Alle schalten ihn
   per `SetActive` ein und alle anderen aus,
   ohne Übergang (Entscheidung Oktober 2026, Übergänge kommen mit v1.5.5, siehe README).
@@ -1468,6 +1509,70 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   Außer Zurück nimmt nichts Tipps an. Die Abschnitte passen auf jedes Display, eine Liste zum
   Scrollen braucht es nicht. Gemessen im Editor: Draw Calls nur des UI 3, der Canvas baut nie
   neu.
+- **Farbschemata** (seit v1.5.4, Moritz, 23.11.2026: ein eigener Screen, englische Namen,
+  „Classic bleibt Classic“): sechs zur Wahl, TOXIC (bis dahin „Giftig“, das Schema einer
+  Neuinstallation), CLASSIC (das Orange von 2020), MIDNIGHT, NEBULA, LAGOON und PASTEL (die
+  vier aus Version 5 der Mockups). CLASSIC gilt nur für die neue UI, der Classic Mode (v1.9.1)
+  zeigt die UI von 2020 selbst, beides ist getrennt (Moritz). Geöffnet über die Zeile COLORWAY
+  unter GAME in den Settings, sie zeigt den Namen des gewählten in seiner Leuchtfarbe. „Zurück“
+  zeigt die Settings.
+  - **Daten:** ein `ColorwayData` pro Schema in `Data/Colorways/` mit ID (der Schlüssel im
+    Spielstand), Titel, Grund, Leuchtfarbe samt Schatten und Text darauf, Sternenlicht samt
+    Text darauf und den Bildern beider Leuchten. Platten, ihr Text und die Grautöne sind in
+    jedem Schema gleich. Der `ColorwayCatalog` hat sie in der Reihenfolge des Screens, das
+    erste ist das einer Neuinstallation. Die Farben der vier aus Version 5 stehen dort unter
+    Tweaks („palette“). CLASSIC hat einen dunklen Grund im Blaugrau der Platten von 2020
+    (`#0c1013`), als Leuchtfarbe die Mitte ihrer orangen Buttons (`#ff6a00`) und als
+    Sternenlicht das Gold der Reiter „Paused“ und „Settings“ (`#ffc93d`).
+  - **Rollen:** Der `ColorwayManager` unter `Systems` kennt das gezeigte Schema (`Current`,
+    aus dem Spielstand) und meldet einen Wechsel (`ColorwayChanged`). Er wacht vor dem Rest
+    der Szene auf (`DefaultExecutionOrder(-100)`), so findet jeder Screen das Schema schon beim
+    Einschalten. An jedem farbigen Element sitzt ein `ColorwayTint` mit einer `ColorwayColor`:
+    die Rolle (`ColorwayRole`, `Fixed` für eine feste Farbe), die Deckkraft wie in den
+    Mockups, deckend gemischt oder durchsichtig, über dem Grund des Schemas oder über der Welt
+    und wie viel Weiß dazwischen liegt. Der Tint färbt beim Einschalten und bei jedem Wechsel.
+    Was Skripte nach Zustand färben, trägt die Rollen selbst: die vier `AchievementLook`,
+    `OnOffButton`, `ToggleSwitch` und `SelectOrBuyButton`. Der setzt seine Farben bei jedem
+    Einschalten neu, denn der Hangar zeigt sein Schiff nur beim ersten Öffnen und nach einem
+    Tipp.
+  - **Durchsichtiges** rechnet `ColorwayColor.GetLinearAlpha` für den Grund jedes Schemas um
+    (siehe „Transparenz im linearen Farbraum“): auf das Alpha, bei dem Unitys Mischung im
+    linearen Licht so hell ist wie die des Browsers, gemessen an der relativen Luminanz. Über
+    einem helleren Grund braucht es mehr, über LAGOON rund 1,7-mal so viel wie über TOXIC. Was
+    über der 3D-Welt liegt (Hauptmenü, Spielanzeige außerhalb ihrer Leisten, Hangar, Pause),
+    rechnet mit dem Dunkel des Weltraums, `#050607` in jedem Schema. Ausgegrautes ist deckend
+    gemischt, 40 % über dem Grund, in den Settings über dem Weiß ihrer Abschnitte (7 %).
+  - **In der Szene steht TOXIC.** Die Rollen wurden in v1.5.4 aus den Farben der Szene
+    ermittelt, 262 Elemente, und jede ergibt in TOXIC genau die Farbe von davor. Ein neues
+    farbiges Element bekommt einen `ColorwayTint` mit seiner Rolle. Fehlt er bei einer Farbe
+    von TOXIC, meldet es `SceneTests`.
+  - **Leuchten:** Ihr Alpha ist für ihre Farbe gebacken (siehe „Leuchten“ unter „Look aus den
+    Mockups“), jedes Schema hat deshalb eigene Bilder, nach ihrer Farbe benannt, gefüllt für
+    die Leuchtfarbe, nur außen für das Sternenlicht. MIDNIGHT nutzt `PlateGlowAmber` mit, PASTEL
+    `PlateGlowCream` von LAGOON, die Farben liegen zu nah beieinander. Gebacken mit Python aus
+    einem weichgezeichneten `box-shadow` um die Platte (204 Pixel, 2 Pixel pro Einheit, Kante
+    60,5 und 60 Pixel vom Rand, Radius 40, Gauß mit 32 und 29 Pixeln, Deckkraft 0,66 und 0,44,
+    die Luminanz umgerechnet wie oben). Das Modell trifft `PlateGlow` und `PlateGlowAmber` im
+    Mittel auf unter eine Stufe. Ein Tint mit „Is Glow“ nimmt das Bild seiner Farbe, sein
+    Alpha bleibt dabei, wie es ist.
+  - **Screen:** Kopf wie die Credits, darunter die Karten untereinander (Moritz, 23.11.2026: „die
+    volle breite sozusagen fast ausnutzen“), so breit wie die Abschnitte der Settings, 80 hoch und
+    12 auseinander. Jede zeigt die Hauptfarben ihres Schemas (`ColorwayCard`, Moritz: „die 2-3 main
+    farb kombis“): Sie steht in seinem Grund, vorn je ein Punkt in seiner Leuchtfarbe und seinem
+    Sternenlicht, dahinter der Titel. Die gewählte hat einen Rahmen in ihrer Leuchtfarbe und rechts
+    einen Haken. Ein Tipp wählt, speichert sofort und färbt die ganze UI um, den Screen selbst
+    gleich mit. Untereinander stellt sie die Layout-Gruppe `Cards`, senkrecht in ihre Mitte
+    (Moritz, 23.11.2026: „vertikal zentirert“). Sie reicht von 94 unter der Safe Area bis 16 über
+    deren unteren Rand, so bleibt über den Karten bis zur Linie unter dem Titel so viel Platz wie
+    unter ihnen, auf 16:9 je 91 Einheiten, auf 20:9 je 191. Das tut sie, sobald der Screen an ist,
+    in der gespeicherten Szene liegen die Karten deshalb übereinander in ihrer Mitte. Die Karten
+    passen auf jedes Display. Gemessen im Editor: Draw Calls nur des UI 2.
+  - **Ein neues Schema:** ein `ColorwayData` mit Farben und Leuchten (neue Bilder aus dem
+    Modell, in den Atlas) in den Katalog, im Screen eine Karte duplizieren und ihr das Schema
+    geben, die Layout-Gruppe stellt sie unter die anderen. `ColorwayCatalogTests` prüft danach
+    Daten und Kontraste, `SceneTests` die Karten. Gerechnet passen sieben Karten noch auf jedes
+    Display (632 der mindestens 666 Einheiten zwischen Kopf und unterem Rand), acht nicht mehr. Das meldet dann
+    `LayoutTests`, und die Karten brauchen eine Liste zum Scrollen wie die Achievements.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
   Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`:
   TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
@@ -1515,8 +1620,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Seit Schritt 3a steht er als Multiplikator „×1.4“ in einem Chip neben dem Score,
     `LayoutTests` nimmt ihn nicht mehr aus.
 - **Bilder liegen im Sprite Atlas** `UI/UIAtlas.spriteatlasv2` (seit v1.5.1): alle
-  UI-Bilder, die die Szene nutzt, seit v1.5.3 49 auf einer Seite von 2048 × 1024 in
-  ETC2, 2,0 MiB. Beim Einführen waren es 36 alte Bilder auf 2048 × 2048, 4,0 MiB.
+  UI-Bilder, die die Szene nutzt, seit v1.5.4 57 auf einer Seite von 2048 × 1024 in
+  ETC2, 2,0 MiB (auch mit den acht Leuchten der Farbschemata, siehe dort). Beim Einführen waren es 36 alte Bilder auf 2048 × 2048, 4,0 MiB.
   Einzeln lagen 35 davon unkomprimiert im Speicher, zusammen 10,7 MiB (siehe
   „Texturen“). Die Bilder eines Screens kommen damit in einem Draw Call, gemessen im
   Editor nur fürs UI, beim Einführen: Menü 2 statt 7, Hangar 1 statt 7, Settings 6 statt
@@ -1526,7 +1631,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   je nach Stelle der Rolle, die Achievements mit 6 und die Collectibles mit 3, das Menü hat
   ohne seine beiden „SOON“ nur noch 3. In v1.5.3 hat das Menü mit der Zahl an der Medaille 5,
   der Todesbildschirm mit der Karte der Achievements bleibt bei 3, der Run hat mit dem Popup
-  der Achievements 5, mit Leiste und Popup 7 wie mit der Leiste allein. Seit Schritt 3a sind alle Wörter Text, und eigene
+  der Achievements 5, mit Leiste und Popup 7 wie mit der Leiste allein. In v1.5.4 kamen die
+  Farbschemata mit 2 dazu, die Settings bleiben mit ihrer neuen Zeile bei 8. Seit Schritt 3a sind alle Wörter Text, und eigene
   Draw Calls sind die Texte (ein Material pro Schrift) und was kein Bild aus dem Atlas zeigt.
   - **Ein neues Bild** kommt einzeln in den Atlas (im Inspector unter „Objects for
     Packing“), ein nicht mehr genutztes heraus. Keine Ordner: In `2020/` liegen
@@ -1588,9 +1694,12 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     `HitArea` auf 60 an, auch wo sie im Layout nur 44 einnehmen (Settings).
   - **Die Settings passen ohne Scrollen** (seit Schritt 3b von v1.5.1, Wunsch Moritz):
     Mit den Abständen von Version 6 waren sie 750 Einheiten hoch, unter dem Titel bleiben
-    auf 16:9 und Tablets aber nur 676 bis 700. Mit weniger Luft sind sie 633 hoch, mit
-    „Invincible“ in Editor und Test-Builds 693, das passt auch in ein Game-Fenster in 9:16.
-    Weniger Luft heißt: 16 statt 28 unter dem Zurück-Button, die Abschnitte 10 statt 16
+    auf 16:9 und Tablets aber nur 676 bis 700. Mit weniger Luft waren sie 633 hoch. Seit
+    v1.5.4 sind sie mit der Zeile COLORWAY 677 hoch, dafür beginnen sie 94 statt 100 unter der
+    Safe Area (unter dem Titel bleiben so 682 bis 706), die Abschnitte stehen 6 statt 10
+    auseinander, und unter dem letzten fehlen die 8 Luft. Mit „Invincible“ in Editor und
+    Test-Builds sind sie 737 hoch und scrollen auch in einem Game-Fenster in 9:16 ein Stück.
+    Weniger Luft heißt: 16 statt 28 unter dem Zurück-Button, die Abschnitte 6 statt 16
     auseinander und innen mit weniger Rand, die Zeilen von GAME direkt aufeinander, die
     Versionszeile 44 statt 60 hoch (sie nimmt keine Tipps an). Die Regler nehmen im Layout
     44 statt 60, ihre `HitArea` und der Weg ihres Knopfs (`HandleSlideArea`) bleiben 60 hoch
@@ -1599,8 +1708,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     „Invincible“, die Zeile entsteht erst im Spiel. Eine neue Zeile braucht also Platz von
     anderswo. Die Abschnitte liegen trotzdem in `Settings/SafeArea/Scroll`, einer
     senkrechten `ScrollRect` mit `RectMask2D` bis an den unteren Rand der Safe Area, auf
-    „Clamped“: Eine Liste, die passt, bewegt sich nicht, nur mit „Invincible“ auf dem
-    Tablet mit Balken unten (676 Platz) scrollt sie ein Stück. Ein unsichtbares Bild
+    „Clamped“: Eine Liste, die passt, bewegt sich nicht, nur mit „Invincible“ scrollt sie ein
+    Stück. Ein unsichtbares Bild
     darauf nimmt die Wischer zwischen den Bedienelementen an.
   - **Ein neues Element** kommt nach diesen Regeln in die `SafeArea` oder direkt an den
     Screen. Ob es auf allen Displays passt, prüft `LayoutTests` (siehe „Tests“). Ansehen
@@ -1610,9 +1719,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
 - **Look aus den Mockups** (seit Schritt 3 von v1.5.1, Vorlage ist Version 6 der
   Mockups): Grund `#050607`, Leuchtfarbe `#57ff5c` mit Schatten `#2b7f2e` und Text
   `#062b08` darauf, Sternenlicht `#ffad3d`, weiße Platten mit Text `#1b1a20` und
-  Schatten `#6f7380`. Das ist das Farbschema „Giftig“: In v1.5.4 sollen sich sechs
-  Farbschemata in den Settings wählen lassen (README), bis dahin stehen die Farben
-  fest an jedem Element.
+  Schatten `#6f7380`. Das ist das Farbschema TOXIC (bis v1.5.3 „Giftig“), seit v1.5.4 eins
+  von sechs. Die Farben stehen seitdem als Rolle an jedem Element (siehe „Farbschemata“).
   - **Platten** sind ein einziges 9-Slice-Bild, `2026/Plate` (ein weißer Kreis mit 64
     Pixel Rand): Der Radius ist 64 / `pixelsPerUnitMultiplier`. Mit großem Faktor
     zeichnet es auch Rechtecke aus dem Atlas, etwa die Abdunklungen, so bleiben sie im
@@ -1638,7 +1746,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     `box-shadow` im Browser, gebacken für Bernstein mit 45 %. Unter einer durchsichtigen
     Platte wie der Leiste zum Highscore schiene ein gefülltes Leuchten durch. Beide halten
     einen Schein von 30 Einheiten um eine Platte mit Radius 20 bei Faktor 2: Faktor
-    40 / Radius passt ihn an eine Platte an, er reicht dann 1,5 Radien hinaus.
+    40 / Radius passt ihn an eine Platte an, er reicht dann 1,5 Radien hinaus. Seit v1.5.4
+    hat jedes Farbschema eigene Leuchten (siehe „Farbschemata“).
   - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Vibration, Sprache und
     Datenschutz in den Settings, der Inhalt der Collectibles und seit v1.5.3 die vier
     Achievements der Collectibles und SPACE ACHIEVER (siehe oben), bis zu ihren Screens in
@@ -1675,7 +1784,7 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   von 30 Frames, vor Schritt 3b) und seit v1.5.1, wenn eine Einblendung kommt oder geht,
   in Pause, Tod und Hangar gar nicht, in den Settings beim Ziehen eines Reglers, in den
   Credits in jedem Frame, solange sie rollen, in den Achievements nur beim Ziehen der Liste
-  und beim Abholen,
+  und beim Abholen, in den Farbschemata beim Wählen,
   in den Collectibles nie. Bis
   v1.4.9 baute der ganze UI-Canvas in jedem Frame neu, außer in der Pause. Die
   Screen-Canvases erben

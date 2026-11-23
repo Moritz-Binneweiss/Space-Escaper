@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96f153c056b6c8542bf8882aeacd4138, type: 3}
+  m_Name: Lagoon
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayData
+  m_id: Lagoon
+  m_title: LAGOON
+  m_background: {r: 0.08235294, g: 0.09019608, b: 0.10980392, a: 1}
+  m_glow: {r: 0.09803922, g: 0.9019608, b: 0.75686276, a: 1}
+  m_glowShadow: {r: 0.050980393, g: 0.4509804, b: 0.38039216, a: 1}
+  m_textOnGlow: {r: 0, g: 0.15686275, b: 0.12156863, a: 1}
+  m_starlight: {r: 1, g: 0.8862745, b: 0.7019608, a: 1}
+  m_textOnStarlight: {r: 0.2, g: 0.14117648, b: 0.047058824, a: 1}
+  m_glowImage: {fileID: 21300000, guid: 3ebf128d175f270488ef8898778b85c7, type: 3}
+  m_starlightGlowImage: {fileID: 21300000, guid: a0457ac60e3b519448df519cedaccd58, type: 3}

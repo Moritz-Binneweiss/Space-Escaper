@@ -167,14 +167,13 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 <small>
 
-- [ ] Six UI colorways to choose from in the settings
-- [ ] Decide how the choice looks in the settings and whether the colorways need better names
-- [ ] "Giftig": black, toxic green and amber, the current look
-- [ ] "Classic": the orange look of the 2020 original
-- [ ] "Klassisch": midnight blue, cyan and amber
-- [ ] "Nebel": violet, magenta and light yellow
-- [ ] "Ruhig": anthracite, turquoise and cream
-- [ ] "Pastell": midnight blue, pink and cream
+- [x] Six UI colorways to choose from in the settings, on a screen of their own with a card per colorway in its main colors
+- [x] "TOXIC": black, toxic green and amber, the look so far
+- [x] "CLASSIC": the orange look of the 2020 original
+- [x] "MIDNIGHT": midnight blue, cyan and amber
+- [x] "NEBULA": violet, magenta and light yellow
+- [x] "LAGOON": anthracite, turquoise and cream
+- [x] "PASTEL": midnight blue, pink and cream
 
 </small>
 

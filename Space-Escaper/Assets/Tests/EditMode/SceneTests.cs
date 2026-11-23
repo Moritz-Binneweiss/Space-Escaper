@@ -14,6 +14,10 @@ namespace SpaceEscaper.Tests
         private const string k_ScenePath = "Assets/Scenes/Game.unity";
         private const string k_UiRootName = "UI";
         private const string k_AchievementCatalogPath = "Assets/Data/Achievements/AchievementCatalog.asset";
+        private const string k_ColorwayCatalogPath = "Assets/Data/Colorways/ColorwayCatalog.asset";
+
+        // Colors in the scene are floats, and the roles of the elements were worked out from their 8-bit values.
+        private const float k_ColorTolerance = 2f / 255f;
 
         // Serialized names in Unity's own components, which have no other way in.
         private const string k_ScriptProperty = "m_Script";
@@ -253,6 +257,105 @@ namespace SpaceEscaper.Tests
             Assert.That(problems, Is.Empty);
         }
 
+        // An element in a color of the default colorway without a role keeps that color in every other one. Left out
+        // are the elements that scripts color by their state and the cards of the colorways screen, each in the colors
+        // of its own colorway.
+        [Test]
+        public void EveryElementInAColorOfTheColorwayHasARole()
+        {
+            ColorwayData colorway = AssetDatabase.LoadAssetAtPath<ColorwayCatalog>(k_ColorwayCatalogPath).Default;
+            HashSet<Object> coloredByScripts = GetGraphicsColoredByScripts();
+            Color[] colors =
+            {
+                colorway.Background, colorway.Glow, colorway.GlowShadow, colorway.TextOnGlow, colorway.Starlight,
+                colorway.TextOnStarlight,
+            };
+            List<string> problems = new List<string>();
+            foreach (Graphic graphic in GetUiRoot().GetComponentsInChildren<Graphic>(true))
+            {
+                if (graphic.GetComponent<ColorwayTint>() != null || coloredByScripts.Contains(graphic) ||
+                    graphic.GetComponentInParent<ColorwayCard>(true) != null)
+                {
+                    continue;
+                }
+
+                foreach (Color color in colors)
+                {
+                    if (GetDifference(graphic.color, color) <= k_ColorTolerance)
+                    {
+                        problems.Add(GetPath(graphic.transform) + " is in a color of the colorway, but has no role");
+                        break;
+                    }
+                }
+            }
+
+            Assert.That(problems, Is.Empty);
+        }
+
+        // The scene holds the default colorway, so the editor and the tests see what a new installation shows.
+        [Test]
+        public void EveryRoleShowsTheDefaultColorway()
+        {
+            ColorwayData colorway = AssetDatabase.LoadAssetAtPath<ColorwayCatalog>(k_ColorwayCatalogPath).Default;
+            List<ColorwayTint> tints = GetComponentsInScene<ColorwayTint>();
+            List<string> problems = new List<string>();
+            foreach (ColorwayTint tint in tints)
+            {
+                Graphic graphic = tint.GetComponent<Graphic>();
+                Color expected = tint.GetColor(colorway);
+                if (GetDifference(graphic.color, expected) > k_ColorTolerance ||
+                    Mathf.Abs(graphic.color.a - expected.a) > k_ColorTolerance)
+                {
+                    problems.Add(GetPath(tint.transform) + " is #" + ColorUtility.ToHtmlStringRGBA(graphic.color) +
+                        " instead of #" + ColorUtility.ToHtmlStringRGBA(expected));
+                }
+
+                if (tint.IsGlow && ((Image)graphic).sprite != tint.GetGlowImage(colorway))
+                {
+                    problems.Add(GetPath(tint.transform) + " does not show the glow of " + colorway.name);
+                }
+            }
+
+            Assert.That(tints, Is.Not.Empty, "Nothing in the scene follows the colorway");
+            Assert.That(problems, Is.Empty);
+        }
+
+        [Test]
+        public void EveryColorwayHasOneCardThatShowsIt()
+        {
+            ColorwayCatalog catalog = AssetDatabase.LoadAssetAtPath<ColorwayCatalog>(k_ColorwayCatalogPath);
+            List<ColorwaysScreen> screens = GetComponentsInScene<ColorwaysScreen>();
+            Assert.That(screens, Has.Count.EqualTo(1), "Not one colorways screen");
+            List<ColorwayManager> managers = GetComponentsInScene<ColorwayManager>();
+            Assert.That(managers, Has.Count.EqualTo(1), "Not one colorway manager");
+            Assert.That(new SerializedObject(managers[0]).FindProperty("m_catalog").objectReferenceValue,
+                Is.EqualTo(catalog), "The colorway manager does not know the catalog");
+
+            List<ColorwayData> shown = new List<ColorwayData>();
+            List<string> problems = new List<string>();
+            foreach (ColorwayCard card in screens[0].Cards)
+            {
+                ColorwayData colorway = card.Colorway;
+                shown.Add(colorway);
+                SerializedObject serialized = new SerializedObject(card);
+                string path = GetPath(card.transform);
+                CompareText(problems, path, serialized, "m_titleText", colorway.Title);
+                CompareColor(problems, path, serialized, "m_background", colorway.Background);
+                CompareColor(problems, path, serialized, "m_glowSwatch", colorway.Glow);
+                CompareColor(problems, path, serialized, "m_starlightSwatch", colorway.Starlight);
+                CompareColor(problems, path, serialized, "m_checkPlate", colorway.Glow);
+                CompareColor(problems, path, serialized, "m_checkIcon", colorway.TextOnGlow);
+                bool isDefault = colorway == catalog.Default;
+                if (card.Check.activeSelf != isDefault)
+                {
+                    problems.Add(path + (isDefault ? " shows no check" : " shows the check"));
+                }
+            }
+
+            Assert.That(shown, Is.EqualTo(catalog.Colorways), "Not one card per colorway in the order of the catalog");
+            Assert.That(problems, Is.Empty);
+        }
+
         private GameObject GetUiRoot()
         {
             foreach (GameObject root in m_scene.GetRootGameObjects())
@@ -287,6 +390,49 @@ namespace SpaceEscaper.Tests
             }
 
             return path;
+        }
+
+        // What scripts color by state takes the colorway from roles of its own instead of a ColorwayTint.
+        private HashSet<Object> GetGraphicsColoredByScripts()
+        {
+            HashSet<Object> graphics = new HashSet<Object>();
+            foreach (MonoBehaviour behaviour in GetUiRoot().GetComponentsInChildren<MonoBehaviour>(true))
+            {
+                if (!(behaviour is AchievementEntry || behaviour is OnOffButton || behaviour is SelectOrBuyButton ||
+                    behaviour is ToggleSwitch))
+                {
+                    continue;
+                }
+
+                SerializedProperty property = new SerializedObject(behaviour).GetIterator();
+                while (property.Next(true))
+                {
+                    if (property.propertyType == SerializedPropertyType.ObjectReference &&
+                        property.objectReferenceValue is Graphic)
+                    {
+                        graphics.Add(property.objectReferenceValue);
+                    }
+                }
+            }
+
+            return graphics;
+        }
+
+        // The largest difference in red, green or blue.
+        private static float GetDifference(Color a, Color b)
+        {
+            return Mathf.Max(Mathf.Abs(a.r - b.r), Mathf.Max(Mathf.Abs(a.g - b.g), Mathf.Abs(a.b - b.b)));
+        }
+
+        private static void CompareColor(List<string> problems, string path, SerializedObject card, string field,
+            Color expected)
+        {
+            Graphic graphic = (Graphic)card.FindProperty(field).objectReferenceValue;
+            if (GetDifference(graphic.color, expected) > k_ColorTolerance)
+            {
+                problems.Add(path + "." + field + " is #" + ColorUtility.ToHtmlStringRGB(graphic.color) +
+                    " instead of #" + ColorUtility.ToHtmlStringRGB(expected));
+            }
         }
 
         private static void CompareText(List<string> problems, string path, SerializedObject entry, string field,
