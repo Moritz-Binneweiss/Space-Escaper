@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.5.3 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.5.4 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -163,17 +163,17 @@ The full license texts roll at the end of the credits in the game and lie next t
 
 </small>
 
-#### **v1.5.4** | UI Colorways _(------- --, 2026)_
+#### **v1.5.4** | UI Colorways _(November 23, 2026)_
 
 <small>
 
-- [x] Six UI colorways to choose from in the settings, on a screen of their own with a card per colorway in its main colors
-- [x] "TOXIC": black, toxic green and amber, the look so far
-- [x] "CLASSIC": the orange look of the 2020 original
-- [x] "MIDNIGHT": midnight blue, cyan and amber
-- [x] "NEBULA": violet, magenta and light yellow
-- [x] "LAGOON": anthracite, turquoise and cream
-- [x] "PASTEL": midnight blue, pink and cream
+- 🎨 Six UI colorways to choose from in the settings, on a screen of their own with a card per colorway in its main colors
+- 🧪 "TOXIC": black, toxic green and amber, the look so far
+- 🕹️ "CLASSIC": the orange look of the 2020 original
+- 🌙 "MIDNIGHT": midnight blue, cyan and amber
+- 🌌 "NEBULA": violet, magenta and light yellow
+- 🌊 "LAGOON": anthracite, turquoise and cream
+- 🌸 "PASTEL": midnight blue, pink and cream
 
 </small>
 
