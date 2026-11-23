@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96f153c056b6c8542bf8882aeacd4138, type: 3}
+  m_Name: Nebula
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayData
+  m_id: Nebula
+  m_title: NEBULA
+  m_background: {r: 0.07058824, g: 0.03137255, b: 0.17254902, a: 1}
+  m_glow: {r: 1, g: 0.23921569, b: 0.68235296, a: 1}
+  m_glowShadow: {r: 0.5019608, g: 0.12156863, b: 0.34117648, a: 1}
+  m_textOnGlow: {r: 0.22745098, g: 0, b: 0.14117648, a: 1}
+  m_starlight: {r: 1, g: 0.8980392, b: 0.4, a: 1}
+  m_textOnStarlight: {r: 0.18039216, g: 0.14901961, b: 0, a: 1}
+  m_glowImage: {fileID: 21300000, guid: 48c104b5a3cfa6f4782fb95011bf8b73, type: 3}
+  m_starlightGlowImage: {fileID: 21300000, guid: 6842ed4751019b24aba1b37c5bb04f24, type: 3}

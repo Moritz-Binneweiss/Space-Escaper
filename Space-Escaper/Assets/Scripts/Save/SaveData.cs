@@ -6,7 +6,7 @@ namespace SpaceEscaper
 {
     /// <summary>
     /// Everything the game keeps between sessions: coins, highscore, ships, audio
-    /// settings and the achievements. <see cref="SaveSystem"/> stores it as one JSON file.
+    /// settings, the achievements and the colorway of the UI. <see cref="SaveSystem"/> stores it as one JSON file.
     /// </summary>
     /// <remarks>
     /// The field names are the keys in the file. A renamed field loses its value in
@@ -35,6 +35,7 @@ namespace SpaceEscaper
         [SerializeField] private int m_coinsCollected;
         [SerializeField] private List<string> m_unlockedAchievementIds = new List<string>();
         [SerializeField] private List<string> m_claimedAchievementIds = new List<string>();
+        [SerializeField] private string m_colorwayId = "";
 
         public int Coins => m_coins;
         public int Highscore => m_highscore;
@@ -97,6 +98,15 @@ namespace SpaceEscaper
         {
             get => m_sfxVolume;
             set => m_sfxVolume = value;
+        }
+
+        /// <summary>
+        /// The ID of the chosen colorway, empty until one is chosen.
+        /// </summary>
+        public string ColorwayId
+        {
+            get => m_colorwayId;
+            set => m_colorwayId = value;
         }
 
         /// <summary>

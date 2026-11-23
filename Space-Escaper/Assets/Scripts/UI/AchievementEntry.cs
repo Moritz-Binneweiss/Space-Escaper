@@ -54,7 +54,7 @@ namespace SpaceEscaper
         }
 
         /// <summary>
-        /// Shows the achievement in a state, in the colors of that state.
+        /// Shows the achievement in a state, in the colors of that state in the colorway the UI shows.
         /// </summary>
         public void Show(AchievementState state, int progress, int target, AchievementLook look)
         {
@@ -78,14 +78,15 @@ namespace SpaceEscaper
                 m_progressText.SetText(GetProgressFormat(), (float)progress, (float)target);
             }
 
-            m_background.color = look.Background;
-            m_border.color = look.Border;
-            m_iconTile.color = look.IconTile;
-            m_icon.color = look.Icon;
-            m_titleText.color = look.Title;
-            m_descriptionText.color = look.Description;
-            m_rewardText.color = look.Reward;
-            m_rewardCoin.color = look.RewardCoin;
+            ColorwayData colorway = ColorwayManager.Current;
+            m_background.color = look.Background.Resolve(colorway);
+            m_border.color = look.Border.Resolve(colorway);
+            m_iconTile.color = look.IconTile.Resolve(colorway);
+            m_icon.color = look.Icon.Resolve(colorway);
+            m_titleText.color = look.Title.Resolve(colorway);
+            m_descriptionText.color = look.Description.Resolve(colorway);
+            m_rewardText.color = look.Reward.Resolve(colorway);
+            m_rewardCoin.color = look.RewardCoin.Resolve(colorway);
         }
 
         // Built once, so showing the progress makes no new string each time the screen opens.

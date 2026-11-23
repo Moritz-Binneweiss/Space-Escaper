@@ -204,6 +204,19 @@ namespace SpaceEscaper.Tests
             Assert.That(saveData.Crashes, Is.Zero);
             Assert.That(saveData.CoinsCollected, Is.Zero);
             Assert.That(saveData.IsAchievementUnlocked("Liftoff"), Is.False);
+            Assert.That(saveData.ColorwayId, Is.Empty);
+        }
+
+        [Test]
+        public void ColorwaySurvivesSaveAndLoad()
+        {
+            SaveData saveData = SaveData.FromJson(null);
+            Assert.That(saveData.ColorwayId, Is.Empty, "A new installation has chosen a colorway");
+
+            saveData.ColorwayId = "Nebula";
+            SaveData loaded = SaveData.FromJson(saveData.ToJson());
+
+            Assert.That(loaded.ColorwayId, Is.EqualTo("Nebula"));
         }
 
         private static SaveData CreateSaveWithCoins(int coins)

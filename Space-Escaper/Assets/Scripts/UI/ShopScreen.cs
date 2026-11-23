@@ -33,6 +33,11 @@ namespace SpaceEscaper
 
         private static readonly int s_familyCount = Enum.GetValues(typeof(ShipFamily)).Length;
 
+        // For tests, which tap it like a player.
+        internal Button BackButton => m_backButton;
+
+        internal SelectOrBuyButton SelectOrBuyLook => m_selectOrBuyLook;
+
         // The hangar opens on the ship being flown. What it shows then stays until the scene
         // reloads.
         private void Awake()

@@ -4,29 +4,29 @@ using UnityEngine;
 namespace SpaceEscaper
 {
     /// <summary>
-    /// The colors of an entry on the achievements screen in one of its states.
+    /// The colors of an entry on the achievements screen in one of its states, as roles in the colorway.
     /// </summary>
     [Serializable]
     public struct AchievementLook
     {
-        [SerializeField] private Color m_background;
-        [SerializeField] private Color m_border;
-        [SerializeField] private Color m_iconTile;
-        [SerializeField] private Color m_icon;
-        [SerializeField] private Color m_title;
-        [SerializeField] private Color m_description;
+        [SerializeField] private ColorwayColor m_background;
+        [SerializeField] private ColorwayColor m_border;
+        [SerializeField] private ColorwayColor m_iconTile;
+        [SerializeField] private ColorwayColor m_icon;
+        [SerializeField] private ColorwayColor m_title;
+        [SerializeField] private ColorwayColor m_description;
         [Tooltip("The amount of the reward next to the title.")]
-        [SerializeField] private Color m_reward;
+        [SerializeField] private ColorwayColor m_reward;
         [Tooltip("Tints the coin in front of the amount.")]
-        [SerializeField] private Color m_rewardCoin;
+        [SerializeField] private ColorwayColor m_rewardCoin;
 
-        public Color Background => m_background;
-        public Color Border => m_border;
-        public Color IconTile => m_iconTile;
-        public Color Icon => m_icon;
-        public Color Title => m_title;
-        public Color Description => m_description;
-        public Color Reward => m_reward;
-        public Color RewardCoin => m_rewardCoin;
+        public ColorwayColor Background => m_background;
+        public ColorwayColor Border => m_border;
+        public ColorwayColor IconTile => m_iconTile;
+        public ColorwayColor Icon => m_icon;
+        public ColorwayColor Title => m_title;
+        public ColorwayColor Description => m_description;
+        public ColorwayColor Reward => m_reward;
+        public ColorwayColor RewardCoin => m_rewardCoin;
     }
 }

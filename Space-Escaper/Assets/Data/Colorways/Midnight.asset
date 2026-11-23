@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 96f153c056b6c8542bf8882aeacd4138, type: 3}
+  m_Name: Midnight
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayData
+  m_id: Midnight
+  m_title: MIDNIGHT
+  m_background: {r: 0.039215688, g: 0.0627451, b: 0.1882353, a: 1}
+  m_glow: {r: 0.13333334, g: 0.88235295, b: 1, a: 1}
+  m_glowShadow: {r: 0.06666667, g: 0.4392157, b: 0.5019608, a: 1}
+  m_textOnGlow: {r: 0, g: 0.14901961, b: 0.18431373, a: 1}
+  m_starlight: {r: 1, g: 0.72156864, b: 0.3019608, a: 1}
+  m_textOnStarlight: {r: 0.18039216, g: 0.09803922, b: 0, a: 1}
+  m_glowImage: {fileID: 21300000, guid: 3c0c4eb7fbaf2324e9f81749de5b5ffa, type: 3}
+  m_starlightGlowImage: {fileID: 21300000, guid: fe931629ef9aaeb4b90289e3050cf5d3, type: 3}
