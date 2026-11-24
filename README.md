@@ -159,7 +159,7 @@ The full license texts roll at the end of the credits in the game and lie next t
 - [x] Smooth transitions and animations in the menus
 - [x] Hangar: the platform slides out and the next ship family slides in
 - [x] Highscore bar slides in from the top, swipe hint arrows sway
-- [ ] Small fixes and polish
+- [x] Small fixes and polish
 
 </small>
 

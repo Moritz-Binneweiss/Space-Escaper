@@ -10,6 +10,8 @@ namespace SpaceEscaper
     [RequireComponent(typeof(CanvasGroup))]
     public class DropEffect : MonoBehaviour
     {
+        [Tooltip("Seconds it waits unseen before it drops in, so it comes after the screen it is on.")]
+        [SerializeField] private float m_delay;
         [Tooltip("Seconds from above into its place.")]
         [SerializeField] private float m_duration = 0.5f;
         [Tooltip("Seconds from its place back up out of sight.")]
@@ -103,7 +105,7 @@ namespace SpaceEscaper
         {
             m_isLeaving = isLeaving;
             m_startShown = m_shown;
-            m_startTime = Time.time;
+            m_startTime = isLeaving ? Time.time : Time.time + m_delay;
             m_isMoving = true;
         }
 

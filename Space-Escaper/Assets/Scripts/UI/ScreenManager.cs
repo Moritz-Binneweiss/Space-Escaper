@@ -8,8 +8,9 @@ namespace SpaceEscaper
     /// Shows one screen of the UI at a time: the screen of the state the game is in, or the settings, the colorways,
     /// the credits, the achievements or the collectibles over it. The achievements slide in over the main menu from
     /// the left and the collectibles from the right, the sides of their buttons, and the pause rises over the run from
-    /// below like a tablet. Each goes back out the way it came, every other change fades. The hangar and the scene
-    /// change behind a curtain in the ground of the colorway, which hides the cut of the camera and the loading.
+    /// below like a tablet, which a finger can also swipe away. Each goes back out the way it came, every other change
+    /// fades. The hangar and the scene change behind a curtain in the ground of the colorway, which hides the cut of
+    /// the camera and the loading.
     /// </summary>
     public class ScreenManager : MonoBehaviour
     {
@@ -19,6 +20,7 @@ namespace SpaceEscaper
             Fade,
             SlideIn,
             SlideOut,
+            Settle,
         }
 
         private enum Side
@@ -36,6 +38,14 @@ namespace SpaceEscaper
         private const float k_SlideOutDuration = 0.26f;
         private const float k_CurtainCloseDuration = 0.2f;
         private const float k_CurtainOpenDuration = 0.3f;
+
+        // A sheet a finger lets go of too early springs back into its place this fast.
+        private const float k_SettleDuration = 0.2f;
+
+        // A finger swipes the sheet of the pause away once it has dragged it a quarter of its way out, or would have
+        // within this many seconds at the speed it lets go with.
+        private const float k_SwipeAwayShare = 0.25f;
+        private const float k_SwipeLookAhead = 0.2f;
 
         // A longer frame, like the two of loading the scene, moves a change on by this much only. So no hitch skips
         // one.
@@ -58,6 +68,7 @@ namespace SpaceEscaper
 
         private readonly Vector3[] m_corners = new Vector3[4];
         private GameObject[] m_screens;
+        private Canvas m_canvas;
         private GameObject m_shownScreen;
         private GameObject m_leavingScreen;
         private CanvasGroup m_aboveGroup;
@@ -68,9 +79,11 @@ namespace SpaceEscaper
         private Vector2 m_panelPlace;
         private Vector2 m_panelOffset;
         private CanvasRenderer m_panelDim;
+        private Vector2 m_pauseSheetPlace;
         private CanvasRenderer m_pauseDim;
         private Motion m_motion;
         private float m_motionTime;
+        private float m_startShown;
         private CanvasGroup m_curtainGroup;
         private Action m_changeBehindCurtain;
         private bool m_isCurtainClosing;
@@ -94,8 +107,10 @@ namespace SpaceEscaper
                 m_mainMenu, m_gameMenu, m_pauseMenu, m_settings, m_colorways, m_credits, m_achievements, m_collectibles,
                 m_shop, m_deathMenu
             };
+            m_canvas = GetComponent<Canvas>();
             m_curtainGroup = m_curtain.GetComponent<CanvasGroup>();
             m_pauseDim = m_pauseMenu.GetComponent<Graphic>().canvasRenderer;
+            m_pauseSheetPlace = m_pauseSheet.anchoredPosition;
 
             // Every scene starts behind the curtain, also when the app starts. The game starts in the main menu,
             // whichever screen was left switched on while editing the scene.
@@ -170,6 +185,67 @@ namespace SpaceEscaper
             ShowCurtain();
         }
 
+        /// <summary>
+        /// Moves the sheet of the pause with a finger, by its move in pixels, up positive. It goes down to out of sight
+        /// but not above its place, and the dim of the pause fades with it. Only while the pause stands.
+        /// </summary>
+        public void DragPauseSheet(float pixels)
+        {
+            if (m_shownScreen != m_pauseMenu || (m_motion != Motion.None && m_motion != Motion.Settle))
+            {
+                return;
+            }
+
+            // The finger takes over a sheet that springs back.
+            m_motion = Motion.None;
+            Vector2 offset = GetPauseSheetOffset();
+            float shown = GetShown(m_pauseSheet.anchoredPosition, m_pauseSheetPlace, offset);
+            ShowPauseSheet(Mathf.Clamp01(shown + pixels / m_canvas.scaleFactor / -offset.y), offset);
+        }
+
+        /// <summary>
+        /// Whether a finger that lets go of the sheet of the pause at this speed, in pixels per second downwards,
+        /// swipes it away: when it has dragged it a quarter of its way out, or would have a moment later.
+        /// </summary>
+        public bool IsPauseSheetSwipedAway(float pixelsPerSecond)
+        {
+            if (m_shownScreen != m_pauseMenu)
+            {
+                return false;
+            }
+
+            Vector2 offset = GetPauseSheetOffset();
+            float way = -offset.y;
+            float dragged = (1f - GetShown(m_pauseSheet.anchoredPosition, m_pauseSheetPlace, offset)) * way;
+            float ahead = Mathf.Max(0f, pixelsPerSecond / m_canvas.scaleFactor) * k_SwipeLookAhead;
+            return dragged + ahead > way * k_SwipeAwayShare;
+        }
+
+        /// <summary>
+        /// Lets the sheet of the pause spring back into its place after a finger let go of it too early.
+        /// </summary>
+        public void SettlePauseSheet()
+        {
+            if (m_shownScreen != m_pauseMenu || m_motion != Motion.None)
+            {
+                return;
+            }
+
+            m_panel = m_pauseSheet;
+            m_panelDim = m_pauseDim;
+            m_panelPlace = m_pauseSheetPlace;
+            m_panelOffset = GetPauseSheetOffset();
+            m_startShown = GetShown(m_pauseSheet.anchoredPosition, m_panelPlace, m_panelOffset);
+            if (m_startShown >= 1f)
+            {
+                return;
+            }
+
+            m_motion = Motion.Settle;
+            m_motionTime = 0f;
+            ShowMotion();
+        }
+
         private GameObject GetScreen(GameState state)
         {
             switch (state)
@@ -221,8 +297,17 @@ namespace SpaceEscaper
                 return;
             }
 
-            // A change in the middle of another one ends that one first.
-            EndMotion();
+            // A change in the middle of another one ends that one first. A sheet springing back after a finger goes
+            // on from where it is, the pause puts it back in its place once it is gone.
+            if (m_motion == Motion.Settle)
+            {
+                m_motion = Motion.None;
+            }
+            else
+            {
+                EndMotion();
+            }
+
             GameObject previous = m_shownScreen;
             m_shownScreen = screen;
             foreach (GameObject candidate in m_screens)
@@ -239,6 +324,7 @@ namespace SpaceEscaper
                 if (previous != null)
                 {
                     previous.SetActive(false);
+                    ShowAtRest(previous);
                 }
 
                 ShowAtRest(screen);
@@ -276,12 +362,16 @@ namespace SpaceEscaper
             m_aboveGround = GetGroundOpacity(above);
             if (sliding != null)
             {
-                // The pause slides only its sheet, its dim fades over the run.
+                // The pause slides only its sheet, its dim fades over the run. A finger may have moved the sheet out
+                // of its place, it leaves from there.
                 bool isPause = sliding == m_pauseMenu;
                 m_panel = isPause ? m_pauseSheet : (RectTransform)sliding.transform;
                 m_panelDim = isPause ? m_pauseDim : null;
-                m_panelPlace = m_panel.anchoredPosition;
-                m_panelOffset = GetOffsetOutOfSight(m_panel, side);
+                m_panelPlace = isPause ? m_pauseSheetPlace : m_panel.anchoredPosition;
+                m_panelOffset = GetOffsetOutOfSight(m_panel, side) + (m_panel.anchoredPosition - m_panelPlace);
+                m_startShown = m_motion == Motion.SlideIn
+                    ? 0f
+                    : GetShown(m_panel.anchoredPosition, m_panelPlace, m_panelOffset);
             }
 
             m_leavingScreen = leaving;
@@ -293,21 +383,24 @@ namespace SpaceEscaper
 
         private void ShowMotion()
         {
-            float time = Mathf.Clamp01(m_motionTime / GetDuration(m_motion));
+            float duration = GetDuration();
+            float time = duration > 0f ? Mathf.Clamp01(m_motionTime / duration) : 1f;
             float shown = GetShownAbove(time);
-            if (m_motion == Motion.Fade)
+            switch (m_motion)
             {
-                m_aboveGroup.alpha = shown;
-                m_belowGroup.alpha = GetAlphaBelow(shown, m_aboveGround);
-            }
-            else
-            {
-                m_belowGroup.alpha = 1f - shown;
-                m_panel.anchoredPosition = m_panelPlace + m_panelOffset * (1f - shown);
-                if (m_panelDim != null)
-                {
-                    m_panelDim.SetAlpha(shown);
-                }
+                case Motion.Fade:
+                    m_aboveGroup.alpha = shown;
+                    m_belowGroup.alpha = GetAlphaBelow(shown, m_aboveGround);
+                    break;
+
+                case Motion.Settle:
+                    ShowPanel(shown);
+                    break;
+
+                default:
+                    m_belowGroup.alpha = GetAlphaBelowSlide(shown);
+                    ShowPanel(shown);
+                    break;
             }
 
             if (time >= 1f)
@@ -325,11 +418,56 @@ namespace SpaceEscaper
                     return Easing.EaseOut(time);
 
                 case Motion.SlideOut:
-                    return 1f - Easing.EaseIn(time);
+                    // Let go by a finger, the sheet goes on at once instead of starting slowly.
+                    float gone = m_startShown < 1f ? Easing.EaseOut(time) : Easing.EaseIn(time);
+                    return m_startShown * (1f - gone);
+
+                case Motion.Settle:
+                    return Mathf.Lerp(m_startShown, 1f, Easing.EaseOut(time));
 
                 default:
                     float faded = Easing.EaseInOut(time);
                     return m_isAboveEntering ? faded : 1f - faded;
+            }
+        }
+
+        // The screen below a sliding one shows as much as the sliding one leaves free of it. After a finger has moved
+        // the sheet of the pause, the run below comes from nothing, as it did not show while the finger moved.
+        private float GetAlphaBelowSlide(float shown)
+        {
+            if (m_motion == Motion.SlideOut && m_startShown > 0f)
+            {
+                return 1f - shown / m_startShown;
+            }
+
+            return 1f - shown;
+        }
+
+        private float GetDuration()
+        {
+            switch (m_motion)
+            {
+                case Motion.SlideIn:
+                    return k_SlideInDuration;
+
+                case Motion.SlideOut:
+                    // Only the rest of the way, after a finger.
+                    return k_SlideOutDuration * m_startShown;
+
+                case Motion.Settle:
+                    return k_SettleDuration;
+
+                default:
+                    return k_FadeDuration;
+            }
+        }
+
+        private void ShowPanel(float shown)
+        {
+            m_panel.anchoredPosition = m_panelPlace + m_panelOffset * (1f - shown);
+            if (m_panelDim != null)
+            {
+                m_panelDim.SetAlpha(shown);
             }
         }
 
@@ -342,14 +480,16 @@ namespace SpaceEscaper
 
             if (m_motion != Motion.Fade)
             {
-                m_panel.anchoredPosition = m_panelPlace;
-                if (m_panelDim != null)
-                {
-                    m_panelDim.SetAlpha(1f);
-                }
+                ShowPanel(1f);
             }
 
+            bool isSettle = m_motion == Motion.Settle;
             m_motion = Motion.None;
+            if (isSettle)
+            {
+                return;
+            }
+
             m_leavingScreen.SetActive(false);
             ShowAtRest(m_leavingScreen);
             ShowAtRest(m_shownScreen);
@@ -377,19 +517,22 @@ namespace SpaceEscaper
             }
         }
 
-        private static float GetDuration(Motion motion)
+        // From the place of the sheet of the pause to just below the screen, wherever a finger holds it.
+        private Vector2 GetPauseSheetOffset()
         {
-            switch (motion)
-            {
-                case Motion.SlideIn:
-                    return k_SlideInDuration;
+            return GetOffsetOutOfSight(m_pauseSheet, Side.Bottom) + (m_pauseSheet.anchoredPosition - m_pauseSheetPlace);
+        }
 
-                case Motion.SlideOut:
-                    return k_SlideOutDuration;
+        private void ShowPauseSheet(float shown, Vector2 offset)
+        {
+            m_pauseSheet.anchoredPosition = m_pauseSheetPlace + offset * (1f - shown);
+            m_pauseDim.SetAlpha(shown);
+        }
 
-                default:
-                    return k_FadeDuration;
-            }
+        // How much of a panel at this position is in: 1 in its place, 0 out of sight.
+        private static float GetShown(Vector2 position, Vector2 place, Vector2 offset)
+        {
+            return 1f - Vector2.Dot(position - place, offset) / offset.sqrMagnitude;
         }
 
         // How much of what lies behind a screen its ground covers, nothing for a screen over the world.
@@ -408,11 +551,17 @@ namespace SpaceEscaper
             return through > 0f ? Mathf.Clamp01((1f - alphaAbove) / through) : 0f;
         }
 
-        private static void ShowAtRest(GameObject screen)
+        // The pause also puts its sheet back, which a finger may have left out of its place.
+        private void ShowAtRest(GameObject screen)
         {
             CanvasGroup group = screen.GetComponent<CanvasGroup>();
             group.alpha = 1f;
             group.blocksRaycasts = true;
+            if (screen == m_pauseMenu)
+            {
+                m_pauseSheet.anchoredPosition = m_pauseSheetPlace;
+                m_pauseDim.SetAlpha(1f);
+            }
         }
 
         // Once closed, the curtain makes the change and opens again. The change finds it closed, so a screen it shows

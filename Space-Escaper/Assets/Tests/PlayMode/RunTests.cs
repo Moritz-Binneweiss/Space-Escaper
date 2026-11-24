@@ -35,8 +35,18 @@ namespace SpaceEscaper.Tests
         // covers at least 0.86.
         private const float k_NearlyClosed = 0.5f;
 
-        // The platform in the hangar sinks and rises again within 0.6 s.
+        // The platform in the hangar slides out and back in within 0.6 s.
         private const float k_MaxTimeToSlide = 5f;
+
+        // A finger on the sheet of the pause, a little below its top edge, where the sheet shows only its ground. Its
+        // way out is some 550 units, a quarter of it swipes the sheet away. A finger that rests before it lets go has
+        // no speed left.
+        private const float k_GrabberDepth = 10f;
+        private const int k_DragSteps = 5;
+        private const float k_ShortDrag = 40f;
+        private const float k_LongDrag = 200f;
+        private const float k_FingerRest = 0.2f;
+        private const float k_FingerTolerance = 0.5f;
 
         // The knob of a switch slides over in 0.15 s, between two places 24 units apart.
         private const float k_SwitchTime = 0.3f;
@@ -57,6 +67,11 @@ namespace SpaceEscaper.Tests
         // A popup of the run drops in from 14 units above its place in 0.5 s.
         private const float k_DropDuration = 0.5f;
         private const float k_DropHeight = 14f;
+
+        // Unity keeps a position that a new one changes by less than about a millionth of it. A drop slows down to its
+        // end, so its last step can be that small, and the popup stays as far short of its place, at -248.4 up to
+        // 0.00025 units.
+        private const float k_RestTolerance = 0.01f;
 
         // The test reads time and place after the frame of a tap, the score counts that frame
         // too. A frame of flight is a fraction of a unit, and the ship stops short of the full
@@ -146,7 +161,8 @@ namespace SpaceEscaper.Tests
         }
 
         // Start, crash and revive through the buttons of the game. The death screen shows the
-        // distance and the time flown and the beaten highscore, the score stands still there,
+        // distance and the time flown and the beaten highscore, whose badge drops in after the
+        // screen like the card of the first flight, the score stands still there,
         // and the revive must not crash the ship again: the obstacle that killed it is only
         // destroyed at the end of the frame, and the ship flies on in that same frame. All
         // along, the world moves back to the origin every few units, and nothing on screen may
@@ -172,6 +188,10 @@ namespace SpaceEscaper.Tests
             DeathMenuScreen deathMenu = FindScreen<DeathMenuScreen>();
             Button reviveButton = deathMenu.ReviveButton;
             m_continueButton = FindScreen<PauseMenuScreen>().ContinueButton;
+            RectTransform badge = (RectTransform)deathMenu.NewHighscoreBadge.transform;
+            RectTransform card = (RectTransform)deathMenu.UnlockedCard.transform;
+            Vector2 badgePlace = badge.anchoredPosition;
+            Vector2 cardPlace = card.anchoredPosition;
 
             yield return Tap(startButton);
             Assert.That(gameManager.State, Is.EqualTo(GameState.Run), "Play did not start a run");
@@ -208,9 +228,20 @@ namespace SpaceEscaper.Tests
             Assert.That(deathMenu.UnlockedTitleText.text, Is.EqualTo(FindAchievement(k_FirstFlightId).Title),
                 "The card shows another achievement than the first flight");
 
+            // Badge and card drop in after the screen. A frame after it came, they still wait unseen.
+            yield return null;
+            Assert.That(badge.GetComponent<CanvasGroup>().alpha, Is.EqualTo(0f), "The badge comes with the screen");
+            Assert.That(card.GetComponent<CanvasGroup>().alpha, Is.EqualTo(0f), "The card comes with the screen");
+
             int deathScore = runScore.Score;
             yield return new WaitForSeconds(k_TimeOnDeathScreen);
             Assert.That(runScore.Score, Is.EqualTo(deathScore), "The score counted on after the crash");
+            Assert.That(badge.GetComponent<CanvasGroup>().alpha, Is.EqualTo(1f), "The badge does not drop in");
+            Assert.That(Vector2.Distance(badge.anchoredPosition, badgePlace), Is.LessThan(k_RestTolerance),
+                "The badge does not drop into its place");
+            Assert.That(card.GetComponent<CanvasGroup>().alpha, Is.EqualTo(1f), "The card does not drop in");
+            Assert.That(Vector2.Distance(card.anchoredPosition, cardPlace), Is.LessThan(k_RestTolerance),
+                "The card does not drop into its place");
             int shiftsBeforeRevive = m_shiftCount;
             WatchFromHere();
             yield return Tap(reviveButton);
@@ -599,11 +630,77 @@ namespace SpaceEscaper.Tests
             AssertAtRest(gameMenu);
         }
 
-        // The arrow lets the platform sink into the floor with the ship and rise again with the next family, like a
-        // lift. The family changes once all of the platform and the ship is under the floor the platform stands on,
-        // which hides it, and a tap on an arrow meanwhile does nothing.
+        // A finger swipes the pause away downwards like a tablet put down. The sheet follows it but not above its
+        // place. A short drag let go after a rest springs back and keeps the pause, a long one goes on down from where
+        // the finger let go, and the run goes on. A drag reaches the pause also where the sheet shows only its ground.
         [UnityTest]
-        public IEnumerator ThePlatformSinksAndRisesWithTheNextFamily()
+        public IEnumerator ThePauseCanBeSwipedAway()
+        {
+            Random.InitState(k_RandomSeed);
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+
+            ScreenManager screens = Object.FindAnyObjectByType<ScreenManager>();
+            RectTransform sheet = screens.PauseSheet;
+            Vector2 sheetPlace = sheet.anchoredPosition;
+            float scale = screens.GetComponent<Canvas>().scaleFactor;
+            PauseMenuScreen pauseMenu = FindScreen<PauseMenuScreen>();
+            GameObject pause = pauseMenu.gameObject;
+            CanvasRenderer dim = pauseMenu.GetComponent<Graphic>().canvasRenderer;
+            m_continueButton = pauseMenu.ContinueButton;
+            yield return Tap(FindScreen<MainMenuScreen>().StartButton);
+            yield return Tap(FindScreen<GameMenuScreen>().PauseButton);
+            yield return WaitForScreens();
+
+            Vector3 grabber = sheet.TransformPoint(new Vector3(0f, sheet.rect.yMax - k_GrabberDepth, 0f));
+            PointerEventData finger = new PointerEventData(EventSystem.current)
+            {
+                position = RectTransformUtility.WorldToScreenPoint(null, grabber),
+            };
+            List<RaycastResult> hits = new List<RaycastResult>();
+            EventSystem.current.RaycastAll(finger, hits);
+            Assert.That(hits, Is.Not.Empty, "Nothing on the sheet takes a finger");
+            Assert.That(ExecuteEvents.GetEventHandler<IDragHandler>(hits[0].gameObject), Is.EqualTo(pause),
+                "A drag on the sheet does not reach the pause");
+
+            ExecuteEvents.Execute(pause, finger, ExecuteEvents.beginDragHandler);
+            yield return DragFinger(pause, finger, -k_ShortDrag, scale);
+            Assert.That(sheet.anchoredPosition.y, Is.EqualTo(sheetPlace.y - k_ShortDrag).Within(k_FingerTolerance),
+                "The sheet does not follow the finger");
+            Assert.That(dim.GetAlpha(), Is.LessThan(1f), "The dim does not fade with the sheet");
+            yield return new WaitForSecondsRealtime(k_FingerRest);
+            ExecuteEvents.Execute(pause, finger, ExecuteEvents.endDragHandler);
+            Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Paused), "A short drag swipes the pause away");
+            yield return WaitForScreens();
+            Assert.That(sheet.anchoredPosition, Is.EqualTo(sheetPlace),
+                "The sheet does not spring back into its place");
+            Assert.That(dim.GetAlpha(), Is.EqualTo(1f), "The dim does not come back with the sheet");
+
+            ExecuteEvents.Execute(pause, finger, ExecuteEvents.beginDragHandler);
+            yield return DragFinger(pause, finger, k_ShortDrag, scale);
+            Assert.That(sheet.anchoredPosition, Is.EqualTo(sheetPlace), "The sheet goes above its place");
+            ExecuteEvents.Execute(pause, finger, ExecuteEvents.endDragHandler);
+
+            ExecuteEvents.Execute(pause, finger, ExecuteEvents.beginDragHandler);
+            yield return DragFinger(pause, finger, -k_LongDrag, scale);
+            float letGo = sheet.anchoredPosition.y;
+            ExecuteEvents.Execute(pause, finger, ExecuteEvents.endDragHandler);
+            Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Run),
+                "A long drag does not swipe the pause away");
+            yield return null;
+            Assert.That(sheet.anchoredPosition.y, Is.LessThan(letGo),
+                "The sheet does not go on down from where the finger let go");
+            yield return WaitForScreens();
+            Assert.That(pause.activeSelf, Is.False, "The pause stays on");
+            Assert.That(sheet.anchoredPosition, Is.EqualTo(sheetPlace), "The sheet stays out of its place");
+            AssertAtRest(FindScreen<GameMenuScreen>());
+        }
+
+        // The arrow slides the platform with the ship out of sight along the floor towards the bottom of the screen,
+        // like on a conveyor belt, and the next family in from there. The family changes once the platform is out of
+        // sight, and a tap on an arrow during the slide does nothing.
+        [UnityTest]
+        public IEnumerator TheHangarSlidesToTheNextFamily()
         {
             yield return SceneManager.LoadSceneAsync(k_GameSceneName);
             yield return null;
@@ -612,25 +709,22 @@ namespace SpaceEscaper.Tests
 
             ShopScreen shop = FindScreen<ShopScreen>();
             Hangar hangar = Object.FindAnyObjectByType<Hangar>();
+            Camera view = hangar.ShopCamera;
             Transform platform = hangar.Platform;
             Vector3 platformRest = platform.position;
             Vector3 standRest = hangar.Stand.position;
-            float floor = float.MaxValue;
-            foreach (Renderer renderer in platform.GetComponentsInChildren<Renderer>())
-            {
-                floor = Mathf.Min(floor, renderer.bounds.min.y);
-            }
-
+            float restHeight = view.WorldToViewportPoint(platformRest).y;
             ShipFamily family = shop.ShownShip.Family;
             int familyCount = System.Enum.GetValues(typeof(ShipFamily)).Length;
             ShipFamily nextFamily = (ShipFamily)(((int)family + 1) % familyCount);
 
             yield return Tap(shop.NextFamilyButton);
-            Assert.That(hangar.IsSliding, Is.True, "The platform does not move");
-            Assert.That(platform.position.y, Is.LessThan(platformRest.y), "The platform does not sink");
-            Assert.That(Vector3.ProjectOnPlane(platform.position - platformRest, Vector3.up).magnitude,
-                Is.LessThan(k_PlaceTolerance), "The platform does not sink straight down");
-            Assert.That(shop.ShownShip.Family, Is.EqualTo(family), "The family changes before the platform is down");
+            Assert.That(hangar.IsSliding, Is.True, "The platform does not slide");
+            Assert.That(view.WorldToViewportPoint(platform.position).y, Is.LessThan(restHeight),
+                "The platform does not leave towards the bottom of the screen");
+            Assert.That(platform.position.y, Is.EqualTo(platformRest.y).Within(k_PlaceTolerance),
+                "The platform leaves the floor");
+            Assert.That(shop.ShownShip.Family, Is.EqualTo(family), "The family changes before the platform is out");
             yield return Tap(shop.NextFamilyButton);
 
             bool hasChanged = false;
@@ -641,15 +735,15 @@ namespace SpaceEscaper.Tests
                 if (!hasChanged && shop.ShownShip.Family != family)
                 {
                     hasChanged = true;
-                    Assert.That(platform.position.y, Is.LessThan(platformRest.y),
-                        "The next family does not rise from below");
-                    AssertUnderFloor(hangar, floor, "The family changes in sight");
+                    Assert.That(view.WorldToViewportPoint(platform.position).y, Is.LessThan(restHeight),
+                        "The next family does not come in from the bottom of the screen");
+                    AssertOutOfSight(hangar, "The family changes in sight");
                 }
 
                 yield return null;
             }
 
-            Assert.That(hasChanged, Is.True, "The family does not change while the platform moves");
+            Assert.That(hasChanged, Is.True, "The family does not change while the platform slides");
             Assert.That(shop.ShownShip.Family, Is.EqualTo(nextFamily), "The tap during the slide changed the family");
             Assert.That(Vector3.Distance(platform.position, platformRest), Is.LessThan(k_PlaceTolerance),
                 "The platform does not come back to its place");
@@ -735,15 +829,28 @@ namespace SpaceEscaper.Tests
             Assert.That(GetTapped(AimAt(target)), Is.Not.EqualTo(target.gameObject), message);
         }
 
-        // Nothing of the platform and the ship on it reaches above the floor, which hides it from the hangar camera
-        // above it.
-        private static void AssertUnderFloor(Hangar hangar, float floor, string message)
+        // Nothing of the platform and the ship on it lies in the view of the hangar camera.
+        private static void AssertOutOfSight(Hangar hangar, string message)
         {
+            Plane[] view = GeometryUtility.CalculateFrustumPlanes(hangar.ShopCamera);
             List<Renderer> renderers = new List<Renderer>(hangar.Platform.GetComponentsInChildren<Renderer>());
             renderers.AddRange(hangar.Stand.GetComponentsInChildren<Renderer>());
             foreach (Renderer renderer in renderers)
             {
-                Assert.That(renderer.bounds.max.y, Is.LessThan(floor), $"{message}: {renderer.name}");
+                Assert.That(GeometryUtility.TestPlanesAABB(view, renderer.bounds), Is.False,
+                    $"{message}: {renderer.name}");
+            }
+        }
+
+        // A finger on the pause moves by this many units, a step per frame, the way the EventSystem passes it on.
+        private static IEnumerator DragFinger(GameObject target, PointerEventData finger, float units, float scale)
+        {
+            for (int i = 0; i < k_DragSteps; i++)
+            {
+                finger.delta = new Vector2(0f, units * scale / k_DragSteps);
+                finger.position += finger.delta;
+                ExecuteEvents.Execute(target, finger, ExecuteEvents.dragHandler);
+                yield return null;
             }
         }
 

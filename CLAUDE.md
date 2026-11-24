@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 63 Skripte, ~6200 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 64 Skripte, ~6600 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -150,8 +150,10 @@ fehlendes Skript, jede Referenz unserer Komponenten ist gesetzt (auch in Listen)
 jeder Screen unter `UI` hat `Canvas` und `GraphicRaycaster` und keinen Animator (seit
 v1.5.5 auch eine Canvas Group, gespeichert ganz sichtbar und Tipps annehmend), und
 der `ScreenManager` kennt jeden Screen genau einmal (seit v1.5.5 auch die Blende, die vor
-allen Screens sortiert, und das Sheet der Pause, das in ihr liegt, siehe „Übergänge“ unter „UI“). Seit v1.4.12 gibt es außerdem
-genau einen `SpinManager` und seit v1.4.13 genau einen `FloatingOrigin`. Seit v1.5.0
+allen Screens sortiert, und das Sheet der Pause, das in ihr liegt, siehe „Übergänge“ unter
+„UI“). Seit v1.4.12 gibt es außerdem genau einen `SpinManager`, seit v1.4.13 genau einen
+`FloatingOrigin` und seit v1.5.5 genau ein `EventSystem`, das mit `DragThreshold` wie Android
+wartet, bevor eine Berührung zum Ziehen wird (siehe „Tippen und Ziehen“ unter „Eingabe“). Seit v1.5.0
 steht in der Szene kein Aufruf mehr, den ein Button oder ein anderes Bedienelement
 auslöst. Bis dahin prüfte der Test, dass jeder Button-Aufruf Ziel, Methode und
 Argument findet. Seit v1.5.1 hat die Szene keinen Legacy-`Text` mehr, alle Texte sind
@@ -247,19 +249,25 @@ annimmt, stehen danach in Ruhe, und mit „Zurück“ fahren sie nach links hina
 (`ThePauseRisesFromBelowLikeATablet`) tippt im Run auf Pause: Das Sheet der Pause kommt von unten,
 ihre Abdunklung blendet ein, und der Run nimmt keine Tipps mehr an. Nach Continue sinkt es wieder
 hinab, am Ende stehen Sheet und Abdunklung wieder in Ruhe. Ein achter
-(`ThePlatformSinksAndRisesWithTheNextFamily`) tippt den Pfeil im Hangar: Die Plattform sinkt
-senkrecht, die Familie wechselt erst, wenn Plattform und Schiff ganz unter dem Boden sind (kein
-Renderer reicht über die Unterkante der Plattform in Ruhe), die nächste steigt von unten auf, ein
+(`ThePauseCanBeSwipedAway`) wischt die Pause mit einem Finger: Das Sheet folgt ihm, aber nicht über
+seinen Platz, und die Abdunklung blendet mit. Ein kurzer Wisch, nach dem der Finger ruht, federt
+zurück und lässt die Pause stehen, ein langer setzt den Run fort, und das Sheet fährt von dort
+hinab, wo der Finger es losließ. Ein Finger erreicht die Pause auch dort, wo das Sheet nur seinen
+Grund zeigt. Ein neunter (`TheHangarSlidesToTheNextFamily`) tippt den Pfeil im Hangar: Die Plattform
+fährt auf dem Boden zum unteren Bildrand, die Familie wechselt erst, wenn Plattform und Schiff außer
+Sicht sind (kein Renderer im Sichtfeld der Hangar-Kamera), die nächste kommt von dort zurück, ein
 zweiter Tipp während der Fahrt ändert nichts, und am Ende stehen Plattform und Ständer wieder an
-ihrem Platz. Ein neunter (`SwitchesSlideTheirKnob`) tippt den Schalter „Classic Mode“ und prüft,
+ihrem Platz. Ein zehnter (`SwitchesSlideTheirKnob`) tippt den Schalter „Classic Mode“ und prüft,
 dass sein Knopf gleitet, und der Test des Popups im Run, dass es von oben hereinfällt und dabei
-sichtbar wird und nach seiner Zeit wieder hinaufsteigt und ausblendet, bevor das nächste kommt
-(siehe „Bewegungen“ unter „UI“).
+sichtbar wird und nach seiner Zeit wieder hinaufsteigt und ausblendet, bevor das nächste kommt. Der
+erste Test prüft seit v1.5.5 auch, dass „NEW HIGHSCORE“ und die Karte der Achievements auf dem
+Todesbildschirm erst nach ihm hereinfallen (siehe „Bewegungen“ unter „UI“).
 Ebenfalls seit v1.5.5 prüft `EasingTests` die Kurven der Bewegungen gegen Werte, die ein
 Browser für dieselben Kurven zeigt (unabhängig in Python mit exakten Brüchen gerechnet),
-`SwayEffectTests` das Pendeln des Wisch-Hinweises gegen die Keyframes des Mockups und
-`ScreenFadeTests` die Rechnung beim Überblenden: Der untere Screen zeigt durch den Grund des oberen
-genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen scheint nichts durch.
+`SwayEffectTests` das Pendeln des Wisch-Hinweises gegen die Keyframes des Mockups,
+`ScreenFadeTests` die Rechnung beim Überblenden (der untere Screen zeigt durch den Grund des oberen
+genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen scheint nichts durch) und
+`DragThresholdTests` die Tippschwelle (siehe „Tippen und Ziehen“ unter „Eingabe“).
 
 - **Ausführen:** im Editor unter Window > General > Test Runner, Reiter EditMode
   oder PlayMode. Per CLI die EditMode-Tests mit `unity command test run`. Sie dauern
@@ -274,8 +282,8 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
   Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
   verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
-  aus (in v1.5.5 159 Tests in rund 44 s). Mit dem Wechsel in den Play Mode dauern die
-  neun PlayMode-Tests rund 40 s, also
+  aus (in v1.5.5 166 Tests in rund 46 s). Mit dem Wechsel in den Play Mode dauern die
+  zehn PlayMode-Tests rund 43 s, also
   vor Commits, die Run, Tod, Revive, das Spawnen, die Achievements, die Farbschemata, die
   Übergänge oder den Hangar ändern. Meldet ein asynchroner
   PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
@@ -470,7 +478,18 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   Wechsel in Sicht), eine zweite Fahrt bei einem Tipp währenddessen (die Plattform kam nicht mehr an
   ihren Platz) und eine Familie, die von oben kommt. Der Test des Popups fand eines, das
   verschwindet, ohne hinaufzusteigen, `ScreenFadeTests` einfaches Überblenden und `SceneTests` ein
-  Sheet außerhalb der Pause.
+  Sheet außerhalb der Pause. Nach dem zweiten Durchsehen fand der Test des Hangars, seit die
+  Plattform auf dem Boden zum unteren Bildrand fährt, eine, die zur Seite fährt, eine, die in den
+  Boden sinkt, eine Familie, die beim Losfahren wechselt, eine Fahrt nur halb hinaus, eine zweite
+  Fahrt bei einem Tipp währenddessen und eine Familie, die von hinten kommt. Der Test des
+  Wegwischens fand ein Sheet, das dem Finger nicht folgt, über seinen Platz geht, nicht zurückfedert
+  oder vor dem Hinausfahren an seinen Platz springt, eine Abdunklung, die nicht mitblendet, einen
+  kurzen Wisch, der die Pause schließt, einen langen, der sie stehen lässt, und eine Abdunklung, die
+  keine Berührungen annimmt. Der erste Test fand ein Badge, das mit dem Todesbildschirm kommt,
+  Badge und Karte ohne Wartezeit und eine Karte, die gar nicht kommt, `DragThresholdTests` eine
+  Schwelle von 10 Pixeln überall und einen Bildschirm ohne dpi, der als keiner zählt, und
+  `SceneTests` ein EventSystem ohne `DragThreshold`. Mit seiner Toleranz für Plätze fand der erste
+  Test noch eine Badge, die 0,1 Einheiten über ihrem Platz stehen bleibt.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -571,6 +590,12 @@ behalten dadurch ihre Weltposition.
 - **Neue Objekte** kommen in die passende Gruppe. Eine neue Gruppe gehört in den
   Ursprung, sonst verschiebt sie alle Kinder mit, und bleibt leer (nur der
   Transform): Daran erkennt der Floating Origin sie.
+- **Szene per Skript ändern: vorher frisch laden.** Nach Play Mode und Kompilieren schrieb Unity in
+  v1.5.5 beim Speichern getriebene Layoutwerte (Anker, Größe, Position) der Buttons im Hauptmenü,
+  Prefab-Instanzen in Layout-Gruppen, als Overrides in die Szene, wo sonst 0 steht. Frisch von der
+  Platte geladen blieb der Diff sauber: erst eine leere Szene öffnen
+  (`EditorSceneManager.NewScene`), dann `Game.unity` mit `OpenScene`, so fragt kein Dialog. Nach
+  jedem Speichern per Skript den Diff ansehen.
 - **Was sich ständig bewegt, bleibt flach.** Unity aktualisiert Transforms pro
   Hierarchie, bewegte Kinder in großen Hierarchien kosten mehr. Deshalb liegt
   `Playership` mit dem Schiff im Root, und die Streckenabschnitte spawnen dort
@@ -824,12 +849,12 @@ bei 8.
   (`MainMenuScreen.StartButton` usw.), seit v1.5.3 für Einträge, Karte, Medaille und Popup der
   Achievements, seit v1.5.4 für die Karten der Farbschemata, die Zeile der Settings und den
   Button unter dem Schiff im Hangar, seit v1.5.5 für `ScreenManager.IsChanging`, die Blende und
-  das Sheet der Pause, Plattform und Ständer des Hangars, den Pfeil, das gezeigte Schiff, den
-  Schalter „Classic Mode“ und den Knopf eines Schalters. Seit v1.5.1 öffnet sie auch den
+  das Sheet der Pause, Plattform, Ständer und Kamera des Hangars, den Pfeil, das gezeigte Schiff,
+  den Schalter „Classic Mode“ und den Knopf eines Schalters. Seit v1.5.1 öffnet sie auch den
   EditMode-Tests `internal`, für `SafeArea.Fit`, seit v1.5.3 für `DeathMenuScreen.ShowUnlocked` und
-  `GameMenuScreen.ShowAchievement`, seit v1.5.5 für `Easing.CubicBezier`, `SwayEffect.GetOffset`
-  und `ScreenManager.GetAlphaBelow`, und `SceneTests` liest dort das Sheet der Pause
-  (`ScreenManager.PauseSheet`). Test-Assemblies kommen an
+  `GameMenuScreen.ShowAchievement`, seit v1.5.5 für `Easing.CubicBezier`, `SwayEffect.GetOffset`,
+  `ScreenManager.GetAlphaBelow` und `DragThreshold.GetPixels`, und `SceneTests` liest dort das
+  Sheet der Pause (`ScreenManager.PauseSheet`). Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket**, gehört dessen Assembly in
   die References der `SpaceEscaper.asmdef`, sonst findet der Compiler es nicht.
@@ -1233,20 +1258,20 @@ Prefab.
   `ShipData` mit Münze, SELECT oder SELECTED in der Leuchtfarbe (seit v1.5.1, bis dahin
   Bilder). Reichen die Münzen nicht, ist er halb durchsichtig (Canvas Group), ein Tipp
   kauft dann nichts.
-- **Die Plattform fährt wie ein Aufzug** (seit v1.5.5): Ein Pfeil lässt `Hangar.SlideToFamily`
-  Plattform (`Environment/Hangar/Platform`) und Ständer (`Environment/ShopShips`) zusammen
-  senkrecht in den Boden sinken, auf dem die Plattform steht (0,26 s, ease-in). Sind sie ganz
-  darunter, zeigt der `ShopScreen` die neue Familie, Name, Skins, Preis und Schiff, und sie steigt
-  wieder an ihren Platz (0,34 s, ease-out), bei beiden Pfeilen gleich. Wie tief, rechnet der
-  `Hangar` aus den Bounds: bis auch die Spitze des Schiffs 0,25 unter der Unterkante der Plattform
-  in Ruhe liegt, rund 4 Einheiten, denn das Schiff schwebt gut 2 über ihr. Der Boden (y 17,5)
-  verdeckt, was darunter ist, eine Öffnung hat er dort nicht: Die Plattform verschwindet in ihm, und
-  das Schiff taucht in ihn ein. Bis zum Durchsehen von Moritz (24.11.2026: „nach unten hinweg und
-  dann von unten wieder an den platz“) fuhr sie wie im Hangar von Version 6 der Mockups zur Seite
-  hinaus. Ein Tipp auf einen Pfeil während der Fahrt tut nichts (wie im Mockup), ein Skin wechselt
-  weiter sofort. Schließt der Hangar mitten in der Fahrt, springt sie ans Ziel und zeigt die neue
-  Familie. Die Fahrt läuft in der Zeit des Spiels, einen Sound hat sie nicht, der kommt mit den
-  neuen Sounds (v1.7.0).
+- **Die Plattform fährt wie auf einem Förderband** (seit v1.5.5, Moritz, 24.11.2026: „wie
+  rausgeschoben auf einem förderband nach unten des bildschirms“): Ein Pfeil lässt
+  `Hangar.SlideToFamily` Plattform (`Environment/Hangar/Platform`) und Ständer
+  (`Environment/ShopShips`) zusammen auf dem Boden zur Hangar-Kamera hin fahren, also zum unteren
+  Bildrand hinaus (0,26 s, ease-in). Sind sie außer Sicht, zeigt der `ShopScreen` die neue Familie,
+  Name, Skins, Preis und Schiff, und sie kommt von dort zurück an ihren Platz (0,34 s, ease-out),
+  bei beiden Pfeilen gleich. Wie weit, rechnet der `Hangar` aus dem Sichtfeld der Kamera: bis keine
+  Ecke der Bounds von Plattform und Schiff mehr über der Ebene des unteren Bildrands liegt, plus
+  0,25, rund 15 Einheiten. Die Wände des Gebäudes stehen 7 neben der Mitte, die Plattform mit
+  Radius 4,8 fährt zwischen ihnen. Bis zum Durchsehen fuhr sie wie im Hangar von Version 6 der Mockups zur Seite
+  hinaus, dazwischen kurz senkrecht durch den Boden. Ein Tipp auf einen Pfeil während der Fahrt tut
+  nichts (wie im Mockup), ein Skin wechselt weiter sofort. Schließt der Hangar mitten in der Fahrt,
+  springt sie ans Ziel und zeigt die neue Familie. Die Fahrt läuft in der Zeit des Spiels, einen
+  Sound hat sie nicht, der kommt mit den neuen Sounds (v1.7.0).
 - **Was der Hangar sonst zeigt** (seit v1.5.1): die Münzen oben rechts, den Namen der
   Familie über den Skins und an jedem Skin-Button Ecken, solange sein Schiff auf dem
   Ständer steht, und einen Haken, sobald es gekauft ist, grün unter dem geflogenen Schiff,
@@ -1431,6 +1456,16 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Pause fährt nur das Sheet (`ScreenManager.m_pauseSheet`), ihre Abdunklung auf dem Screen selbst
     blendet dabei über das Alpha ihres `CanvasRenderer` ein, das ihre Farbe aus dem Farbschema
     unberührt lässt.
+  - **Die Pause lässt sich wegwischen** (Moritz, 24.11.2026: „kann man auch den pause screen mit
+    touch nach unten weg wischen“): Der `PauseMenuScreen` nimmt das Ziehen überall auf dem Screen
+    an, auch auf seinen Buttons, die dann nicht klicken. Auf dem Sheet nimmt sonst nichts
+    Berührungen an, deshalb ist die Abdunklung dahinter ein Raycast Target. `DragPauseSheet` führt
+    das Sheet mit dem Finger, nach unten bis außer Sicht, nach oben nicht über seinen Platz, und die
+    Abdunklung blendet mit. Lässt der Finger los, nachdem er das Sheet ein Viertel seines Wegs gezogen
+    hat oder es mit seinem Tempo in 0,2 s dorthin brächte (`IsPauseSheetSwipedAway`), geht es weiter
+    wie mit Continue: Das Sheet fährt von dort hinab, mit ease-out, denn es ist schon in Bewegung, und
+    der Run blendet erst ab da ein. Sonst federt es in 0,2 s zurück (`SettlePauseSheet`). Ruht der
+    Finger vor dem Loslassen länger als 0,1 s, zählt sein Tempo nicht.
   - **Alle anderen Wechsel blenden** in 0,2 s ineinander (ease-in-out): Hauptmenü, Run, Pause und
     Tod untereinander und seit dem Durchsehen auch Settings, Farbschemata und Credits (Moritz:
     „settings und credits könnten auch einfach überblenden“, die Farbschemata gleich mit, sie gehören
@@ -1624,7 +1659,10 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     einem Revive: das erste mit seiner Belohnung, mehr als eins zählt das Label als „· +1“. Ihr
     Titel ist 13,5 statt 16. `Top` reicht dafür bis 466 unter die Safe Area. Auf 16:9 bleiben
     bis REVIVE 24 Einheiten, auf dem Tablet mit Balken 12. Dass die Karte auf allen zehn
-    Displays über REVIVE bleibt und jedes Achievement auf sie passt, prüft `LayoutTests`.
+    Displays über REVIVE bleibt und jedes Achievement auf sie passt, prüft `LayoutTests`. Seit
+    v1.5.5 fällt sie kurz nach dem Screen herein wie die Einblendungen im Run, 0,4 s nach ihm,
+    „NEW HIGHSCORE“ schon nach 0,25 s (`DropEffect` mit Wartezeit, Moritz: „find ich gut, setz es
+    um“), jedes Mal, wenn der Screen kommt, auch nach einem Revive.
   - **Gemessen** im Editor in v1.5.3: Draw Calls nur des UI im Screen 6 wie in v1.5.2, auf
     dem Todesbildschirm mit Karte 3, im Hauptmenü mit Zahl an der Medaille 5 statt 3 (Exo 2
     ist dort eine Schrift mehr, und die Zahl liegt zwischen Bildern), im Run mit dem Popup 5
@@ -1961,12 +1999,18 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   es mit) rechnet die Kurven der Mockups, CSS `ease-in`, `ease-out` und `ease-in-out`, als kubische
   Bézierkurven wie ein Browser: per Newton-Verfahren, wo die Kurve dafür zu flach ist, per
   Halbieren. Jede Bewegung ist eine kleine Komponente oder steckt in ihrer Komponente, mit eigenem
-  `Update`: die Übergänge im `ScreenManager`, die Plattform im `Hangar`, `DropEffect` und
-  `SwayEffect` im Run, der Knopf im `ToggleSwitch`. Was auch in der Pause läuft (Übergänge,
-  Schalter), nimmt unskalierte Zeit, was im Run läuft, die Zeit des Spiels, so steht es in der
-  Pause. Sitzt ein Element in einer Layout-Gruppe, bewegt sich ein Kind von ihm, wie bei den Pfeilen
+  `Update`: die Übergänge im `ScreenManager`, die Plattform im `Hangar`, `DropEffect` im Run und auf
+  dem Todesbildschirm, `SwayEffect` im Run, der Knopf im `ToggleSwitch`. Was auch in der Pause
+  läuft (Übergänge, Schalter), nimmt unskalierte Zeit, was im Run läuft, die Zeit des Spiels, so
+  steht es in der Pause. Sitzt ein Element in einer Layout-Gruppe, bewegt sich ein Kind von ihm, wie bei den Pfeilen
   des Wisch-Hinweises. Version 6 der Mockups bewegt sonst nur noch die Flamme des Schiffs, die im
   Spiel ein Partikelsystem ist.
+  **Fast gleiche Positionen übernimmt Unity nicht** (gesehen in v1.5.5): Ändert eine neue
+  `anchoredPosition` die alte um weniger als rund ein Millionstel ihres Werts, bleibt die alte stehen,
+  Alpha übernimmt es dagegen immer. Eine Bewegung, die sanft ausläuft, bleibt so manchmal um diesen
+  Hauch vor ihrem Ziel stehen, bei -248,4 bis 0,00025 Einheiten. Zu sehen ist das nicht, Tests
+  vergleichen Plätze fern von 0 deshalb mit Toleranz (`k_RestTolerance` in `RunTests`). Exakt verglichen
+  war der erste Run-Test etwa jeden vierten Lauf an der Badge des Todesbildschirms rot.
 - **Unsichtbar heißt nicht kostenlos.** Eine Grafik mit Alpha 0 wird gezeichnet, solange
   „Cull Transparent Mesh“ an ihrem `CanvasRenderer` aus ist, auf dem Handy kostet das
   Füllrate. Seit v1.4.10 sind die unsichtbaren Vollbild-Hintergründe von Hauptmenü,
@@ -2064,6 +2108,13 @@ Einstellung zu ändern erfordert einen Editor-Neustart.
   Die ist seit v1.4.5 abgehängt, siehe „Pause“. Das alte
   `StandaloneInputModule` erkennt mit dem neuen Backend keinen Klick mehr - nicht
   zurücktauschen.
+- **Tippen und Ziehen** (seit v1.5.5): Eine Berührung wird erst zum Ziehen, wenn der Finger sich
+  so weit bewegt wie unter Android, 8 dp (`DragThreshold` am EventSystem, aus `Screen.dpi`, ohne
+  dpi wie bei 420, nie unter Unitys 10 Pixeln), bei 420 dpi also 21 Pixel. Unitys 10 Pixel sind auf
+  dem Handy unter einem Millimeter: Ein Tipp, der leicht wackelt, zöge sonst die Liste oder das
+  Sheet, auf dem sein Button liegt, und der Button klickte nicht. Das betrifft die Pause, die sich
+  seit v1.5.5 wegwischen lässt, die Listen der Settings und der Achievements und die Credits. Im
+  Editor bleibt es bei 10 Pixeln.
 - Eingaben lassen sich im Play Mode per `InputSystem.QueueStateEvent` simulieren
   (so wurde die Umstellung getestet: UI-Klick, Pfeiltasten, Maus-Wischer). Ohne
   Fokus aufs Game-Fenster dafür vorübergehend `InputSystem.settings`
@@ -2136,7 +2187,8 @@ aus der Pause auf `true` stehen.
   `GameManager.Awake` setzt dabei `Time.timeScale` zurück.
 - **Die Pause kommt von unten** (seit v1.5.5, siehe „Übergänge“ unter „UI“): Ihr Sheet fährt herauf
   wie ein Tablet, und ihre Abdunklung blendet über dem stehenden Run ein. Mit Continue sinkt es wieder
-  hinab, während der Run schon weiterläuft.
+  hinab, während der Run schon weiterläuft. Ein Finger kann es auch nach unten wegwischen, das wirkt
+  wie Continue.
 - Die Musik läuft in der Pause bewusst weiter (Entscheidung Oktober 2026), so hört
   man den Musikregler, wenn man die Settings aus der Pause öffnet. Beim Tod
   pausiert sie dagegen, siehe „Audio-System“.

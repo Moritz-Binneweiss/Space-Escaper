@@ -100,7 +100,7 @@ namespace SpaceEscaper
             SlideToFamily(1);
         }
 
-        // The platform sinks with the shown ship, and the family changes once it is out of sight.
+        // The platform slides out with the shown ship, and the family changes once it is out of sight.
         private void SlideToFamily(int step)
         {
             ShipFamily family = GetAdjacentFamily(step);

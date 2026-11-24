@@ -4,6 +4,7 @@ using TMPro;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
@@ -265,6 +266,15 @@ namespace SpaceEscaper.Tests
         public void SceneHasOneFloatingOrigin()
         {
             Assert.That(GetComponentsInScene<FloatingOrigin>(), Has.Count.EqualTo(1));
+        }
+
+        // Without it a tap that wobbles a little on a phone drags the pause or a list, and its button does not click.
+        [Test]
+        public void TheEventSystemWaitsForTheTouchSlopBeforeADrag()
+        {
+            List<EventSystem> eventSystems = GetComponentsInScene<EventSystem>();
+            Assert.That(eventSystems, Has.Count.EqualTo(1));
+            Assert.That(eventSystems[0].GetComponent<DragThreshold>(), Is.Not.Null);
         }
 
         // The game fills each entry from its achievement when the screen opens. The scene keeps the same texts, so
