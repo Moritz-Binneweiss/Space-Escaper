@@ -12,6 +12,7 @@ namespace SpaceEscaper
     public class DeathMenuScreen : MonoBehaviour
     {
         [SerializeField] private GameManager m_gameManager;
+        [SerializeField] private ScreenManager m_screens;
         [SerializeField] private RunScore m_runScore;
         [SerializeField] private AchievementTracker m_achievements;
         [Tooltip("Run ended, with the time of the run.")]
@@ -30,6 +31,9 @@ namespace SpaceEscaper
         [SerializeField] private Button m_playAgainButton;
         [SerializeField] private Button m_hangarButton;
         [SerializeField] private Button m_menuButton;
+
+        private DropEffect m_newHighscoreBadgeDrop;
+        private DropEffect m_unlockedCardDrop;
 
         // For tests, which tap them like a player.
         internal Button ReviveButton => m_reviveButton;
@@ -50,14 +54,24 @@ namespace SpaceEscaper
 
         internal TMP_Text UnlockedTitleText => m_unlockedTitleText;
 
-        // The screen comes on with the crash, and what the crash unlocks comes right after, in the same call.
+        // The badge and the card drop in shortly after the screen has come.
+        private void Awake()
+        {
+            m_newHighscoreBadgeDrop = m_newHighscoreBadge.GetComponent<DropEffect>();
+            m_unlockedCardDrop = m_unlockedCard.GetComponent<DropEffect>();
+        }
+
+        // The screen comes on with the crash, and what the crash unlocks comes right after, in the same call. Badge
+        // and card drop in again each time, also after a revive.
         private void OnEnable()
         {
             m_reviveButton.onClick.AddListener(m_gameManager.RequestRevive);
-            m_playAgainButton.onClick.AddListener(m_gameManager.PlayAgain);
-            m_hangarButton.onClick.AddListener(m_gameManager.ReturnToHangar);
-            m_menuButton.onClick.AddListener(m_gameManager.ReturnToMenu);
+            m_playAgainButton.onClick.AddListener(PlayAgainButton_Clicked);
+            m_hangarButton.onClick.AddListener(HangarButton_Clicked);
+            m_menuButton.onClick.AddListener(MenuButton_Clicked);
             m_achievements.Unlocked += AchievementTracker_Unlocked;
+            m_newHighscoreBadge.SetActive(false);
+            m_unlockedCard.SetActive(false);
             ShowUnlocked();
 
             int seconds = (int)m_runScore.FlightTime;
@@ -66,7 +80,11 @@ namespace SpaceEscaper
             m_runEndedText.SetText("RUN ENDED · {0}:{1:00}", minutes, secondsOfMinute);
             m_timeText.SetText("{0}:{1:00}", minutes, secondsOfMinute);
             m_scoreText.SetText("{0}", m_runScore.Score);
-            m_newHighscoreBadge.SetActive(m_runScore.IsNewHighscore);
+            if (m_runScore.IsNewHighscore)
+            {
+                m_newHighscoreBadgeDrop.Play();
+            }
+
             m_coinText.SetText("+{0}", m_runScore.Coins);
             m_distanceText.SetText("{0} m", m_runScore.Distance);
             m_reviveButton.gameObject.SetActive(m_gameManager.CanRevive);
@@ -75,9 +93,9 @@ namespace SpaceEscaper
         private void OnDisable()
         {
             m_reviveButton.onClick.RemoveListener(m_gameManager.RequestRevive);
-            m_playAgainButton.onClick.RemoveListener(m_gameManager.PlayAgain);
-            m_hangarButton.onClick.RemoveListener(m_gameManager.ReturnToHangar);
-            m_menuButton.onClick.RemoveListener(m_gameManager.ReturnToMenu);
+            m_playAgainButton.onClick.RemoveListener(PlayAgainButton_Clicked);
+            m_hangarButton.onClick.RemoveListener(HangarButton_Clicked);
+            m_menuButton.onClick.RemoveListener(MenuButton_Clicked);
             m_achievements.Unlocked -= AchievementTracker_Unlocked;
         }
 
@@ -104,14 +122,34 @@ namespace SpaceEscaper
             ShowUnlocked();
         }
 
+        // The three ways on reload the scene, behind the curtain. The revive goes on in this one.
+        private void PlayAgainButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.PlayAgain);
+        }
+
+        private void HangarButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.ReturnToHangar);
+        }
+
+        private void MenuButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.ReturnToMenu);
+        }
+
+        // A card already on its way stays on it.
         private void ShowUnlocked()
         {
             IReadOnlyList<AchievementData> unlocked = m_achievements.UnlockedThisRun;
-            m_unlockedCard.SetActive(unlocked.Count > 0);
-            if (unlocked.Count > 0)
+            if (unlocked.Count == 0)
             {
-                ShowUnlocked(unlocked[0], unlocked.Count);
+                m_unlockedCard.SetActive(false);
+                return;
             }
+
+            ShowUnlocked(unlocked[0], unlocked.Count);
+            m_unlockedCardDrop.Play();
         }
     }
 }

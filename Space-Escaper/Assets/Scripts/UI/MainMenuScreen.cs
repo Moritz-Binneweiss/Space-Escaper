@@ -44,7 +44,7 @@ namespace SpaceEscaper
         private void OnEnable()
         {
             m_startButton.onClick.AddListener(m_gameManager.Play);
-            m_hangarButton.onClick.AddListener(m_gameManager.OpenHangar);
+            m_hangarButton.onClick.AddListener(HangarButton_Clicked);
             m_settingsButton.onClick.AddListener(m_screens.ShowSettings);
             m_achievementsButton.onClick.AddListener(m_screens.ShowAchievements);
             m_collectiblesButton.onClick.AddListener(m_screens.ShowCollectibles);
@@ -59,11 +59,17 @@ namespace SpaceEscaper
         private void OnDisable()
         {
             m_startButton.onClick.RemoveListener(m_gameManager.Play);
-            m_hangarButton.onClick.RemoveListener(m_gameManager.OpenHangar);
+            m_hangarButton.onClick.RemoveListener(HangarButton_Clicked);
             m_settingsButton.onClick.RemoveListener(m_screens.ShowSettings);
             m_achievementsButton.onClick.RemoveListener(m_screens.ShowAchievements);
             m_collectiblesButton.onClick.RemoveListener(m_screens.ShowCollectibles);
             m_achievements.Unlocked -= AchievementTracker_Unlocked;
+        }
+
+        // The camera cuts to the hangar, behind the curtain.
+        private void HangarButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.OpenHangar);
         }
 
         // The menu is on when the scene loads and when the hangar closes, and achievements unlock right after both.

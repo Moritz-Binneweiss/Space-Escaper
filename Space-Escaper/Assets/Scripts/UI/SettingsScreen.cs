@@ -44,6 +44,8 @@ namespace SpaceEscaper
 
         internal TMP_Text ColorwayText => m_colorwayText;
 
+        internal Toggle ClassicModeToggle => m_classicModeToggle;
+
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         // The switch is a copy of the classic mode row made at runtime, so the scene stays as it is and release
         // builds have no trace of it. The layout of its section puts it below. On a phone it is easier to hit than

@@ -13,6 +13,7 @@ namespace SpaceEscaper
     public class ShopScreen : MonoBehaviour
     {
         [SerializeField] private GameManager m_gameManager;
+        [SerializeField] private ScreenManager m_screens;
         [SerializeField] private ShipCatalog m_shipCatalog;
         [SerializeField] private PlayerShip m_playerShip;
         [Tooltip("Shows the ship on its stand.")]
@@ -33,10 +34,15 @@ namespace SpaceEscaper
 
         private static readonly int s_familyCount = Enum.GetValues(typeof(ShipFamily)).Length;
 
-        // For tests, which tap it like a player.
+        // For tests, which tap them like a player.
         internal Button BackButton => m_backButton;
 
+        internal Button NextFamilyButton => m_nextFamilyButton;
+
         internal SelectOrBuyButton SelectOrBuyLook => m_selectOrBuyLook;
+
+        // For tests, which check when the family changes.
+        internal ShipData ShownShip => m_shownShip;
 
         // The hangar opens on the ship being flown. What it shows then stays until the scene
         // reloads.
@@ -49,7 +55,7 @@ namespace SpaceEscaper
 
         private void OnEnable()
         {
-            m_backButton.onClick.AddListener(m_gameManager.CloseHangar);
+            m_backButton.onClick.AddListener(BackButton_Clicked);
             m_previousFamilyButton.onClick.AddListener(ShowPreviousFamily);
             m_nextFamilyButton.onClick.AddListener(ShowNextFamily);
             m_selectOrBuyButton.onClick.AddListener(SelectOrBuyShownShip);
@@ -63,7 +69,7 @@ namespace SpaceEscaper
 
         private void OnDisable()
         {
-            m_backButton.onClick.RemoveListener(m_gameManager.CloseHangar);
+            m_backButton.onClick.RemoveListener(BackButton_Clicked);
             m_previousFamilyButton.onClick.RemoveListener(ShowPreviousFamily);
             m_nextFamilyButton.onClick.RemoveListener(ShowNextFamily);
             m_selectOrBuyButton.onClick.RemoveListener(SelectOrBuyShownShip);
@@ -73,6 +79,12 @@ namespace SpaceEscaper
             }
         }
 
+        // The camera cuts back to the spaceport, behind the curtain.
+        private void BackButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.CloseHangar);
+        }
+
         private void ShipButton_Clicked(ShipData ship)
         {
             ShowShip(ship);
@@ -80,12 +92,19 @@ namespace SpaceEscaper
 
         private void ShowPreviousFamily()
         {
-            ShowFamily(GetAdjacentFamily(-1));
+            SlideToFamily(-1);
         }
 
         private void ShowNextFamily()
         {
-            ShowFamily(GetAdjacentFamily(1));
+            SlideToFamily(1);
+        }
+
+        // The platform slides out with the shown ship, and the family changes once it is out of sight.
+        private void SlideToFamily(int step)
+        {
+            ShipFamily family = GetAdjacentFamily(step);
+            m_hangar.SlideToFamily(() => ShowFamily(family));
         }
 
         // Flies the shown ship if it is owned, or buys it if the player can afford it and flies it.
