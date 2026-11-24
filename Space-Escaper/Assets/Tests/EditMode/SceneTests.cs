@@ -16,6 +16,7 @@ namespace SpaceEscaper.Tests
         private const string k_UiRootName = "UI";
         private const string k_AchievementCatalogPath = "Assets/Data/Achievements/AchievementCatalog.asset";
         private const string k_ColorwayCatalogPath = "Assets/Data/Colorways/ColorwayCatalog.asset";
+        private const string k_LanguageCatalogPath = "Assets/Data/Languages/LanguageCatalog.asset";
 
         // Colors in the scene are floats, and the roles of the elements were worked out from their 8-bit values.
         private const float k_ColorTolerance = 2f / 255f;
@@ -403,6 +404,16 @@ namespace SpaceEscaper.Tests
 
             Assert.That(shown, Is.EqualTo(catalog.Colorways), "Not one card per colorway in the order of the catalog");
             Assert.That(problems, Is.Empty);
+        }
+
+        [Test]
+        public void SceneHasOneLanguageManagerThatKnowsTheCatalog()
+        {
+            List<LanguageManager> managers = GetComponentsInScene<LanguageManager>();
+            Assert.That(managers, Has.Count.EqualTo(1), "Not one language manager");
+            Assert.That(new SerializedObject(managers[0]).FindProperty("m_catalog").objectReferenceValue,
+                Is.EqualTo(AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath)),
+                "The language manager does not know the catalog");
         }
 
         private GameObject GetUiRoot()

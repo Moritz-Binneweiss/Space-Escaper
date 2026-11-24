@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 64 Skripte, ~6600 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 70 Skripte, ~7100 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -20,7 +20,8 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   (Schiffe), `Achievements/AchievementTracker.cs` und
   `Achievements/AchievementProgress.cs` (Achievements, siehe „Achievements“ unter „UI“),
   `Colorways/ColorwayManager.cs` und `Colorways/ColorwayColor.cs` (Farbschemata, siehe
-  „Farbschemata“ unter „UI“).
+  „Farbschemata“ unter „UI“), `Languages/LanguageManager.cs` und `UI/LocalizedText.cs`
+  (Sprachen, siehe „Sprachen“ unter „UI“).
 - `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, die PlayMode-Tests in
   `PlayMode/`, siehe „Tests“. Dort liegt auch `TestFrameworkFix`, siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“.
@@ -201,6 +202,15 @@ färben, und den Karten), dass jede Rolle in der Szene TOXIC zeigt, auch die Bil
 und dass es genau einen `ColorwayManager` mit dem Katalog gibt und je Schema eine Karte in seiner
 Reihenfolge, die Titel und Farben ihrer Daten zeigt. `SaveDataTests` prüft die Wahl im Spielstand
 (siehe „Farbschemata“ unter „UI“).
+Seit v1.6.0 prüft `LanguageTextsTests` die Regeln der Sprachen an eigenen Sprachen des Tests: das
+Lesen der JSON-Dateien samt Escapes, BOM und Zeichen jenseits von ASCII, dass ein Fehler in einer
+Datei Zeile und Spalte nennt, dass ein fehlender Text aus der Standardsprache kommt und ein
+unbekannter Schlüssel sich selbst zeigt. `LanguageCatalogTests` prüft die echten Daten: jede
+`LanguageData` genau einmal im Katalog, eindeutige IDs und Systemsprachen, Englisch als Standard,
+deutsche Handys starten deutsch und alle anderen englisch, die gewählte Sprache schlägt das Handy,
+jede Sprache hat genau die Texte der Standardsprache, keinen leeren, mit denselben Platzhaltern,
+und was dort in Großbuchstaben steht, steht in jeder Sprache so. `SaveDataTests` prüft die Wahl im
+Spielstand, `SceneTests` genau einen `LanguageManager` mit dem Katalog.
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
@@ -489,7 +499,17 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   Badge und Karte ohne Wartezeit und eine Karte, die gar nicht kommt, `DragThresholdTests` eine
   Schwelle von 10 Pixeln überall und einen Bildschirm ohne dpi, der als keiner zählt, und
   `SceneTests` ein EventSystem ohne `DragThreshold`. Mit seiner Toleranz für Plätze fand der erste
-  Test noch eine Badge, die 0,1 Einheiten über ihrem Platz stehen bleibt.
+  Test noch eine Badge, die 0,1 Einheiten über ihrem Platz stehen bleibt. In v1.6.0 war jeder neue Test der
+  Sprachen rot, mit 34 eingebauten Fehlern: im Parser vertauschte Schlüssel und Texte, ein BOM,
+  nur Leerzeichen als Leerraum, ein leeres Objekt, falsch gelesene Escapes, nur ASCII, Zeilen und
+  Spalten ab 0, ein Komma am Ende, ein doppelter Schlüssel, Text nach dem Objekt, ein Zeilenumbruch
+  im Text und ein unbekanntes Escape, in den Texten kein Rückfall auf Englisch, nichts statt des
+  Schlüssels und ein Schlüssel null, im Katalog ein Handy, das nicht zählt oder die Wahl schlägt,
+  in den Daten ein fehlender, ein überzähliger und ein leerer Text, verlorene und geänderte
+  Platzhalter, Kleinbuchstaben und ein ß in einem Titel, eine Sprache doppelt, Deutsch als
+  Standard, Deutsch mit der ID und der Systemsprache von Englisch, eine Sprache, die der Spielstand
+  nicht speichert oder schon gewählt hat, in `StaticFieldTests` die Texte aus dem letzten Play Mode
+  und in `SceneTests` eine Szene ohne `LanguageManager`.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -503,7 +523,7 @@ nur Ordner.
 |---|---|
 | `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
-| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`, `Achievements/`: ein `AchievementData` pro Achievement und der `AchievementCatalog`, `Colorways/`: ein `ColorwayData` pro Farbschema und der `ColorwayCatalog`) |
+| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`, `Achievements/`: ein `AchievementData` pro Achievement und der `AchievementCatalog`, `Colorways/`: ein `ColorwayData` pro Farbschema und der `ColorwayCatalog`, `Languages/`: ein `LanguageData` pro Sprache, ihre Texte als JSON und der `LanguageCatalog`) |
 | `Editor/` | Werkzeuge für den Editor: das Test-Menü und seine Assembly Definition |
 | `Materials/` | Materialien, nach Gruppe |
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
@@ -533,7 +553,8 @@ nur Ordner.
 - **Skripte liegen nach Bereich** (seit v1.5.0, bis dahin flach, Entscheidung Oktober
   2026): `Achievements/` (Daten, Regeln und Zählen der Achievements, seit v1.5.3),
   `Audio/` (`AudioSystem`, `AudioBank`), `Colorways/` (Daten, Rollen und Wahl der
-  Farbschemata, seit v1.5.4), `Game/` (Spielzustand, Score, Bildrate,
+  Farbschemata, seit v1.5.4), `Languages/` (Sprachen und ihre Texte, seit v1.6.0), `Game/`
+  (Spielzustand, Score, Bildrate,
   Test-Panel), `Save/` (Spielstand), `Ship/` (das Schiff, seine Eingabe und die
   Schiffsdaten), `UI/` (die Screens und ihre Bausteine) und `World/` (Strecke,
   Floating Origin, Drehen, Münze, Raumhafen, Hangar, Kamera). Ein neues Skript kommt in
@@ -580,7 +601,7 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager`, `RunScore`, `AchievementTracker`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem`, `ColorwayManager` |
+| `Systems` | `GameManager`, `RunScore`, `AchievementTracker`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem`, `ColorwayManager`, `LanguageManager` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
@@ -723,6 +744,8 @@ geliefert wurden.
   (`Asteroid001Color.png`).
 - **Ungenutzte Doppelgänger** einer benutzten Datei tragen `Unused` am Ende
   (`Asteroid004Unused.mat`), damit sie beim Aufräumen auffallen.
+- **Sprachdateien heißen nach ihrem Sprach-Tag** (`en.json`, `de.json`, seit v1.6.0), wie
+  Übersetzungswerkzeuge es erwarten, ihre `LanguageData` nach der Sprache (`English`, `German`).
 - **Szene-Objekte nach ihrer Rolle:** `…Button`, `…Text`, `…Icon`, `Title`; die
   Grafik eines Buttons heißt `Image`. Kopien-Endungen wie `(1)` kommen weg
   (`Coin`, `Asteroid012`), Namen dürfen unter Geschwistern doppelt vorkommen.
@@ -1160,6 +1183,9 @@ Spiel nicht mehr.
 - **Farbschema** (seit v1.5.4, siehe „Farbschemata“ unter „UI“): `m_colorwayId` ist die ID
   des gewählten, leer, bis eins gewählt ist, auch in einem Spielstand von davor. Eine leere
   oder unbekannte ID zeigt TOXIC. Gespeichert wird sofort beim Wählen.
+- **Sprache** (seit v1.6.0, siehe „Sprachen“ unter „UI“): `m_languageId` ist die ID der
+  gewählten (`en`, `de`), leer, bis eine gewählt ist. Bis dahin zeigt das Spiel die Sprache des
+  Handys, wenn es sie hat, sonst Englisch.
 - **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 2 (seit v1.4.8, Schiffe
   als ID statt als Nummer). Einen Stand mit anderer Version verwirft
   `SaveData.FromJson`, das Spiel fängt dann neu an (Entscheidung Oktober 2026, es
@@ -1747,6 +1773,27 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Daten und Kontraste, `SceneTests` die Karten. Gerechnet passen sieben Karten noch auf jedes
     Display (632 der mindestens 666 Einheiten zwischen Kopf und unterem Rand), acht nicht mehr. Das meldet dann
     `LayoutTests`, und die Karten brauchen eine Liste zum Scrollen wie die Achievements.
+- **Sprachen** (seit v1.6.0, Entscheidungen in Schritt 0 von v1.6.0): Englisch und Deutsch, mit
+  eigenem Code statt Unitys Paket Localization (Moritz, 25.11.2026: „ja dann machen wir eigenen
+  code weg“). Das Paket brächte Addressables, Newtonsoft Json und Asset Bundles in den Build,
+  startete asynchron und setzte über Addressables die Berechtigung INTERNET.
+  - **Daten:** ein `LanguageData` pro Sprache in `Data/Languages/` mit ID (der Schlüssel im
+    Spielstand, ihr Sprach-Tag), der Systemsprache eines Handys, das in ihr startet, und ihren
+    Texten, einer JSON-Datei mit einem flachen Objekt aus Schlüssel und Text
+    (`"settings.title": "SETTINGS"`). Der `LanguageCatalog` daneben hat Englisch zuerst, den
+    Standard für Handys in anderen Sprachen und für jeden Text, der einer Sprache fehlt.
+  - **Lesen:** `FlatJson`, ein kleiner eigener Parser, denn `JsonUtility` kann keine Dictionaries.
+    Ein Fehler in einer Datei nennt Zeile und Spalte. `LanguageTexts` hält die Texte einer Sprache
+    mit denen des Standards dahinter, ein unbekannter Schlüssel zeigt sich selbst.
+  - **Wahl:** Der `LanguageManager` unter `Systems` kennt die gezeigte Sprache (`Current`) und
+    meldet einen Wechsel (`LanguageChanged`), wie der `ColorwayManager` und wie er vor dem Rest der
+    Szene (`DefaultExecutionOrder(-100)`). Bis eine Sprache gewählt ist, nimmt er die des Handys
+    (`Application.systemLanguage`) oder Englisch. Die Texte liest er nur bei einem Wechsel, ein
+    Neuladen der Szene behält sie. `LanguageManager.Get(key)` gibt den Text eines Schlüssels.
+  - **Texte:** An einem festen Text sitzt ein `LocalizedText` mit seinem Schlüssel, er setzt den
+    Text beim Einschalten und bei jedem Wechsel. In der Szene steht Englisch.
+  - **Im Editor** meldet `Application.systemLanguage` die Sprache von Windows, hier Deutsch. Ein
+    Test, der Texte prüft, setzt seine Sprache deshalb selbst.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
   Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`:
   TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
