@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.5.4 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.5.5 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -152,14 +152,14 @@ The full license texts roll at the end of the credits in the game and lie next t
 - [ ] German language support
 - [ ] English language support
 
-#### **v1.5.5** | Transitions & Polish _(------- --, 2026)_
+#### **v1.5.5** | Transitions & Polish _(November 24, 2026)_
 
 <small>
 
-- [x] Smooth transitions and animations in the menus
-- [x] Hangar: the platform slides out and the next ship family slides in
-- [x] Highscore bar slides in from the top, swipe hint arrows sway
-- [x] Small fixes and polish
+- 🎞️ Smooth transitions and animations in the menus
+- 🚀 Hangar: the platform slides out and the next ship family slides in
+- ⬇️ Highscore bar slides in from the top, swipe hint arrows sway
+- ✨ Small fixes and polish
 
 </small>
 
