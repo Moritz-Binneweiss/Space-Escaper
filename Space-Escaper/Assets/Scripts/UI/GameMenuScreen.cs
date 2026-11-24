@@ -46,6 +46,10 @@ namespace SpaceEscaper
         [SerializeField] private GameObject m_swipeHint;
 
         private readonly List<AchievementData> m_achievementsToShow = new List<AchievementData>();
+        private DropEffect m_highscoreBarDrop;
+        private DropEffect m_newHighscoreBannerDrop;
+        private DropEffect m_achievementPopupDrop;
+        private DropEffect m_swipeHintDrop;
         private int m_shownScore;
         private int m_shownCoins;
         private float m_shownModifier;
@@ -75,6 +79,15 @@ namespace SpaceEscaper
             s_hasShownSwipeHint = false;
         }
 
+        // Each popup drops in and rises out again.
+        private void Awake()
+        {
+            m_highscoreBarDrop = m_highscoreBar.GetComponent<DropEffect>();
+            m_newHighscoreBannerDrop = m_newHighscoreBanner.GetComponent<DropEffect>();
+            m_achievementPopupDrop = m_achievementPopup.GetComponent<DropEffect>();
+            m_swipeHintDrop = m_swipeHint.GetComponent<DropEffect>();
+        }
+
         // The screen comes on with the run and again after a pause or a revive. The popups go on where they were.
         private void OnEnable()
         {
@@ -87,7 +100,7 @@ namespace SpaceEscaper
             if (!s_hasShownSwipeHint)
             {
                 s_hasShownSwipeHint = true;
-                m_swipeHint.SetActive(true);
+                m_swipeHintDrop.Play();
                 m_swipeHintEndTime = Time.time + k_SwipeHintDuration;
             }
         }
@@ -120,8 +133,8 @@ namespace SpaceEscaper
                 ShowModifier();
             }
 
-            HideWhenDone(m_highscoreBar, m_highscoreBarEndTime);
-            HideWhenDone(m_newHighscoreBanner, m_newHighscoreBannerEndTime);
+            HideWhenDone(m_highscoreBarDrop, m_highscoreBarEndTime);
+            HideWhenDone(m_newHighscoreBannerDrop, m_newHighscoreBannerEndTime);
             ShowAchievementsUnlocked();
             HideSwipeHint();
         }
@@ -172,8 +185,8 @@ namespace SpaceEscaper
                 if (!m_hasShownNewHighscore)
                 {
                     m_hasShownNewHighscore = true;
-                    m_highscoreBar.SetActive(false);
-                    m_newHighscoreBanner.SetActive(true);
+                    m_highscoreBarDrop.Leave();
+                    m_newHighscoreBannerDrop.Play();
                     m_newHighscoreBannerEndTime = Time.time + k_PopupDuration;
                 }
 
@@ -185,12 +198,13 @@ namespace SpaceEscaper
                 return;
             }
 
+            // A bar still up stays where it is and only stays longer, one rising out comes back.
             int step = m_shownScore / m_highscoreBarStep;
             if (step > m_lastHighscoreBarStep)
             {
                 m_lastHighscoreBarStep = step;
                 m_highscoreBarText.SetText("{0}", highscore);
-                m_highscoreBar.SetActive(true);
+                m_highscoreBarDrop.Play();
                 m_highscoreBarEndTime = Time.time + k_PopupDuration;
             }
 
@@ -201,10 +215,11 @@ namespace SpaceEscaper
             }
         }
 
-        // Several that unlock together come one after another, each as long as the other popups.
+        // Several that unlock together come one after another, each as long as the other popups, the next once the one
+        // before has risen out.
         private void ShowAchievementsUnlocked()
         {
-            HideWhenDone(m_achievementPopup, m_achievementPopupEndTime);
+            HideWhenDone(m_achievementPopupDrop, m_achievementPopupEndTime);
             if (m_achievementPopup.activeSelf || m_achievementsToShow.Count == 0)
             {
                 return;
@@ -212,24 +227,24 @@ namespace SpaceEscaper
 
             ShowAchievement(m_achievementsToShow[0]);
             m_achievementsToShow.RemoveAt(0);
-            m_achievementPopup.SetActive(true);
+            m_achievementPopupDrop.Play();
             m_achievementPopupEndTime = Time.time + k_PopupDuration;
             AudioSystem.Instance.PlayAchievementUnlocked();
         }
 
         // Time.time stands still in the pause, so a popup keeps its time left.
-        private static void HideWhenDone(GameObject popup, float endTime)
+        private static void HideWhenDone(DropEffect popup, float endTime)
         {
-            if (popup.activeSelf && Time.time >= endTime)
+            if (popup.IsShown && Time.time >= endTime)
             {
-                popup.SetActive(false);
+                popup.Leave();
             }
         }
 
         // Done after the first swipe, which shows the player has found out.
         private void HideSwipeHint()
         {
-            if (!m_swipeHint.activeSelf)
+            if (!m_swipeHintDrop.IsShown)
             {
                 return;
             }
@@ -237,7 +252,7 @@ namespace SpaceEscaper
             MobileInput input = MobileInput.Instance;
             if (Time.time >= m_swipeHintEndTime || input.HasSwipedLeft || input.HasSwipedRight)
             {
-                m_swipeHint.SetActive(false);
+                m_swipeHintDrop.Leave();
             }
         }
     }

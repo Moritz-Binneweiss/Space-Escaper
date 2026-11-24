@@ -12,6 +12,7 @@ namespace SpaceEscaper
     public class DeathMenuScreen : MonoBehaviour
     {
         [SerializeField] private GameManager m_gameManager;
+        [SerializeField] private ScreenManager m_screens;
         [SerializeField] private RunScore m_runScore;
         [SerializeField] private AchievementTracker m_achievements;
         [Tooltip("Run ended, with the time of the run.")]
@@ -54,9 +55,9 @@ namespace SpaceEscaper
         private void OnEnable()
         {
             m_reviveButton.onClick.AddListener(m_gameManager.RequestRevive);
-            m_playAgainButton.onClick.AddListener(m_gameManager.PlayAgain);
-            m_hangarButton.onClick.AddListener(m_gameManager.ReturnToHangar);
-            m_menuButton.onClick.AddListener(m_gameManager.ReturnToMenu);
+            m_playAgainButton.onClick.AddListener(PlayAgainButton_Clicked);
+            m_hangarButton.onClick.AddListener(HangarButton_Clicked);
+            m_menuButton.onClick.AddListener(MenuButton_Clicked);
             m_achievements.Unlocked += AchievementTracker_Unlocked;
             ShowUnlocked();
 
@@ -75,9 +76,9 @@ namespace SpaceEscaper
         private void OnDisable()
         {
             m_reviveButton.onClick.RemoveListener(m_gameManager.RequestRevive);
-            m_playAgainButton.onClick.RemoveListener(m_gameManager.PlayAgain);
-            m_hangarButton.onClick.RemoveListener(m_gameManager.ReturnToHangar);
-            m_menuButton.onClick.RemoveListener(m_gameManager.ReturnToMenu);
+            m_playAgainButton.onClick.RemoveListener(PlayAgainButton_Clicked);
+            m_hangarButton.onClick.RemoveListener(HangarButton_Clicked);
+            m_menuButton.onClick.RemoveListener(MenuButton_Clicked);
             m_achievements.Unlocked -= AchievementTracker_Unlocked;
         }
 
@@ -102,6 +103,22 @@ namespace SpaceEscaper
         private void AchievementTracker_Unlocked(IReadOnlyList<AchievementData> achievements)
         {
             ShowUnlocked();
+        }
+
+        // The three ways on reload the scene, behind the curtain. The revive goes on in this one.
+        private void PlayAgainButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.PlayAgain);
+        }
+
+        private void HangarButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.ReturnToHangar);
+        }
+
+        private void MenuButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.ReturnToMenu);
         }
 
         private void ShowUnlocked()

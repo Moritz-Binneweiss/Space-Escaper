@@ -34,7 +34,7 @@ namespace SpaceEscaper
             m_sfxButton.onClick.AddListener(SfxButton_Clicked);
             m_continueButton.onClick.AddListener(m_gameManager.Continue);
             m_settingsButton.onClick.AddListener(m_screens.ShowSettings);
-            m_exitButton.onClick.AddListener(m_gameManager.ReturnToMenu);
+            m_exitButton.onClick.AddListener(ExitButton_Clicked);
 
             int seconds = (int)m_runScore.FlightTime;
             float minutes = seconds / 60;
@@ -53,7 +53,13 @@ namespace SpaceEscaper
             m_sfxButton.onClick.RemoveListener(SfxButton_Clicked);
             m_continueButton.onClick.RemoveListener(m_gameManager.Continue);
             m_settingsButton.onClick.RemoveListener(m_screens.ShowSettings);
-            m_exitButton.onClick.RemoveListener(m_gameManager.ReturnToMenu);
+            m_exitButton.onClick.RemoveListener(ExitButton_Clicked);
+        }
+
+        // The scene reloads behind the curtain.
+        private void ExitButton_Clicked()
+        {
+            m_screens.ChangeBehindCurtain(m_gameManager.ReturnToMenu);
         }
 
         private void MusicButton_Clicked()

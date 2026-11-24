@@ -25,7 +25,22 @@ namespace SpaceEscaper.Tests
         private const float k_MaxTimeToCrash = 60f;
         private const float k_TimeOnDeathScreen = 1f;
         private const float k_MaxTimeToFlyOn = 10f;
-        private const int k_MaxFramesToReload = 60;
+
+        // In real seconds, as the screens change in time that runs in the pause too. A change takes a fraction of
+        // one, a reload through a button waits for the curtain to close first.
+        private const float k_MaxTimeToChangeScreens = 5f;
+        private const float k_MaxTimeToReload = 5f;
+
+        // The curtain closes in 0.2 s and moves on by at most 1/30 s per frame, so a frame before it is closed it
+        // covers at least 0.86.
+        private const float k_NearlyClosed = 0.5f;
+
+        // The platform in the hangar sinks and rises again within 0.6 s.
+        private const float k_MaxTimeToSlide = 5f;
+
+        // The knob of a switch slides over in 0.15 s, between two places 24 units apart.
+        private const float k_SwitchTime = 0.3f;
+        private const float k_KnobTolerance = 0.5f;
 
         // The first run beats it on the way to its first obstacle, at about 13 points.
         private const int k_HighscoreToBeat = 5;
@@ -38,6 +53,10 @@ namespace SpaceEscaper.Tests
 
         // Far enough ahead of the ship to be collected a good while before the first obstacle.
         private const float k_CoinDistance = 15f;
+
+        // A popup of the run drops in from 14 units above its place in 0.5 s.
+        private const float k_DropDuration = 0.5f;
+        private const float k_DropHeight = 14f;
 
         // The test reads time and place after the frame of a tap, the score counts that frame
         // too. A frame of flight is a fraction of a unit, and the ship stops short of the full
@@ -300,9 +319,9 @@ namespace SpaceEscaper.Tests
         }
 
         // A save one coin short of the achievement for coins, and a coin put in the way of the ship, as the straight
-        // way to the first obstacle has none. The first flight pops up as the run starts, the coins as soon as the
-        // first flight is done. What unlocks in the middle of the run is saved at once, and the longest run counts
-        // while the run grows.
+        // way to the first obstacle has none. The first flight drops in as the run starts, the coins as soon as the
+        // first flight has risen out again. What unlocks in the middle of the run is saved at once, and the longest run
+        // counts while the run grows.
         [UnityTest]
         public IEnumerator AchievementsPopUpAsTheRunUnlocksThem()
         {
@@ -322,11 +341,27 @@ namespace SpaceEscaper.Tests
             m_continueButton = FindScreen<PauseMenuScreen>().ContinueButton;
             yield return Tap(FindScreen<MainMenuScreen>().StartButton);
 
-            // The popup comes at the end of the frame of the tap.
+            // The popup comes at the end of the frame of the tap and drops in from above while it fades in.
             yield return null;
             Assert.That(gameMenu.AchievementPopup.activeSelf, Is.True, "The first flight does not pop up");
             Assert.That(gameMenu.AchievementTitleText.text, Is.EqualTo(FindAchievement(k_FirstFlightId).Title),
                 "The popup shows another achievement than the first flight");
+            CanvasGroup popup = gameMenu.AchievementPopup.GetComponent<CanvasGroup>();
+            RectTransform popupPlace = (RectTransform)gameMenu.AchievementPopup.transform;
+            float startHeight = popupPlace.anchoredPosition.y;
+            Assert.That(popup.alpha, Is.LessThan(0.5f), "The popup does not fade in");
+            float dropEnd = Time.time + k_DropDuration;
+            while (Time.time < dropEnd)
+            {
+                yield return NextFrame();
+            }
+
+            Assert.That(popup.alpha, Is.EqualTo(1f), "The popup does not finish fading in");
+            Assert.That(startHeight - popupPlace.anchoredPosition.y, Is.GreaterThan(k_DropHeight / 2f),
+                "The popup does not drop in from above");
+            float restHeight = popupPlace.anchoredPosition.y;
+            string firstFlightTitle = gameMenu.AchievementTitleText.text;
+            bool hasRisenOut = false;
 
             Coin coin = Object.FindAnyObjectByType<Coin>();
             Assert.That(coin, Is.Not.Null, "No coin on the track");
@@ -349,6 +384,10 @@ namespace SpaceEscaper.Tests
                     AssertSavedFileHas(k_CoinsId, "The achievement of the coin was not saved at once");
                 }
 
+                // Its time up, the first flight rises while it fades out, before the coins drop in.
+                bool isFirstFlightUp = gameMenu.AchievementPopup.activeSelf
+                    && gameMenu.AchievementTitleText.text == firstFlightTitle;
+                hasRisenOut |= isFirstFlightUp && popup.alpha < 1f && popupPlace.anchoredPosition.y > restHeight;
                 hasCoinsPoppedUp |= gameMenu.AchievementPopup.activeSelf
                     && gameMenu.AchievementTitleText.text == coinsAchievement.Title;
                 lastDistance = runScore.Distance;
@@ -356,6 +395,7 @@ namespace SpaceEscaper.Tests
             }
 
             Assert.That(isCoinChecked, Is.True, "The ship did not collect the coin in its way");
+            Assert.That(hasRisenOut, Is.True, "The first flight does not rise out of sight");
             Assert.That(hasCoinsPoppedUp, Is.True, "The coins did not pop up after the first flight");
             DeathMenuScreen deathMenu = FindScreen<DeathMenuScreen>();
             Assert.That(deathMenu.UnlockedTitleText.text, Is.EqualTo(FindAchievement(k_FirstFlightId).Title),
@@ -420,7 +460,7 @@ namespace SpaceEscaper.Tests
             yield return null;
             AssertShowsColorway(mainMenu, chosen);
             yield return Tap(mainMenu.HangarButton);
-            yield return null;
+            yield return WaitForScreens();
             AssertShowsColorway(shop, chosen);
             Color buttonColor = shop.SelectOrBuyLook.Plate.color;
             Assert.That(GetColorDifference(buttonColor, chosen.Glow), Is.LessThan(k_ColorTolerance),
@@ -431,6 +471,221 @@ namespace SpaceEscaper.Tests
             yield return WaitForReload(oldGameManager);
             Assert.That(ColorwayManager.Current, Is.EqualTo(chosen), "The reload forgot the colorway");
             AssertShowsColorway(FindScreen<MainMenuScreen>(), chosen);
+        }
+
+        // The settings fade in over the main menu and out again. The achievements slide in from the left, the side of
+        // their button, while the main menu fades out, and back out to the left while it fades in again. The screen
+        // leaving takes no more taps. The scene starts behind the curtain, and the hangar opens behind it, which takes
+        // the taps while it closes.
+        [UnityTest]
+        public IEnumerator ScreensSlideFadeAndChangeBehindTheCurtain()
+        {
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            ScreenManager screens = Object.FindAnyObjectByType<ScreenManager>();
+            Assert.That(screens.Curtain.activeSelf, Is.True, "The scene does not start behind the curtain");
+            yield return WaitForScreens();
+            Assert.That(screens.Curtain.activeSelf, Is.False, "The curtain stays");
+
+            MainMenuScreen mainMenu = FindScreen<MainMenuScreen>();
+            SettingsScreen settings = FindScreen<SettingsScreen>();
+            CanvasGroup settingsGroup = settings.GetComponent<CanvasGroup>();
+            RectTransform settingsPlace = (RectTransform)settings.transform;
+            yield return Tap(mainMenu.SettingsButton);
+            Assert.That(mainMenu.gameObject.activeSelf, Is.True, "The main menu is gone before the settings are in");
+            Assert.That(settingsGroup.alpha, Is.LessThan(1f), "The settings do not fade in");
+            Assert.That(settingsPlace.anchoredPosition, Is.EqualTo(Vector2.zero),
+                "The settings move instead of fading");
+            AssertTapMisses(mainMenu.StartButton, "The main menu takes taps while it leaves");
+            yield return WaitForScreens();
+            Assert.That(mainMenu.gameObject.activeSelf, Is.False, "The main menu stays on under the settings");
+            AssertAtRest(settings);
+
+            yield return Tap(settings.BackButton);
+            Assert.That(settingsGroup.alpha, Is.LessThan(1f), "The settings do not fade out");
+            Assert.That(settingsPlace.anchoredPosition, Is.EqualTo(Vector2.zero),
+                "The settings move instead of fading");
+            Assert.That(mainMenu.gameObject.activeSelf, Is.True, "The main menu does not come back under the settings");
+            AssertTapMisses(settings.BackButton, "The settings take taps while they leave");
+            yield return WaitForScreens();
+            Assert.That(settings.gameObject.activeSelf, Is.False, "The settings stay on");
+            AssertAtRest(mainMenu);
+
+            AchievementsScreen achievements = FindScreen<AchievementsScreen>();
+            RectTransform achievementsPlace = (RectTransform)achievements.transform;
+            yield return Tap(mainMenu.AchievementsButton);
+            Assert.That(achievementsPlace.anchoredPosition.x, Is.LessThan(0f),
+                "The achievements come not from the left");
+            Assert.That(mainMenu.gameObject.activeSelf, Is.True,
+                "The main menu is gone before the achievements are in");
+            AssertTapMisses(mainMenu.StartButton, "The main menu takes taps while it leaves");
+            yield return WaitForScreens();
+            Assert.That(mainMenu.gameObject.activeSelf, Is.False, "The main menu stays on under the achievements");
+            AssertAtRest(achievements);
+
+            yield return Tap(achievements.BackButton);
+            Assert.That(achievementsPlace.anchoredPosition.x, Is.LessThan(0f),
+                "The achievements do not leave to the left");
+            Assert.That(mainMenu.gameObject.activeSelf, Is.True,
+                "The main menu does not come back under the achievements");
+            AssertTapMisses(achievements.BackButton, "The achievements take taps while they leave");
+            yield return WaitForScreens();
+            Assert.That(achievements.gameObject.activeSelf, Is.False, "The achievements stay on");
+            AssertAtRest(mainMenu);
+
+            // The curtain takes taps once it has been drawn, a frame later, like a screen.
+            yield return Tap(mainMenu.HangarButton);
+            Assert.That(screens.Curtain.activeSelf, Is.True, "The hangar does not open behind the curtain");
+            yield return null;
+            Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Menu), "The hangar opens before the curtain");
+            AssertTapMisses(mainMenu.StartButton, "The curtain lets taps through while it closes");
+            CanvasGroup curtain = screens.Curtain.GetComponent<CanvasGroup>();
+            float curtainBefore = 0f;
+            float startTime = Time.realtimeSinceStartup;
+            while (GameManager.Instance.State != GameState.Hangar)
+            {
+                Assert.That(Time.realtimeSinceStartup - startTime, Is.LessThan(k_MaxTimeToChangeScreens),
+                    "The hangar does not open");
+                curtainBefore = curtain.alpha;
+                yield return null;
+            }
+
+            // In the frame before, the curtain was nearly closed, even at a frame rate the change only moves on with.
+            Assert.That(curtainBefore, Is.GreaterThan(k_NearlyClosed), "The hangar opens before the curtain closed");
+            Assert.That(curtain.alpha, Is.EqualTo(1f), "The hangar opens while the curtain does not cover it");
+            Assert.That(mainMenu.gameObject.activeSelf, Is.False, "The main menu is still on behind the curtain");
+            yield return WaitForScreens();
+            AssertAtRest(FindScreen<ShopScreen>());
+        }
+
+        // The pause rises from below like a tablet while its dim fades in over the run, and sinks back down when the
+        // run goes on. The screen leaving takes no more taps.
+        [UnityTest]
+        public IEnumerator ThePauseRisesFromBelowLikeATablet()
+        {
+            Random.InitState(k_RandomSeed);
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+
+            GameMenuScreen gameMenu = FindScreen<GameMenuScreen>();
+            PauseMenuScreen pauseMenu = FindScreen<PauseMenuScreen>();
+            RectTransform sheet = Object.FindAnyObjectByType<ScreenManager>().PauseSheet;
+            Vector2 sheetPlace = sheet.anchoredPosition;
+            CanvasRenderer dim = pauseMenu.GetComponent<Graphic>().canvasRenderer;
+            m_continueButton = pauseMenu.ContinueButton;
+            yield return Tap(FindScreen<MainMenuScreen>().StartButton);
+
+            yield return Tap(gameMenu.PauseButton);
+            Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Paused), "The tap does not pause the run");
+            Assert.That(sheet.anchoredPosition.y, Is.LessThan(sheetPlace.y), "The pause does not rise from below");
+            Assert.That(sheet.anchoredPosition.x, Is.EqualTo(sheetPlace.x), "The pause does not rise straight up");
+            Assert.That(dim.GetAlpha(), Is.LessThan(1f), "The dim of the pause does not fade in");
+            Assert.That(gameMenu.gameObject.activeSelf, Is.True, "The run is gone before the pause is up");
+            AssertTapMisses(gameMenu.PauseButton, "The run takes taps while it leaves");
+            yield return WaitForScreens();
+            Assert.That(sheet.anchoredPosition, Is.EqualTo(sheetPlace), "The pause does not rise into its place");
+            Assert.That(dim.GetAlpha(), Is.EqualTo(1f), "The dim of the pause does not finish fading in");
+            Assert.That(gameMenu.gameObject.activeSelf, Is.False, "The run stays on under the pause");
+            AssertAtRest(pauseMenu);
+
+            yield return Tap(pauseMenu.ContinueButton);
+            Assert.That(GameManager.Instance.State, Is.EqualTo(GameState.Run), "The tap does not go on with the run");
+            Assert.That(sheet.anchoredPosition.y, Is.LessThan(sheetPlace.y), "The pause does not sink back down");
+            Assert.That(pauseMenu.gameObject.activeSelf, Is.True, "The pause is gone before it is down");
+            AssertTapMisses(pauseMenu.ContinueButton, "The pause takes taps while it leaves");
+            yield return WaitForScreens();
+            Assert.That(pauseMenu.gameObject.activeSelf, Is.False, "The pause stays on");
+            Assert.That(sheet.anchoredPosition, Is.EqualTo(sheetPlace), "The sheet stays out of its place");
+            Assert.That(dim.GetAlpha(), Is.EqualTo(1f), "The dim stays faded for the next pause");
+            AssertAtRest(gameMenu);
+        }
+
+        // The arrow lets the platform sink into the floor with the ship and rise again with the next family, like a
+        // lift. The family changes once all of the platform and the ship is under the floor the platform stands on,
+        // which hides it, and a tap on an arrow meanwhile does nothing.
+        [UnityTest]
+        public IEnumerator ThePlatformSinksAndRisesWithTheNextFamily()
+        {
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+            yield return Tap(FindScreen<MainMenuScreen>().HangarButton);
+            yield return WaitForScreens();
+
+            ShopScreen shop = FindScreen<ShopScreen>();
+            Hangar hangar = Object.FindAnyObjectByType<Hangar>();
+            Transform platform = hangar.Platform;
+            Vector3 platformRest = platform.position;
+            Vector3 standRest = hangar.Stand.position;
+            float floor = float.MaxValue;
+            foreach (Renderer renderer in platform.GetComponentsInChildren<Renderer>())
+            {
+                floor = Mathf.Min(floor, renderer.bounds.min.y);
+            }
+
+            ShipFamily family = shop.ShownShip.Family;
+            int familyCount = System.Enum.GetValues(typeof(ShipFamily)).Length;
+            ShipFamily nextFamily = (ShipFamily)(((int)family + 1) % familyCount);
+
+            yield return Tap(shop.NextFamilyButton);
+            Assert.That(hangar.IsSliding, Is.True, "The platform does not move");
+            Assert.That(platform.position.y, Is.LessThan(platformRest.y), "The platform does not sink");
+            Assert.That(Vector3.ProjectOnPlane(platform.position - platformRest, Vector3.up).magnitude,
+                Is.LessThan(k_PlaceTolerance), "The platform does not sink straight down");
+            Assert.That(shop.ShownShip.Family, Is.EqualTo(family), "The family changes before the platform is down");
+            yield return Tap(shop.NextFamilyButton);
+
+            bool hasChanged = false;
+            float startTime = Time.time;
+            while (hangar.IsSliding)
+            {
+                Assert.That(Time.time - startTime, Is.LessThan(k_MaxTimeToSlide), "The platform does not stop");
+                if (!hasChanged && shop.ShownShip.Family != family)
+                {
+                    hasChanged = true;
+                    Assert.That(platform.position.y, Is.LessThan(platformRest.y),
+                        "The next family does not rise from below");
+                    AssertUnderFloor(hangar, floor, "The family changes in sight");
+                }
+
+                yield return null;
+            }
+
+            Assert.That(hasChanged, Is.True, "The family does not change while the platform moves");
+            Assert.That(shop.ShownShip.Family, Is.EqualTo(nextFamily), "The tap during the slide changed the family");
+            Assert.That(Vector3.Distance(platform.position, platformRest), Is.LessThan(k_PlaceTolerance),
+                "The platform does not come back to its place");
+            Assert.That(Vector3.Distance(hangar.Stand.position, standRest), Is.LessThan(k_PlaceTolerance),
+                "The stand does not come back to its place");
+        }
+
+        // A switch in the settings slides its knob over instead of letting it jump. Switched back at the end, so the
+        // sounds stay as they were.
+        [UnityTest]
+        public IEnumerator SwitchesSlideTheirKnob()
+        {
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+            yield return Tap(FindScreen<MainMenuScreen>().SettingsButton);
+            Toggle toggle = FindScreen<SettingsScreen>().ClassicModeToggle;
+            RectTransform knob = toggle.GetComponent<ToggleSwitch>().Knob;
+            yield return WaitForScreens();
+
+            bool wasOn = toggle.isOn;
+            float startPlace = knob.anchoredPosition.x;
+            yield return Tap(toggle);
+            Assert.That(toggle.isOn, Is.Not.EqualTo(wasOn), "The tap does not switch it");
+            List<float> places = new List<float> { knob.anchoredPosition.x };
+            float startTime = Time.realtimeSinceStartup;
+            while (Time.realtimeSinceStartup - startTime < k_SwitchTime)
+            {
+                yield return null;
+                places.Add(knob.anchoredPosition.x);
+            }
+
+            float endPlace = places[places.Count - 1];
+            Assert.That(Mathf.Abs(endPlace - startPlace), Is.GreaterThan(k_KnobTolerance), "The knob does not move");
+            Assert.That(places.Exists(place => Mathf.Abs(place - startPlace) > k_KnobTolerance
+                && Mathf.Abs(place - endPlace) > k_KnobTolerance), Is.True, "The knob jumps instead of sliding");
+            yield return Tap(toggle);
         }
 
         private static T FindScreen<T>() where T : Object
@@ -444,26 +699,63 @@ namespace SpaceEscaper.Tests
         // Update(), as a real tap does: the EventSystem runs before the game scripts
         // (execution order -1000). A tap from the test itself would come after
         // Update(), too late to see a crash in the frame of the tap.
-        private IEnumerator Tap(Button button)
+        private IEnumerator Tap(Selectable target)
         {
-            // The UI is a screen space overlay, so its points need no camera.
-            RectTransform rectTransform = (RectTransform)button.transform;
+            yield return WaitForScreens();
+            PointerEventData eventData = AimAt(target);
+            Assert.That(GetTapped(eventData), Is.EqualTo(target.gameObject),
+                $"A tap on {target.name} does not reach it");
+
+            m_pendingTap = target.gameObject;
+            m_pendingTapData = eventData;
+            yield return null;
+        }
+
+        // The UI is a screen space overlay, so its points need no camera.
+        private static PointerEventData AimAt(Selectable target)
+        {
+            RectTransform rectTransform = (RectTransform)target.transform;
             Vector3 center = rectTransform.TransformPoint(rectTransform.rect.center);
-            PointerEventData eventData = new PointerEventData(EventSystem.current)
+            return new PointerEventData(EventSystem.current)
             {
                 position = RectTransformUtility.WorldToScreenPoint(null, center),
             };
+        }
 
+        // What a tap there would click: the first thing it hits, or what that lies in.
+        private static GameObject GetTapped(PointerEventData eventData)
+        {
             List<RaycastResult> hits = new List<RaycastResult>();
             EventSystem.current.RaycastAll(eventData, hits);
-            GameObject tapped = hits.Count > 0
-                ? ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject)
-                : null;
-            Assert.That(tapped, Is.EqualTo(button.gameObject), $"A tap on {button.name} does not reach it");
+            return hits.Count > 0 ? ExecuteEvents.GetEventHandler<IPointerClickHandler>(hits[0].gameObject) : null;
+        }
 
-            m_pendingTap = button.gameObject;
-            m_pendingTapData = eventData;
-            yield return null;
+        private static void AssertTapMisses(Selectable target, string message)
+        {
+            Assert.That(GetTapped(AimAt(target)), Is.Not.EqualTo(target.gameObject), message);
+        }
+
+        // Nothing of the platform and the ship on it reaches above the floor, which hides it from the hangar camera
+        // above it.
+        private static void AssertUnderFloor(Hangar hangar, float floor, string message)
+        {
+            List<Renderer> renderers = new List<Renderer>(hangar.Platform.GetComponentsInChildren<Renderer>());
+            renderers.AddRange(hangar.Stand.GetComponentsInChildren<Renderer>());
+            foreach (Renderer renderer in renderers)
+            {
+                Assert.That(renderer.bounds.max.y, Is.LessThan(floor), $"{message}: {renderer.name}");
+            }
+        }
+
+        // Fully shown, in its place and taking taps, as the screen is saved.
+        private static void AssertAtRest(Component screen)
+        {
+            CanvasGroup group = screen.GetComponent<CanvasGroup>();
+            Assert.That(screen.gameObject.activeSelf, Is.True, $"{screen.name} is off");
+            Assert.That(group.alpha, Is.EqualTo(1f), $"{screen.name} is not fully shown");
+            Assert.That(group.blocksRaycasts, Is.True, $"{screen.name} takes no taps");
+            Assert.That(((RectTransform)screen.transform).anchoredPosition, Is.EqualTo(Vector2.zero),
+                $"{screen.name} is out of its place");
         }
 
         // Straight down the middle lane until the next obstacle. The death screen takes taps once it has been drawn,
@@ -509,14 +801,28 @@ namespace SpaceEscaper.Tests
         // The new scene wakes before the old one is gone, and goes on in its first frame.
         private static IEnumerator WaitForReload(GameManager oldGameManager)
         {
-            int frames = 0;
+            float startTime = Time.realtimeSinceStartup;
             while (GameManager.Instance == oldGameManager)
             {
-                Assert.That(frames++, Is.LessThan(k_MaxFramesToReload), "The scene did not reload");
+                Assert.That(Time.realtimeSinceStartup - startTime, Is.LessThan(k_MaxTimeToReload),
+                    "The scene did not reload");
                 yield return null;
             }
 
             yield return null;
+        }
+
+        // A player taps once the screen stands, after a screen has slid or faded in and the curtain has opened.
+        private static IEnumerator WaitForScreens()
+        {
+            ScreenManager screens = Object.FindAnyObjectByType<ScreenManager>();
+            float startTime = Time.realtimeSinceStartup;
+            while (screens.IsChanging)
+            {
+                Assert.That(Time.realtimeSinceStartup - startTime, Is.LessThan(k_MaxTimeToChangeScreens),
+                    "The screens do not stop changing");
+                yield return null;
+            }
         }
 
         // Losing focus in the editor pauses the run, as leaving the app does on a phone.

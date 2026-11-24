@@ -124,9 +124,10 @@ namespace SpaceEscaper.Tests
 
         // A canvas of its own keeps a change from rebuilding the other screens, and
         // without a raycaster of its own no button on the screen takes a click. An
-        // animator would rebuild the screen in every frame.
+        // animator would rebuild the screen in every frame. The screen manager fades
+        // and blocks a screen through its canvas group, which is saved at rest.
         [Test]
-        public void EveryScreenHasItsOwnCanvasAndRaycasterButNoAnimator()
+        public void EveryScreenHasItsOwnCanvasRaycasterAndCanvasGroupButNoAnimator()
         {
             List<string> problems = new List<string>();
             foreach (Transform screen in GetUiRoot().transform)
@@ -141,6 +142,16 @@ namespace SpaceEscaper.Tests
                     problems.Add(screen.name + " has no GraphicRaycaster");
                 }
 
+                CanvasGroup group = screen.GetComponent<CanvasGroup>();
+                if (group == null)
+                {
+                    problems.Add(screen.name + " has no CanvasGroup");
+                }
+                else if (group.alpha < 1f || !group.blocksRaycasts || !group.interactable || group.ignoreParentGroups)
+                {
+                    problems.Add(screen.name + " has its CanvasGroup saved faded or blocked");
+                }
+
                 if (screen.GetComponent<Animator>() != null)
                 {
                     problems.Add(screen.name + " has an Animator");
@@ -151,7 +162,8 @@ namespace SpaceEscaper.Tests
         }
 
         // ScreenManager switches every screen it knows off when it shows another one.
-        // A screen it does not know is never switched at all.
+        // A screen it does not know is never switched at all. The curtain it knows too. Of the
+        // pause it slides only the sheet, which has to lie in the pause.
         [Test]
         public void ScreenManagerKnowsEveryScreenOnce()
         {
@@ -164,7 +176,7 @@ namespace SpaceEscaper.Tests
             while (property.NextVisible(true))
             {
                 if (property.propertyType == SerializedPropertyType.ObjectReference
-                    && property.propertyPath != k_ScriptProperty)
+                    && property.objectReferenceValue is GameObject)
                 {
                     knownScreens.Add(property.objectReferenceValue);
                 }
@@ -177,6 +189,8 @@ namespace SpaceEscaper.Tests
             }
 
             Assert.That(knownScreens, Is.EquivalentTo(screens));
+            Transform pause = uiRoot.GetComponentInChildren<PauseMenuScreen>(true).transform;
+            Assert.That(screenManager.PauseSheet.IsChildOf(pause), Is.True, "The sheet of the pause lies outside it");
         }
 
         // The game starts in the main menu, and the scene is saved that way. Another screen
@@ -196,6 +210,31 @@ namespace SpaceEscaper.Tests
             }
 
             Assert.That(problems, Is.Empty);
+        }
+
+        // Hits of the raycasters of different screens are sorted by the sorting of their canvas first, then by when
+        // the raycaster came on. The curtain comes on after the screen it covers, so only a sorting above the screens
+        // lets it take the taps on them, and it draws over them too.
+        [Test]
+        public void TheCurtainCoversTheScreensAndTakesTheirTaps()
+        {
+            GameObject uiRoot = GetUiRoot();
+            SerializedObject screenManager = new SerializedObject(uiRoot.GetComponent<ScreenManager>());
+            GameObject curtain = (GameObject)screenManager.FindProperty("m_curtain").objectReferenceValue;
+            Assert.That(curtain, Is.Not.Null, "The screen manager has no curtain");
+
+            Canvas canvas = curtain.GetComponent<Canvas>();
+            Assert.That(canvas.overrideSorting, Is.True, "The curtain sorts with the screens");
+            Assert.That(canvas.sortingOrder, Is.GreaterThan(uiRoot.GetComponent<Canvas>().sortingOrder),
+                "The curtain does not sort above the screens");
+
+            Graphic graphic = curtain.GetComponent<Graphic>();
+            RectTransform place = (RectTransform)curtain.transform;
+            Assert.That(graphic != null && graphic.raycastTarget, Is.True, "The curtain has nothing to take taps");
+            Assert.That(place.anchorMin == Vector2.zero && place.anchorMax == Vector2.one, Is.True,
+                "The curtain does not cover the whole screen");
+            Assert.That(place.offsetMin == Vector2.zero && place.offsetMax == Vector2.zero, Is.True,
+                "The curtain does not cover the whole screen");
         }
 
         // All text is TextMesh Pro, which the translations build on. A legacy text would also
