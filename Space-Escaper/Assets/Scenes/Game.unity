@@ -455,7 +455,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1938 m
+  m_text: 1,938 m
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4e678b797d1fc8548878d6150a04ac26, type: 2}
   m_sharedMaterial: {fileID: 3972672137378207842, guid: 4e678b797d1fc8548878d6150a04ac26, type: 2}
@@ -19353,7 +19353,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Fly 1998 m in one run
+  m_text: Fly 1,998 m in one run
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7b0a3e1c7809c484599675cfe6a01a34, type: 2}
   m_sharedMaterial: {fileID: 7728933011770877812, guid: 7b0a3e1c7809c484599675cfe6a01a34, type: 2}
@@ -20039,7 +20039,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 1040 m
+  m_text: 1,040 m
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4e678b797d1fc8548878d6150a04ac26, type: 2}
   m_sharedMaterial: {fileID: 3972672137378207842, guid: 4e678b797d1fc8548878d6150a04ac26, type: 2}
@@ -38995,7 +38995,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Collect 1976 coins in total
+  m_text: Collect 1,976 coins in total
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 7b0a3e1c7809c484599675cfe6a01a34, type: 2}
   m_sharedMaterial: {fileID: 7728933011770877812, guid: 7b0a3e1c7809c484599675cfe6a01a34, type: 2}
@@ -49461,7 +49461,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 0 / 1998 m
+  m_text: 0 / 1,998 m
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2fab5c58471d85b4488374ed249e25a6, type: 2}
   m_sharedMaterial: {fileID: 5781109077187546486, guid: 2fab5c58471d85b4488374ed249e25a6, type: 2}
@@ -57994,7 +57994,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 0 / 1976
+  m_text: 0 / 1,976
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 2fab5c58471d85b4488374ed249e25a6, type: 2}
   m_sharedMaterial: {fileID: 5781109077187546486, guid: 2fab5c58471d85b4488374ed249e25a6, type: 2}

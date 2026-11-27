@@ -1,4 +1,7 @@
 {
+  "number.groupSeparator": ",",
+  "number.decimalSeparator": ".",
+
   "common.score": "SCORE",
   "common.coins": "COINS",
   "common.time": "TIME",

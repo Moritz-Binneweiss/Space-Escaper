@@ -11,12 +11,16 @@ namespace SpaceEscaper
     [RequireComponent(typeof(TMP_Text))]
     public class LocalizedText : MonoBehaviour
     {
+        private const string k_GroupSeparatorKey = "number.groupSeparator";
+        private const string k_DecimalSeparatorKey = "number.decimalSeparator";
+
         [Tooltip("The key of the text in the files of the languages.")]
         [SerializeField] private string m_key;
 
         private TMP_Text m_text;
         private float m_firstNumber;
         private float m_secondNumber;
+        private char[] m_buffer;
 
         public string Key => m_key;
 
@@ -94,14 +98,23 @@ namespace SpaceEscaper
             string text = LanguageManager.Get(m_key);
             if (text.IndexOf('{') >= 0)
             {
-                // TextMesh Pro fills the placeholders into a buffer of its own, without a new string.
-                Text.SetText(text, m_firstNumber, m_secondNumber);
+                // TextMesh Pro takes the buffer as it is, without a new string. Its SetText knows neither the
+                // separators of a language nor groups of thousands.
+                int length = NumberFormat.Format(text, m_firstNumber, m_secondNumber,
+                    GetSeparator(k_GroupSeparatorKey, ','), GetSeparator(k_DecimalSeparatorKey, '.'), ref m_buffer);
+                Text.SetCharArray(m_buffer, 0, length);
             }
             else
             {
                 // Unlike SetText, the property takes a text it already shows without building it again.
                 Text.text = text;
             }
+        }
+
+        private static char GetSeparator(string key, char fallback)
+        {
+            string separator = LanguageManager.Get(key);
+            return separator.Length == 1 ? separator[0] : fallback;
         }
     }
 }

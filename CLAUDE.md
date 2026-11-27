@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 72 Skripte, ~7300 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 73 Skripte, ~7400 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -216,7 +216,9 @@ Schlüssel hat, den Englisch kennt, und in der Szene dessen Text zeigt, ein Text
 davon. Jeder Text mit Buchstaben hat einen Schlüssel oder bleibt mit `UntranslatedText` in jeder Sprache
 gleich, nie beides. Die Settings haben je Sprache einen Button, in der Reihenfolge des Katalogs und mit ihrem
 Kürzel darauf. Jedes Zeichen jedes Texts steht in jeder Sprache in seiner Schrift, ein Schlüssel, den nur
-Skripte zeigen, in jeder Schrift der Texte mit Schlüssel.
+Skripte zeigen, in jeder Schrift der Texte mit Schlüssel. `NumberFormatTests` prüft die Zahlen in den Formaten:
+Tausender ab 1000 mit dem Trenner der Sprache, auf Deutsch Punkt und Komma getauscht, Stellen, Nachkommastellen
+und Runden, und dass ein `LocalizedText` sie so zeigt. Die Beispiele in der Szene haben die Trenner von Englisch.
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
@@ -533,7 +535,9 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   die Settings nicht kennen, vertauschte Buttons, ein falsches Kürzel und die Rollen ohne die Buttons der
   Sprachen, `RunTests` einen Tipp, der nichts wählt, eine Wahl ohne Speichern, Buttons, die beim Wechsel ihre
   Farben behalten oder sie vertauschen, und einen Test ohne eigene Sprache. Der Test der Zeichen fand ein ẞ in
-  einem Titel in Audiowide und in einem Schlüssel, den nur Skripte zeigen.
+  einem Titel in Audiowide und in einem Schlüssel, den nur Skripte zeigen. `NumberFormatTests` fand Zahlen ohne
+  Gruppen, den Punkt von TextMesh Pro auf Deutsch, Zahlen ohne ihre Stellen, Runden zur geraden Zahl und ein
+  `LocalizedText`, das noch `SetText` nimmt, `SceneTests` sechs Beispiele in der Szene ohne Trenner.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -640,7 +644,9 @@ behalten dadurch ihre Weltposition.
   Prefab-Instanzen in Layout-Gruppen, als Overrides in die Szene, wo sonst 0 steht. Frisch von der
   Platte geladen blieb der Diff sauber: erst eine leere Szene öffnen
   (`EditorSceneManager.NewScene`), dann `Game.unity` mit `OpenScene`, so fragt kein Dialog. Nach
-  jedem Speichern per Skript den Diff ansehen.
+  jedem Speichern per Skript den Diff ansehen. Wer die Datei per Text ändert, tut das bei offener leerer Szene
+  und ruft danach `AssetDatabase.Refresh()`, bevor er `Game.unity` öffnet. Sonst hält der Dialog „The open
+  scene(s) have been modified externally“ den Editor an, bis jemand klickt (passiert in v1.6.0).
 - **Was sich ständig bewegt, bleibt flach.** Unity aktualisiert Transforms pro
   Hierarchie, bewegte Kinder in großen Hierarchien kosten mehr. Deshalb liegt
   `Playership` mit dem Schiff im Root, und die Streckenabschnitte spawnen dort
@@ -1833,11 +1839,13 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Was Skripte setzen,** geht über das `LocalizedText` des Texts: `Show(key)` zeigt einen
     anderen Schlüssel (ON und OFF, SELECT), `Show(key, a, b)` einen mit Zahlen und `ShowNumbers(a, b)`
     dieselben mit neuen Zahlen. Die Formate stehen in der Sprache
-    (`"death.runEnded": "RUN ENDED · {0}:{1:00}"`), die Zahlen füllt TextMesh Pro ein wie vorher
-    `SetText`, ohne neuen String. Bei einem Wechsel der Sprache zeigt das `LocalizedText` sein neues
-    Format mit denselben Zahlen. In der Szene steht ein Beispiel (`RUN ENDED · 2:05`). Ein Skript,
+    (`"death.runEnded": "RUN ENDED · {0}:{1:00}"`), die Zahlen füllt `NumberFormat` mit den
+    Trennern der Sprache ein (`number.groupSeparator`, `number.decimalSeparator`: „9,142“ und „9.142“,
+    „×1,4“), in einen Puffer, den TextMesh Pro über `SetCharArray` nimmt, ohne neuen String. `SetText`
+    kennt weder die Trenner einer Sprache noch Tausender. Bei einem Wechsel der Sprache zeigt das `LocalizedText` sein neues
+    Format mit denselben Zahlen. In der Szene steht ein Beispiel auf Englisch (`RUN ENDED · 2:05`, `1,938 m`). Ein Skript,
     das den Text färbt, erreicht ihn über `LocalizedText.Text`, auch vor dessen `Awake`. Reine Zahlen
-    wie der Score setzen die Screens noch selbst, sie kommen mit den Trennern pro Sprache dazu.
+    wie der Score setzen die Screens noch selbst mit `SetText`, ohne Trenner (bis Schritt 4b von v1.6.0).
   - **Schlüssel** nennen Screen und Element (`death.title`, `settings.classicMode.description`).
     Was auf mehreren Screens dasselbe meint, steht unter `common` (`common.soon`, `common.score`),
     ein Titel und ein Button mit demselben Wort haben je einen eigenen (`hangar.title`,
@@ -1858,7 +1866,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
   legt es dabei zusätzlich einen String für den Inspector an (`#if UNITY_EDITOR` im
   Paket), Allokationen also auf dem Handy messen, nicht im Editor. Kommazahlen bekommen
-  dort immer einen Punkt, egal welche Sprache das Handy hat. Ein neuer Legacy-`Text`
+  dort immer einen Punkt, egal welche Sprache das Handy hat, und Tausender keine Trenner. Die Formate eines
+  `LocalizedText` füllt deshalb seit v1.6.0 `NumberFormat`. Ein neuer Legacy-`Text`
   fällt in `SceneTests` auf.
   - **Schriften** liegen als Font Asset neben ihrer Schriftdatei und deren Lizenztext
     in `UI/Fonts/` (seit Schritt 3 von v1.5.1): `TitleSDF` (Audiowide) für Titel,

@@ -29,7 +29,7 @@ namespace SpaceEscaper.Tests
         private const string k_StoredCallsProperty = "m_PersistentCalls.m_Calls";
 
         // A number as TextMesh Pro writes it into a placeholder like {0} or {1:00}.
-        private const string k_NumberPattern = @"[-+]?\d+(?:\.\d+)?";
+        private const string k_NumberPattern = @"[-+]?\d{1,3}(?:,\d{3})*(?:\.\d+)?";
 
         private static readonly Regex s_placeholder = new Regex(@"\{[^}]*\}");
 
@@ -304,7 +304,7 @@ namespace SpaceEscaper.Tests
                 CompareText(problems, path, serialized, "m_titleText", achievement.Title);
                 CompareKey(problems, path, serialized, "m_descriptionText", achievement.DescriptionKey);
                 CompareText(problems, path, serialized, "m_descriptionText", texts.Get(achievement.DescriptionKey)
-                    .Replace("{0}", achievement.Target.ToString(CultureInfo.InvariantCulture)));
+                    .Replace("{0}", FormatInEnglish(achievement.Target)));
                 CompareKey(problems, path, serialized, "m_progressText", achievement.ProgressKey);
                 CompareText(problems, path, serialized, "m_rewardText", "+" + achievement.Reward);
                 CompareText(problems, path, serialized, "m_claimText", achievement.Reward.ToString());
@@ -553,6 +553,12 @@ namespace SpaceEscaper.Tests
             }
 
             Assert.That(problems, Is.Empty);
+        }
+
+        // The scene shows English, which groups thousands with a comma.
+        private static string FormatInEnglish(float number)
+        {
+            return NumberFormat.Format("{0}", number, 0f, ',', '.');
         }
 
         private static LanguageData GetDefaultLanguage()
