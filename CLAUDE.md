@@ -1880,7 +1880,9 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     erstmal fürs erste“). Er spricht mit „du“ im Imperativ („Fliege ein gekauftes Schiff“), Achievements heißen Erfolge wie bei Google Play, ein Run
     ein Flug. In Großbuchstaben steht „SS“ statt ẞ, Audiowide hat kein ẞ. Button der Pause und Titel
     der Settings heißen OPTIONEN, EINSTELLUNGEN war auf dem Button 2,8 Einheiten zu breit. Seit Schritt 6
-    legt `LayoutTests` jeden Screen auch auf Deutsch aus.
+    legt `LayoutTests` jeden Screen auch auf Deutsch aus. Der Titel der Farbschemata heißt FARBSCHEMA wie ihre
+    Zeile in den Settings: FARBSCHEMATA passte, begann aber nur 9 Einheiten hinter dem Zurück-Button (Moritz,
+    27.11.2026).
   - **Im Editor** meldet `Application.systemLanguage` die Sprache von Windows, hier Deutsch. Ein
     Test, der Texte prüft, setzt seine Sprache deshalb selbst.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
