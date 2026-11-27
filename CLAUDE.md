@@ -215,7 +215,8 @@ Spielstand, `SceneTests` genau einen `LanguageManager` mit dem Katalog und dass 
 Schlüssel hat, den Englisch kennt, und in der Szene dessen Text zeigt, ein Text mit Zahlen ein Beispiel
 davon. Jeder Text mit Buchstaben hat einen Schlüssel oder bleibt mit `UntranslatedText` in jeder Sprache
 gleich, nie beides. Die Settings haben je Sprache einen Button, in der Reihenfolge des Katalogs und mit ihrem
-Kürzel darauf.
+Kürzel darauf. Jedes Zeichen jedes Texts steht in jeder Sprache in seiner Schrift, ein Schlüssel, den nur
+Skripte zeigen, in jeder Schrift der Texte mit Schlüssel.
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
@@ -318,7 +319,8 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
 - **Layout im Test:** `LayoutTests` legt eine Kopie der UI in eine Vorschau-Szene
   (`EditorSceneManager.NewPreviewScene`), so bleibt `Game.unity` unberührt, auch wenn
   sie offen ist. Seit v1.6.0 zeigt er die Standardsprache (`LanguageManager.Show`), sonst zeigten
-  Texte, die er über ein `LocalizedText` setzt, die Sprache des letzten Play Mode. Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
+  Texte, die er über ein `LocalizedText` setzt, die Sprache des letzten Play Mode. Feste Texte zeigen in der Kopie die der Szene,
+  denn im Edit Mode ruft Unity `OnEnable` nicht auf. Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
   `CanvasScaler` auf dem Display ergäbe, und `SafeArea.Fit` bekommt dessen Safe Area. In
   der Kopie ist jeder Screen an, denn TextMesh Pro rechnet einen Text erst, wenn er
   einmal an war. Die Displays stehen oben im Test, die Safe Areas mit Kameraloch stammen
@@ -530,7 +532,8 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   eins, das einen neuen Schlüssel nicht nimmt. Für die Wahl der Sprache fand `SceneTests` einen Button, den
   die Settings nicht kennen, vertauschte Buttons, ein falsches Kürzel und die Rollen ohne die Buttons der
   Sprachen, `RunTests` einen Tipp, der nichts wählt, eine Wahl ohne Speichern, Buttons, die beim Wechsel ihre
-  Farben behalten oder sie vertauschen, und einen Test ohne eigene Sprache.
+  Farben behalten oder sie vertauschen, und einen Test ohne eigene Sprache. Der Test der Zeichen fand ein ẞ in
+  einem Titel in Audiowide und in einem Schlüssel, den nur Skripte zeigen.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -1843,7 +1846,10 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     von Personen, Schiffen, Farbschemata und Schriften, die Titel der Achievements und die Lizenzen
     in den Credits (Moritz, 25.11.2026). Eine Rolle in den Credits wird übersetzt, auch neben Namen
     („Icons · Cole Bemis · MIT License“).
-  - **Bis zu den deutschen Texten** steht in `de.json` Englisch, so hat jede Sprache jeden Text.
+  - **Deutsch** ist mein Entwurf, Moritz hat ihn fürs Erste abgenommen (27.11.2026: „ja passt
+    erstmal fürs erste“). Er spricht mit „du“ im Imperativ („Fliege ein gekauftes Schiff“), Achievements heißen Erfolge wie bei Google Play, ein Run
+    ein Flug. In Großbuchstaben steht „SS“ statt ẞ, Audiowide hat kein ẞ. Button der Pause und Titel
+    der Settings heißen OPTIONEN, EINSTELLUNGEN war auf dem Button 2,8 Einheiten zu breit.
   - **Im Editor** meldet `Application.systemLanguage` die Sprache von Windows, hier Deutsch. Ein
     Test, der Texte prüft, setzt seine Sprache deshalb selbst.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
@@ -1869,7 +1875,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Screens verschiebt es höchstens 6 % eines Buchstabens. Der Atlas ist nicht lesbar,
     liegt also nur auf der GPU, und die Schriftdatei selbst kommt nicht mehr in den Build.
     Ein fehlendes Zeichen zeichnet TextMesh Pro aus `LiberationSans SDF`, der
-    Standardschrift in den TMP Settings, so das große ẞ in Audiowide. `TitleSDFShadow`
+    Standardschrift in den TMP Settings, so das große ẞ in Audiowide. Seit v1.6.0 meldet
+    `SceneTests` jedes solche Zeichen. `TitleSDFShadow`
     ist ein Material-Preset mit Schatten (Underlay) für den Score im Run. Neuropol X und
     Good Times, die Schriften bis v1.5.0, sind seit Schritt 4 von v1.5.1 samt Font Assets
     gelöscht, ihre kostenlose Lizenz deckt keine Apps ab.

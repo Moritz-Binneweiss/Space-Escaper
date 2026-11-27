@@ -485,6 +485,53 @@ namespace SpaceEscaper.Tests
             Assert.That(problems, Is.Empty);
         }
 
+        // TextMesh Pro draws a character its font lacks from LiberationSans, in another look, like the capital ẞ in
+        // Audiowide. Every text has its characters in its own font, in every language, and a key that only scripts
+        // show has them in every font of the texts with a key.
+        [Test]
+        public void EveryCharacterOfEveryTextIsInItsFont()
+        {
+            LanguageCatalog catalog = AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath);
+            LanguageTexts defaultTexts = new LanguageTexts(catalog.Default.Texts.text);
+            List<LanguageTexts> languages = catalog.Languages
+                .Select(language => new LanguageTexts(language.Texts.text, defaultTexts))
+                .ToList();
+            HashSet<string> shownKeys = new HashSet<string>();
+            HashSet<TMP_FontAsset> fonts = new HashSet<TMP_FontAsset>();
+            List<string> problems = new List<string>();
+            foreach (TMP_Text text in GetComponentsInScene<TMP_Text>())
+            {
+                LocalizedText localized = text.GetComponent<LocalizedText>();
+                if (localized == null)
+                {
+                    AddMissingCharacters(problems, GetPath(text.transform), text.text, text.font);
+                    continue;
+                }
+
+                shownKeys.Add(localized.Key);
+                fonts.Add(text.font);
+                for (int i = 0; i < languages.Count; i++)
+                {
+                    string name = GetPath(text.transform) + " in " + catalog.Languages[i].Id;
+                    AddMissingCharacters(problems, name, languages[i].Get(localized.Key), text.font);
+                }
+            }
+
+            foreach (string key in defaultTexts.Keys.Where(key => !shownKeys.Contains(key)))
+            {
+                for (int i = 0; i < languages.Count; i++)
+                {
+                    foreach (TMP_FontAsset font in fonts)
+                    {
+                        string name = key + " in " + catalog.Languages[i].Id;
+                        AddMissingCharacters(problems, name, languages[i].Get(key), font);
+                    }
+                }
+            }
+
+            Assert.That(problems, Is.Empty);
+        }
+
         // A text without a key shows English in every language. Names and license texts stay the same in every
         // language and say so with UntranslatedText.
         [Test]
@@ -511,6 +558,32 @@ namespace SpaceEscaper.Tests
         private static LanguageData GetDefaultLanguage()
         {
             return AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath).Default;
+        }
+
+        // The placeholders of a format stand for numbers, which every font has.
+        private static void AddMissingCharacters(List<string> problems, string name, string text, TMP_FontAsset font)
+        {
+            if (font == null)
+            {
+                problems.Add(name + " has no font");
+                return;
+            }
+
+            string shown = s_placeholder.Replace(text ?? string.Empty, "0");
+            SortedSet<string> missing = new SortedSet<string>();
+            for (int i = 0; i < shown.Length; i += char.IsSurrogatePair(shown, i) ? 2 : 1)
+            {
+                int character = char.ConvertToUtf32(shown, i);
+                if (!char.IsControl(shown, i) && !font.characterLookupTable.ContainsKey((uint)character))
+                {
+                    missing.Add(char.ConvertFromUtf32(character));
+                }
+            }
+
+            if (missing.Count > 0)
+            {
+                problems.Add(name + " lacks " + string.Join(" ", missing) + " in " + font.name);
+            }
         }
 
         private static bool MatchesText(string shown, string text)
