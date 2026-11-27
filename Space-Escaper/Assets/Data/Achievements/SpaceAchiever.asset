@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: SpaceAchiever
   m_title: SPACE ACHIEVER
-  m_description: Unlock every other achievement
+  m_descriptionKey: achievements.spaceAchiever.description
   m_icon: {fileID: 21300000, guid: 1e86b3584ebc8b94682e1c0242fb1cfa, type: 3}
   m_goal: 10
   m_target: 0
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 1000
   m_isComingSoon: 1

@@ -17,9 +17,9 @@ namespace SpaceEscaper
 
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private RunScore m_runScore;
-        [SerializeField] private TMP_Text m_scoreText;
-        [SerializeField] private TMP_Text m_coinText;
-        [SerializeField] private TMP_Text m_modifierText;
+        [SerializeField] private LocalizedText m_scoreText;
+        [SerializeField] private LocalizedText m_coinText;
+        [SerializeField] private LocalizedText m_modifierText;
         [Tooltip("The coin icon, which pops for every coin collected.")]
         [SerializeField] private PopEffect m_coinIconPop;
         [SerializeField] private Button m_pauseButton;
@@ -29,8 +29,8 @@ namespace SpaceEscaper
         [SerializeField] private int m_highscoreBarStep = 100;
         [Tooltip("The way to the highscore, shown for a moment.")]
         [SerializeField] private GameObject m_highscoreBar;
-        [SerializeField] private TMP_Text m_highscoreBarText;
-        [SerializeField] private TMP_Text m_pointsToGoText;
+        [SerializeField] private LocalizedText m_highscoreBarText;
+        [SerializeField] private LocalizedText m_pointsToGoText;
         [Tooltip("Filled as far as the score has come, by its right anchor.")]
         [SerializeField] private RectTransform m_highscoreBarFill;
         [SerializeField] private GameObject m_newHighscoreBanner;
@@ -40,7 +40,7 @@ namespace SpaceEscaper
         [Tooltip("An achievement the run has just unlocked, shown for a moment under the way to the highscore.")]
         [SerializeField] private GameObject m_achievementPopup;
         [SerializeField] private TMP_Text m_achievementTitleText;
-        [SerializeField] private TMP_Text m_achievementRewardText;
+        [SerializeField] private LocalizedText m_achievementRewardText;
 
         [Header("First Run")]
         [SerializeField] private GameObject m_swipeHint;
@@ -112,8 +112,8 @@ namespace SpaceEscaper
         }
 
         // After every Update, so the screen shows the score of this frame. A text only changes
-        // with its number, which keeps canvas rebuilds out of the other frames. SetText writes the
-        // number into the text's own buffer, in a build without a new string.
+        // with its number, which keeps canvas rebuilds out of the other frames. Its LocalizedText
+        // writes the number into a buffer of its own, in a build without a new string.
         private void LateUpdate()
         {
             if (m_runScore.Score != m_shownScore)
@@ -145,7 +145,7 @@ namespace SpaceEscaper
         internal void ShowAchievement(AchievementData achievement)
         {
             m_achievementTitleText.SetText(achievement.Title);
-            m_achievementRewardText.SetText("+{0}", achievement.Reward);
+            m_achievementRewardText.ShowNumbers(achievement.Reward);
         }
 
         // Only what unlocks while the screen is up. What the crash unlocks comes with the death screen, on its card.
@@ -160,19 +160,19 @@ namespace SpaceEscaper
         private void ShowScore()
         {
             m_shownScore = m_runScore.Score;
-            m_scoreText.SetText("{0}", m_shownScore);
+            m_scoreText.ShowNumbers(m_shownScore);
         }
 
         private void ShowCoins()
         {
             m_shownCoins = m_runScore.Coins;
-            m_coinText.SetText("{0}", m_shownCoins);
+            m_coinText.ShowNumbers(m_shownCoins);
         }
 
         private void ShowModifier()
         {
             m_shownModifier = m_runScore.Modifier;
-            m_modifierText.SetText("×{0:0.0}", m_shownModifier);
+            m_modifierText.ShowNumbers(m_shownModifier);
         }
 
         // The highscore to beat is the one the run started with. Once the run has beaten it, the banner says so once
@@ -203,14 +203,14 @@ namespace SpaceEscaper
             if (step > m_lastHighscoreBarStep)
             {
                 m_lastHighscoreBarStep = step;
-                m_highscoreBarText.SetText("{0}", highscore);
+                m_highscoreBarText.ShowNumbers(highscore);
                 m_highscoreBarDrop.Play();
                 m_highscoreBarEndTime = Time.time + k_PopupDuration;
             }
 
             if (m_highscoreBar.activeSelf)
             {
-                m_pointsToGoText.SetText("{0} TO GO", highscore - m_shownScore);
+                m_pointsToGoText.ShowNumbers(highscore - m_shownScore);
                 m_highscoreBarFill.anchorMax = new Vector2((float)m_shownScore / highscore, 1f);
             }
         }

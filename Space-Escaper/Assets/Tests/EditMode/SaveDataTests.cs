@@ -205,6 +205,7 @@ namespace SpaceEscaper.Tests
             Assert.That(saveData.CoinsCollected, Is.Zero);
             Assert.That(saveData.IsAchievementUnlocked("Liftoff"), Is.False);
             Assert.That(saveData.ColorwayId, Is.Empty);
+            Assert.That(saveData.LanguageId, Is.Empty);
         }
 
         [Test]
@@ -217,6 +218,19 @@ namespace SpaceEscaper.Tests
             SaveData loaded = SaveData.FromJson(saveData.ToJson());
 
             Assert.That(loaded.ColorwayId, Is.EqualTo("Nebula"));
+        }
+
+        // Until a language is chosen, the UI shows the one the phone is set to.
+        [Test]
+        public void LanguageSurvivesSaveAndLoad()
+        {
+            SaveData saveData = SaveData.FromJson(null);
+            Assert.That(saveData.LanguageId, Is.Empty, "A new installation has chosen a language");
+
+            saveData.LanguageId = "de";
+            SaveData loaded = SaveData.FromJson(saveData.ToJson());
+
+            Assert.That(loaded.LanguageId, Is.EqualTo("de"));
         }
 
         private static SaveData CreateSaveWithCoins(int coins)

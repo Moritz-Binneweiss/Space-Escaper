@@ -55,6 +55,9 @@ namespace SpaceEscaper.Tests
         // The first run beats it on the way to its first obstacle, at about 13 points.
         private const int k_HighscoreToBeat = 5;
 
+        // Enough coins for a group of thousands: 1,234 in English, 1.234 in German.
+        private const int k_GroupedCoins = 1234;
+
         // The achievements of the first flight, the third crash and the coins collected, which the runs of the test
         // reach.
         private const string k_FirstFlightId = "Liftoff";
@@ -97,6 +100,8 @@ namespace SpaceEscaper.Tests
         // A new installation shows the default colorway. The test chooses one that differs from it in every color.
         private const string k_DefaultColorwayId = "Toxic";
         private const string k_ChosenColorwayId = "Nebula";
+        private const string k_TestLanguageId = "en";
+        private const string k_OtherLanguageId = "de";
         private const float k_ColorTolerance = 0.001f;
 
         private readonly Dictionary<Transform, float> m_places = new Dictionary<Transform, float>();
@@ -135,6 +140,9 @@ namespace SpaceEscaper.Tests
             AudioListener.volume = 0f;
 
             SaveSystem.Data.RecordScore(k_HighscoreToBeat);
+
+            // The texts it checks are English, and the editor reports the language of Windows to the game.
+            SaveSystem.Data.LanguageId = k_TestLanguageId;
 
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             // The ship has to crash, whatever the test menu says.
@@ -782,6 +790,45 @@ namespace SpaceEscaper.Tests
             yield return Tap(toggle);
         }
 
+        // Moritz, 25.11.2026: one tap switches the language. The button of the chosen one stands in the glow color, the
+        // choice is saved right away, and a reload keeps it. Numbers take the separators of the language.
+        [UnityTest]
+        public IEnumerator TheLanguageButtonsSwitchTheLanguage()
+        {
+            SaveSystem.Data.AddCoins(k_GroupedCoins);
+            yield return SceneManager.LoadSceneAsync(k_GameSceneName);
+            yield return null;
+
+            Assert.That(LanguageManager.Current.Id, Is.EqualTo(k_TestLanguageId), "The test is not in its language");
+            Assert.That(FindScreen<MainMenuScreen>().CoinText.text, Is.EqualTo("1,234"),
+                "The main menu does not group the coins");
+            yield return Tap(FindScreen<MainMenuScreen>().SettingsButton);
+            yield return null;
+            SettingsScreen settings = FindScreen<SettingsScreen>();
+            AssertShowsLanguage(settings, k_TestLanguageId);
+
+            yield return Tap(GetLanguageButton(settings, k_OtherLanguageId).Button);
+            Assert.That(LanguageManager.Current.Id, Is.EqualTo(k_OtherLanguageId), "The button did not choose it");
+            Assert.That(SaveSystem.Data.LanguageId, Is.EqualTo(k_OtherLanguageId));
+            AssertSaveIsWritten("The language was not saved");
+            AssertShowsLanguage(settings, k_OtherLanguageId);
+
+            GameManager oldGameManager = GameManager.Instance;
+            oldGameManager.ReturnToMenu();
+            yield return WaitForReload(oldGameManager);
+            Assert.That(LanguageManager.Current.Id, Is.EqualTo(k_OtherLanguageId), "The reload forgot the language");
+            Assert.That(FindScreen<MainMenuScreen>().CoinText.text, Is.EqualTo("1.234"),
+                "The main menu does not group the coins as the language does");
+
+            yield return Tap(FindScreen<MainMenuScreen>().SettingsButton);
+            yield return null;
+            settings = FindScreen<SettingsScreen>();
+            AssertShowsLanguage(settings, k_OtherLanguageId);
+            yield return Tap(GetLanguageButton(settings, k_TestLanguageId).Button);
+            Assert.That(LanguageManager.Current.Id, Is.EqualTo(k_TestLanguageId), "The button did not choose it back");
+            AssertShowsLanguage(settings, k_TestLanguageId);
+        }
+
         private static T FindScreen<T>() where T : Object
         {
             T screen = Object.FindAnyObjectByType<T>(FindObjectsInactive.Include);
@@ -895,6 +942,41 @@ namespace SpaceEscaper.Tests
                 {
                     Assert.That(((Image)graphic).sprite, Is.EqualTo(tint.GetGlowImage(colorway)),
                         $"{tint.name} on {screen.name} shows the glow of another colorway");
+                }
+            }
+        }
+
+        private static LanguageButton GetLanguageButton(SettingsScreen settings, string languageId)
+        {
+            foreach (LanguageButton button in settings.LanguageButtons)
+            {
+                if (button.Language.Id == languageId)
+                {
+                    return button;
+                }
+            }
+
+            Assert.Fail("The settings have no button for " + languageId);
+            return null;
+        }
+
+        // The button of the language in the glow color, the others white, and every text of the screen in the language.
+        private static void AssertShowsLanguage(SettingsScreen settings, string languageId)
+        {
+            foreach (LanguageButton button in settings.LanguageButtons)
+            {
+                bool isChosen = button.Language.Id == languageId;
+                Color expected = isChosen ? ColorwayManager.Current.Glow : Color.white;
+                Assert.That(GetColorDifference(button.Plate.color, expected), Is.LessThan(k_ColorTolerance),
+                    $"The button of {button.Language.Id} is not {(isChosen ? "in the glow color" : "white")}");
+            }
+
+            foreach (LocalizedText text in settings.GetComponentsInChildren<LocalizedText>())
+            {
+                string expected = LanguageManager.Get(text.Key);
+                if (expected.IndexOf('{') < 0)
+                {
+                    Assert.That(text.Text.text, Is.EqualTo(expected), $"{text.name} is not in {languageId}");
                 }
             }
         }

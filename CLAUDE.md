@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 64 Skripte, ~6600 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 73 Skripte, ~7400 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -20,7 +20,8 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
   (Schiffe), `Achievements/AchievementTracker.cs` und
   `Achievements/AchievementProgress.cs` (Achievements, siehe „Achievements“ unter „UI“),
   `Colorways/ColorwayManager.cs` und `Colorways/ColorwayColor.cs` (Farbschemata, siehe
-  „Farbschemata“ unter „UI“).
+  „Farbschemata“ unter „UI“), `Languages/LanguageManager.cs` und `UI/LocalizedText.cs`
+  (Sprachen, siehe „Sprachen“ unter „UI“).
 - `Space-Escaper/Assets/Tests/` - EditMode-Tests in `EditMode/`, die PlayMode-Tests in
   `PlayMode/`, siehe „Tests“. Dort liegt auch `TestFrameworkFix`, siehe „Play Mode
   ohne Domain Reload“ unter „Unity-Besonderheiten“.
@@ -51,7 +52,7 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
 - **Tests auf dem Handy** ausführlich erst kurz vor v2.0 (Entscheidung Oktober 2026).
   Bis dahin reichen Tests im Editor und kurze Stichproben auf dem Handy. Test-APKs
-  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 bis v1.5.5
+  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 bis v1.6.0
   sind nur im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung
   18.11.2026).
 
@@ -166,7 +167,8 @@ von Tablets in 4:3 bis zum schmalen Außendisplay eines Klapphandys, fünf davon
 Kameraloch oder Balken: Alles Sichtbare und jede Tippfläche liegt in der Safe Area, kein
 Text läuft aus seinem Rechteck, und jedes Bedienelement nimmt Tipps auf mindestens 48 dp
 an (siehe „Layout für alle Seitenverhältnisse“ unter „UI“). Was eine Maske abschneidet,
-zählt dabei nicht (seit Schritt 3b von v1.5.1). Die Settings passen auf jedem der zehn
+zählt dabei nicht (seit Schritt 3b von v1.5.1). Seit v1.6.0 prüft er jede Sprache des Katalogs, auch mit
+den längsten Zahlen, die ein Text zeigen kann (siehe „Layout im Test“). Die Settings passen auf jedem der zehn
 Displays ohne Scrollen unter ihren Titel (ebenso seit 3b).
 Seit v1.5.2 prüft `CreditsTests`, dass oben in der README dieselben Credits stehen wie im
 Screen der Credits: dieselben Abschnitte mit denselben Einträgen in derselben Reihenfolge
@@ -179,7 +181,8 @@ dass das für alle anderen im selben Aufruf nach dem letzten von ihnen freischal
 die späteren wartet, dass „später“ nie freischaltet, Freigeschaltetes freigeschaltet bleibt, eine Belohnung einmal
 ausgezahlt wird und eine gesperrte gar nicht, und den Anteil im Ring. `AchievementCatalogTests`
 prüft die Daten wie `ShipCatalogTests` die Schiffe: jedes `AchievementData` genau einmal im
-Katalog, eindeutige IDs, Titel in Großbuchstaben, Beschreibung, Symbol, Belohnung, ein Ziel,
+Katalog, eindeutige IDs, Titel in Großbuchstaben, Beschreibung (seit v1.6.0 ein Schlüssel mit Text in Englisch,
+und nennt sie das Ziel, hat es eins), Symbol, Belohnung, ein Ziel,
 wo es zählt, und „später“ genau bei den vier der Collectibles und SPACE ACHIEVER.
 `SaveDataTests` prüft dazu, dass die neuen Felder Speichern und Laden überstehen und ein
 Spielstand von davor seine Münzen behält. `SceneTests` prüft, dass jedes Achievement genau
@@ -201,6 +204,22 @@ färben, und den Karten), dass jede Rolle in der Szene TOXIC zeigt, auch die Bil
 und dass es genau einen `ColorwayManager` mit dem Katalog gibt und je Schema eine Karte in seiner
 Reihenfolge, die Titel und Farben ihrer Daten zeigt. `SaveDataTests` prüft die Wahl im Spielstand
 (siehe „Farbschemata“ unter „UI“).
+Seit v1.6.0 prüft `LanguageTextsTests` die Regeln der Sprachen an eigenen Sprachen des Tests: das
+Lesen der JSON-Dateien samt Escapes, BOM und Zeichen jenseits von ASCII, dass ein Fehler in einer
+Datei Zeile und Spalte nennt, dass ein fehlender Text aus der Standardsprache kommt und ein
+unbekannter Schlüssel sich selbst zeigt. `LanguageCatalogTests` prüft die echten Daten: jede
+`LanguageData` genau einmal im Katalog, eindeutige IDs und Systemsprachen, Englisch als Standard,
+deutsche Handys starten deutsch und alle anderen englisch, die gewählte Sprache schlägt das Handy,
+jede Sprache hat genau die Texte der Standardsprache, keinen leeren, mit denselben Platzhaltern,
+und was dort in Großbuchstaben steht, steht in jeder Sprache so. `SaveDataTests` prüft die Wahl im
+Spielstand, `SceneTests` genau einen `LanguageManager` mit dem Katalog und dass jeder `LocalizedText` einen
+Schlüssel hat, den Englisch kennt, und in der Szene dessen Text zeigt, ein Text mit Zahlen ein Beispiel
+davon. Jeder Text mit Buchstaben oder Ziffern hat einen Schlüssel oder bleibt mit `UntranslatedText` in jeder Sprache
+gleich, nie beides. Die Settings haben je Sprache einen Button, in der Reihenfolge des Katalogs und mit ihrem
+Kürzel darauf. Jedes Zeichen jedes Texts steht in jeder Sprache in seiner Schrift, ein Schlüssel, den nur
+Skripte zeigen, in jeder Schrift der Texte mit Schlüssel. `NumberFormatTests` prüft die Zahlen in den Formaten:
+Tausender ab 1000 mit dem Trenner der Sprache, auf Deutsch Punkt und Komma getauscht, Stellen, Nachkommastellen
+und Runden, und dass ein `LocalizedText` sie so zeigt. Die Beispiele in der Szene haben die Trenner von Englisch.
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
@@ -261,7 +280,10 @@ ihrem Platz. Ein zehnter (`SwitchesSlideTheirKnob`) tippt den Schalter „Classi
 dass sein Knopf gleitet, und der Test des Popups im Run, dass es von oben hereinfällt und dabei
 sichtbar wird und nach seiner Zeit wieder hinaufsteigt und ausblendet, bevor das nächste kommt. Der
 erste Test prüft seit v1.5.5 auch, dass „NEW HIGHSCORE“ und die Karte der Achievements auf dem
-Todesbildschirm erst nach ihm hereinfallen (siehe „Bewegungen“ unter „UI“).
+Todesbildschirm erst nach ihm hereinfallen (siehe „Bewegungen“ unter „UI“). Seit v1.6.0 tippt ein elfter
+(`TheLanguageButtonsSwitchTheLanguage`) in den Settings DE und prüft Sprache, Spielstand, die Farben der
+Buttons und die Texte des Screens, nach dem Neuladen der Szene noch einmal, dann wieder EN. Das Hauptmenü zeigt
+dabei 1234 Münzen auf Englisch als „1,234“, nach dem Neuladen auf Deutsch als „1.234“.
 Ebenfalls seit v1.5.5 prüft `EasingTests` die Kurven der Bewegungen gegen Werte, die ein
 Browser für dieselben Kurven zeigt (unabhängig in Python mit exakten Brüchen gerechnet),
 `SwayEffectTests` das Pendeln des Wisch-Hinweises gegen die Keyframes des Mockups,
@@ -282,8 +304,8 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
   Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
   verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
-  aus (in v1.5.5 166 Tests in rund 46 s). Mit dem Wechsel in den Play Mode dauern die
-  zehn PlayMode-Tests rund 43 s, also
+  aus (in v1.5.5 166 Tests in rund 46 s, in v1.6.0 283 in rund 50 s). Mit dem Wechsel in den Play Mode dauern die
+  elf PlayMode-Tests rund 45 s, also
   vor Commits, die Run, Tod, Revive, das Spawnen, die Achievements, die Farbschemata, die
   Übergänge oder den Hangar ändern. Meldet ein asynchroner
   PlayMode-Lauf 0/0, greift der Umweg `TestFrameworkFix` nicht mehr (siehe „Play Mode
@@ -300,7 +322,15 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   speichert sie und legt danach den alten Stand zurück.
 - **Layout im Test:** `LayoutTests` legt eine Kopie der UI in eine Vorschau-Szene
   (`EditorSceneManager.NewPreviewScene`), so bleibt `Game.unity` unberührt, auch wenn
-  sie offen ist. Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
+  sie offen ist. Seit v1.6.0 läuft er einmal pro Sprache des Katalogs (`TestFixtureSource`, Namen wie
+  `LayoutTests("de")`) und liest ihre Texte frisch (`LanguageManager.Reload`): Ohne Kompilieren behält der Editor
+  die Texte einer gezeigten Sprache, auch nach einer Änderung an ihrer Datei. Im Edit Mode ruft Unity `OnEnable`
+  nicht auf, die Kopie zeigte also in jeder Sprache die Szene, Englisch. Jedes `LocalizedText` zeigt deshalb seinen
+  Schlüssel in der Sprache des Tests, mit den Zahlen seines Beispiels, die `TextWithNumbers` mit den Trennern von
+  Englisch liest. Das prüft `EveryTextShowsTheLanguage`. `EveryNumberFitsAtItsLongest` setzt die längsten Zahlen
+  ein, nach Moritz (27.11.2026) Score, Highscore und Münzen mit sechs Stellen, die Strecke mit fünf, „×99.9“,
+  „59:59“ und 100 %, dazu einen Fortschritt eins unter seinem Ziel und an der Medaille alle Achievements.
+  Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
   `CanvasScaler` auf dem Display ergäbe, und `SafeArea.Fit` bekommt dessen Safe Area. In
   der Kopie ist jeder Screen an, denn TextMesh Pro rechnet einen Text erst, wenn er
   einmal an war. Die Displays stehen oben im Test, die Safe Areas mit Kameraloch stammen
@@ -313,7 +343,8 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   Tod schreibt Münzen und Highscore, deshalb lenkt `SetUp` den Spielstand mit
   `SaveSystem.LoadFrom` in einen eigenen Ordner um, im Editor
   `%LOCALAPPDATA%\Temp\ANIMO Games\Space Escaper\PlayModeTests\`. Der beginnt leer
-  wie eine Neuinstallation, nur mit Highscore 5. Stumm ist der Test über
+  wie eine Neuinstallation, nur mit Highscore 5 und seit v1.6.0 mit Englisch als gewählter Sprache,
+  denn der Editor meldet die Sprache von Windows. Stumm ist der Test über
   `AudioListener.volume` 0 (seit v1.5.1, bis dahin über den Lautstärkeregler): Musik und
   Sounds laufen durch denselben Code wie im Spiel, man hört sie nur nicht. Ein Regler auf
   0 hielte die Musik an und spielte keine Sounds, das prüfte weniger. Den echten
@@ -366,7 +397,8 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
     Dreifinger-Doppeltipp. Im Editor steht es im Play Mode unter Window > Analysis
     > Rendering Debugger und gilt nur für den laufenden Play Mode.
   - **In den Settings** steht seit v1.5.0 dafür auch ein Schalter „Invincible“. Der
-    `SettingsScreen` legt ihn in `Awake` als Kopie der Zeile „Classic Mode“ an, die
+    `SettingsScreen` legt ihn in `Awake` als Kopie der Zeile „Classic Mode“ an, mit eigenen
+    Schlüsseln für seine Texte (seit v1.6.0, die Kopie hätte sonst die der Vorlage), die
     Layout-Gruppe ihres Abschnitts setzt ihn als letzte Zeile unter GAME (seit v1.5.1), in
     der Szene steht er nicht. Auf dem Handy ist er leichter zu treffen
     als der Dreifinger-Doppeltipp, der auf dem Pixel 9 Pro nicht immer klappte, und er
@@ -489,7 +521,38 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   Badge und Karte ohne Wartezeit und eine Karte, die gar nicht kommt, `DragThresholdTests` eine
   Schwelle von 10 Pixeln überall und einen Bildschirm ohne dpi, der als keiner zählt, und
   `SceneTests` ein EventSystem ohne `DragThreshold`. Mit seiner Toleranz für Plätze fand der erste
-  Test noch eine Badge, die 0,1 Einheiten über ihrem Platz stehen bleibt.
+  Test noch eine Badge, die 0,1 Einheiten über ihrem Platz stehen bleibt. In v1.6.0 war jeder neue Test der
+  Sprachen rot, mit 34 eingebauten Fehlern: im Parser vertauschte Schlüssel und Texte, ein BOM,
+  nur Leerzeichen als Leerraum, ein leeres Objekt, falsch gelesene Escapes, nur ASCII, Zeilen und
+  Spalten ab 0, ein Komma am Ende, ein doppelter Schlüssel, Text nach dem Objekt, ein Zeilenumbruch
+  im Text und ein unbekanntes Escape, in den Texten kein Rückfall auf Englisch, nichts statt des
+  Schlüssels und ein Schlüssel null, im Katalog ein Handy, das nicht zählt oder die Wahl schlägt,
+  in den Daten ein fehlender, ein überzähliger und ein leerer Text, verlorene und geänderte
+  Platzhalter, Kleinbuchstaben und ein ß in einem Titel, eine Sprache doppelt, Deutsch als
+  Standard, Deutsch mit der ID und der Systemsprache von Englisch, eine Sprache, die der Spielstand
+  nicht speichert oder schon gewählt hat, in `StaticFieldTests` die Texte aus dem letzten Play Mode
+  und in `SceneTests` eine Szene ohne `LanguageManager`. Der Test der Schlüssel in `SceneTests` fand einen
+  Schlüssel, den Englisch nicht hat, den Schlüssel eines anderen Texts, einen leeren Schlüssel, einen anderen
+  Text in der Szene und einen Text, der in `en.json` fehlt. Für die Texte, die Skripte setzen, fanden die Tests
+  einen Text ohne Schlüssel, einen mit Schlüssel und `UntranslatedText`, ein falsches Beispiel in der Szene,
+  ein Format, zu dem das Beispiel nicht passt, einen Eintrag mit der Beschreibung eines anderen Achievements,
+  ein anderes Ziel als in der Beschreibung, einen Eintrag mit dem falschen Fortschritt, eine Beschreibung und
+  einen Fortschritt, die in `en.json` fehlen, eine Beschreibung mit `{0}` ohne Ziel und die Rollen ohne die
+  Texte, die Skripte färben. Im Play Mode fand `RunTests` ein `LocalizedText`, das seine Zahlen verliert, und
+  eins, das einen neuen Schlüssel nicht nimmt. Für die Wahl der Sprache fand `SceneTests` einen Button, den
+  die Settings nicht kennen, vertauschte Buttons, ein falsches Kürzel und die Rollen ohne die Buttons der
+  Sprachen, `RunTests` einen Tipp, der nichts wählt, eine Wahl ohne Speichern, Buttons, die beim Wechsel ihre
+  Farben behalten oder sie vertauschen, und einen Test ohne eigene Sprache. Der Test der Zeichen fand ein ẞ in
+  einem Titel in Audiowide und in einem Schlüssel, den nur Skripte zeigen. `NumberFormatTests` fand Zahlen ohne
+  Gruppen, den Punkt von TextMesh Pro auf Deutsch, Zahlen ohne ihre Stellen, Runden zur geraden Zahl und ein
+  `LocalizedText`, das noch `SetText` nimmt, `SceneTests` sechs Beispiele in der Szene ohne Trenner. Für die reinen
+  Zahlen der Screens fand `SceneTests` vorher jeden Text mit Ziffern ohne Schlüssel, danach zehn Beispiele ohne
+  Trenner, darunter die Belohnungen von COLLECTOR und SPACE ACHIEVER, `RunTests` ein Hauptmenü, das seine Münzen
+  selbst mit `SetText` schreibt, und ein `LocalizedText` mit den Trennern von Englisch. In Schritt 6 fand `LayoutTests`
+  eine Kopie, die in jeder Sprache die Szene zeigt, einen deutschen Titel, der nicht passt, und eine Strecke mit sechs
+  Stellen auf dem Todesbildschirm. Ohne frisches Lesen blieb er nach einer Änderung an `de.json` grün, mit `Reload`
+  war er rot. `EveryTextShowsTheLanguage` fand gleich zu Beginn einen Test, der das Label der Karte mit dem Schlüssel
+  für mehrere Achievements zurückließ.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -503,7 +566,7 @@ nur Ordner.
 |---|---|
 | `Audio/` | Clips in `Classic/` und `New/`, die beiden Banks, der Mixer, in `New/` das Ableton-Projekt der neuen SFX |
 | `Branding/` | App-Icon, Splash-Logos und Splash-Hintergrund (Player Settings), Banner, weitere Logos |
-| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`, `Achievements/`: ein `AchievementData` pro Achievement und der `AchievementCatalog`, `Colorways/`: ein `ColorwayData` pro Farbschema und der `ColorwayCatalog`) |
+| `Data/` | ScriptableObjects mit Spieldaten, nach Gruppe (`Ships/`: ein `ShipData` pro Schiff und der `ShipCatalog`, `Achievements/`: ein `AchievementData` pro Achievement und der `AchievementCatalog`, `Colorways/`: ein `ColorwayData` pro Farbschema und der `ColorwayCatalog`, `Languages/`: ein `LanguageData` pro Sprache, ihre Texte als JSON und der `LanguageCatalog`) |
 | `Editor/` | Werkzeuge für den Editor: das Test-Menü und seine Assembly Definition |
 | `Materials/` | Materialien, nach Gruppe |
 | `Models/` | `.fbx` und `.blend`-Quellen samt ihren Texturen, nach Gruppe |
@@ -533,7 +596,8 @@ nur Ordner.
 - **Skripte liegen nach Bereich** (seit v1.5.0, bis dahin flach, Entscheidung Oktober
   2026): `Achievements/` (Daten, Regeln und Zählen der Achievements, seit v1.5.3),
   `Audio/` (`AudioSystem`, `AudioBank`), `Colorways/` (Daten, Rollen und Wahl der
-  Farbschemata, seit v1.5.4), `Game/` (Spielzustand, Score, Bildrate,
+  Farbschemata, seit v1.5.4), `Languages/` (Sprachen und ihre Texte, seit v1.6.0), `Game/`
+  (Spielzustand, Score, Bildrate,
   Test-Panel), `Save/` (Spielstand), `Ship/` (das Schiff, seine Eingabe und die
   Schiffsdaten), `UI/` (die Screens und ihre Bausteine) und `World/` (Strecke,
   Floating Origin, Drehen, Münze, Raumhafen, Hangar, Kamera). Ein neues Skript kommt in
@@ -580,7 +644,7 @@ behalten dadurch ihre Weltposition.
 
 | Root-Objekt | Inhalt |
 |---|---|
-| `Systems` | `GameManager`, `RunScore`, `AchievementTracker`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem`, `ColorwayManager` |
+| `Systems` | `GameManager`, `RunScore`, `AchievementTracker`, `Hangar`, `TileManager`, `FieldManager`, `SpinManager`, `FloatingOrigin`, `EventSystem`, `ColorwayManager`, `LanguageManager` |
 | `AudioSystem` | bleibt im Root, `DontDestroyOnLoad` wirkt nur auf Root-Objekte |
 | `Playership` | bleibt im Root, eine leere Gruppe wie die anderen. Das Schiff selbst ist ihr Kind `Ship` (`CharacterController`, `PlayerMotor`, `PlayerShip`) und bewegt sich jeden Frame |
 | `Cameras` | `MainCamera`, `ShopCamera` |
@@ -595,7 +659,9 @@ behalten dadurch ihre Weltposition.
   Prefab-Instanzen in Layout-Gruppen, als Overrides in die Szene, wo sonst 0 steht. Frisch von der
   Platte geladen blieb der Diff sauber: erst eine leere Szene öffnen
   (`EditorSceneManager.NewScene`), dann `Game.unity` mit `OpenScene`, so fragt kein Dialog. Nach
-  jedem Speichern per Skript den Diff ansehen.
+  jedem Speichern per Skript den Diff ansehen. Wer die Datei per Text ändert, tut das bei offener leerer Szene
+  und ruft danach `AssetDatabase.Refresh()`, bevor er `Game.unity` öffnet. Sonst hält der Dialog „The open
+  scene(s) have been modified externally“ den Editor an, bis jemand klickt (passiert in v1.6.0).
 - **Was sich ständig bewegt, bleibt flach.** Unity aktualisiert Transforms pro
   Hierarchie, bewegte Kinder in großen Hierarchien kosten mehr. Deshalb liegt
   `Playership` mit dem Schiff im Root, und die Streckenabschnitte spawnen dort
@@ -723,6 +789,8 @@ geliefert wurden.
   (`Asteroid001Color.png`).
 - **Ungenutzte Doppelgänger** einer benutzten Datei tragen `Unused` am Ende
   (`Asteroid004Unused.mat`), damit sie beim Aufräumen auffallen.
+- **Sprachdateien heißen nach ihrem Sprach-Tag** (`en.json`, `de.json`, seit v1.6.0), wie
+  Übersetzungswerkzeuge es erwarten, ihre `LanguageData` nach der Sprache (`English`, `German`).
 - **Szene-Objekte nach ihrer Rolle:** `…Button`, `…Text`, `…Icon`, `Title`; die
   Grafik eines Buttons heißt `Image`. Kopien-Endungen wie `(1)` kommen weg
   (`Coin`, `Asteroid012`), Namen dürfen unter Geschwistern doppelt vorkommen.
@@ -850,10 +918,12 @@ bei 8.
   Achievements, seit v1.5.4 für die Karten der Farbschemata, die Zeile der Settings und den
   Button unter dem Schiff im Hangar, seit v1.5.5 für `ScreenManager.IsChanging`, die Blende und
   das Sheet der Pause, Plattform, Ständer und Kamera des Hangars, den Pfeil, das gezeigte Schiff,
-  den Schalter „Classic Mode“ und den Knopf eines Schalters. Seit v1.5.1 öffnet sie auch den
+  den Schalter „Classic Mode“ und den Knopf eines Schalters, seit v1.6.0 für die Buttons der Sprachen und
+  ihre Platten. Seit v1.5.1 öffnet sie auch den
   EditMode-Tests `internal`, für `SafeArea.Fit`, seit v1.5.3 für `DeathMenuScreen.ShowUnlocked` und
   `GameMenuScreen.ShowAchievement`, seit v1.5.5 für `Easing.CubicBezier`, `SwayEffect.GetOffset`,
-  `ScreenManager.GetAlphaBelow` und `DragThreshold.GetPixels`, und `SceneTests` liest dort das
+  `ScreenManager.GetAlphaBelow` und `DragThreshold.GetPixels`, seit v1.6.0 für `LanguageManager.Show` und `Reload`,
+  und `SceneTests` liest dort das
   Sheet der Pause (`ScreenManager.PauseSheet`). Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
   `SpaceEscaper`. **Nutzt ein Skript ein weiteres Paket**, gehört dessen Assembly in
@@ -1139,7 +1209,7 @@ Alle Skripte lesen und ändern ihn über `SaveSystem.Data`, PlayerPrefs nutzt da
 Spiel nicht mehr.
 
 - **Gespeichert wird sofort** bei Tod, Kauf, Schiffswahl, den Audio-Schaltern und der Wahl
-  eines Farbschemas, dazu beim Pausieren und Beenden der App, für die Regler von Musik und Effekten (siehe
+  eines Farbschemas oder einer Sprache, dazu beim Pausieren und Beenden der App, für die Regler von Musik und Effekten (siehe
   „Audio-System“). Bis dahin stehen Änderungen nur im Speicher.
 - **Gesamtlautstärke weg** (seit Schritt 3b von v1.5.1): Statt `m_masterVolume` stehen
   `m_musicVolume` und `m_sfxVolume` im Spielstand, beide neu mit 1. Ein alter Stand
@@ -1160,6 +1230,9 @@ Spiel nicht mehr.
 - **Farbschema** (seit v1.5.4, siehe „Farbschemata“ unter „UI“): `m_colorwayId` ist die ID
   des gewählten, leer, bis eins gewählt ist, auch in einem Spielstand von davor. Eine leere
   oder unbekannte ID zeigt TOXIC. Gespeichert wird sofort beim Wählen.
+- **Sprache** (seit v1.6.0, siehe „Sprachen“ unter „UI“): `m_languageId` ist die ID der
+  gewählten (`en`, `de`), leer, bis eine gewählt ist. Bis dahin zeigt das Spiel die Sprache des
+  Handys, wenn es sie hat, sonst Englisch.
 - **Versionsnummer:** Jede Datei trägt `m_version`, derzeit 2 (seit v1.4.8, Schiffe
   als ID statt als Nummer). Einen Stand mit anderer Version verwirft
   `SaveData.FromJson`, das Spiel fängt dann neu an (Entscheidung Oktober 2026, es
@@ -1582,8 +1655,11 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   SPACE ACHIEVER zählt die 11 anderen, wartet also auf sie und ist bis dahin auch „später“
   (Moritz, 19.11.2026).
   - **Daten:** ein `AchievementData` pro Achievement in `Data/Achievements/`, mit ID, Titel,
-    Beschreibung, Symbol, dem, was es zählt (`AchievementGoal`), Ziel, Einheit, Münzen und
-    „später“. Der `AchievementCatalog` daneben hat sie in der Reihenfolge des Screens. Die ID
+    Beschreibung, Symbol, dem, was es zählt (`AchievementGoal`), Ziel, Fortschritt, Münzen und
+    „später“. Beschreibung und Fortschritt sind seit v1.6.0 Schlüssel in den Dateien der Sprachen,
+    `{0}` in der Beschreibung ist das Ziel (`Fly {0} m in one run`), der Fortschritt nennt die
+    Einheit (`achievements.progressInMeters`). Der `AchievementCatalog` daneben hat sie in der
+    Reihenfolge des Screens. Die ID
     ist der Schlüssel im Spielstand (siehe „Spielstand“). HOARDER und SPACE ACHIEVER zählen
     alle Schiffe und alle anderen Achievements, die es gibt, ihr Ziel im Asset bleibt 0.
   - **Regeln** in der einfachen Klasse `AchievementProgress`: Fortschritt, Ziel, Zustand
@@ -1629,12 +1705,14 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     IT’S WORKING! IT’S WORKING! nicht, am knappsten ist jetzt IT’S WORKING mit 228 von 230
     Einheiten. Der Apostroph ist der typografische, alle drei Schriften haben ihn.
   - **Szene und Daten zeigen dasselbe:** Der Eintrag nimmt Titel, Beschreibung, Symbol und
-    Belohnung beim Öffnen aus seinem `AchievementData`. Die Szene hält dieselben Texte, damit
+    Belohnung beim Öffnen aus seinem `AchievementData`, die Beschreibung in der Sprache der UI. Die Szene hält dieselben Texte, damit
     `LayoutTests` misst, was das Spiel zeigt, `SceneTests` prüft, dass sie übereinstimmen.
   - **Ein neues Achievement:** ein `AchievementData` anlegen und in den Katalog eintragen, im
     Screen einen Eintrag duplizieren, ihm das neue `AchievementData` geben und Titel,
-    Beschreibung, Symbol und Belohnung (auch die im CLAIM-Button) angleichen, den Kasten
-    `Side` so breit wie die Belohnung. Zählt es etwas Neues, bekommt `AchievementGoal` einen
+    Beschreibung, Symbol und Belohnung (auch die im CLAIM-Button, ab 1000 mit Trennern wie „+1,000“)
+    angleichen, den Kasten
+    `Side` so breit wie die Belohnung. Seine Beschreibung bekommt einen Text in jeder Sprache.
+    Zählt es etwas Neues, bekommt `AchievementGoal` einen
     Wert am Ende (die Assets speichern seine Nummer) und `AchievementProgress.GetProgress`
     einen Fall. Ist sein Titel zu lang, meldet es `LayoutTests`.
   - **Medaille:** die Zahl der abholbaren Belohnungen an ihrer Ecke wie im Mockup, Bernstein
@@ -1706,7 +1784,7 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Mockups, deckend gemischt oder durchsichtig, über dem Grund des Schemas oder über der Welt
     und wie viel Weiß dazwischen liegt. Der Tint färbt beim Einschalten und bei jedem Wechsel.
     Was Skripte nach Zustand färben, trägt die Rollen selbst: die vier `AchievementLook`,
-    `OnOffButton`, `ToggleSwitch` und `SelectOrBuyButton`. Der setzt seine Farben bei jedem
+    `OnOffButton`, `ToggleSwitch`, `SelectOrBuyButton` und seit v1.6.0 `LanguageButton`. `SelectOrBuyButton` setzt seine Farben bei jedem
     Einschalten neu, denn der Hangar zeigt sein Schiff nur beim ersten Öffnen und nach einem
     Tipp.
   - **Durchsichtiges** rechnet `ColorwayColor.GetLinearAlpha` für den Grund jedes Schemas um
@@ -1747,12 +1825,73 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Daten und Kontraste, `SceneTests` die Karten. Gerechnet passen sieben Karten noch auf jedes
     Display (632 der mindestens 666 Einheiten zwischen Kopf und unterem Rand), acht nicht mehr. Das meldet dann
     `LayoutTests`, und die Karten brauchen eine Liste zum Scrollen wie die Achievements.
+- **Sprachen** (seit v1.6.0, Entscheidungen in Schritt 0 von v1.6.0): Englisch und Deutsch, mit
+  eigenem Code statt Unitys Paket Localization (Moritz, 25.11.2026: „ja dann machen wir eigenen
+  code weg“). Das Paket brächte Addressables, Newtonsoft Json und Asset Bundles in den Build,
+  startete asynchron und setzte über Addressables die Berechtigung INTERNET.
+  - **Daten:** ein `LanguageData` pro Sprache in `Data/Languages/` mit ID (der Schlüssel im
+    Spielstand, ihr Sprach-Tag), der Systemsprache eines Handys, das in ihr startet, und ihren
+    Texten, einer JSON-Datei mit einem flachen Objekt aus Schlüssel und Text
+    (`"settings.title": "SETTINGS"`). Der `LanguageCatalog` daneben hat Englisch zuerst, den
+    Standard für Handys in anderen Sprachen und für jeden Text, der einer Sprache fehlt.
+  - **Lesen:** `FlatJson`, ein kleiner eigener Parser, denn `JsonUtility` kann keine Dictionaries.
+    Ein Fehler in einer Datei nennt Zeile und Spalte. `LanguageTexts` hält die Texte einer Sprache
+    mit denen des Standards dahinter, ein unbekannter Schlüssel zeigt sich selbst.
+  - **Wahl:** Der `LanguageManager` unter `Systems` kennt die gezeigte Sprache (`Current`) und
+    meldet einen Wechsel (`LanguageChanged`), wie der `ColorwayManager` und wie er vor dem Rest der
+    Szene (`DefaultExecutionOrder(-100)`). Bis eine Sprache gewählt ist, nimmt er die des Handys
+    (`Application.systemLanguage`) oder Englisch. Die Texte liest er nur bei einem Wechsel, ein
+    Neuladen der Szene behält sie. `LanguageManager.Get(key)` gibt den Text eines Schlüssels.
+  - **In den Settings** hat die Zeile LANGUAGE unter GAME einen Button je Sprache, EN und DE, mit
+    einem `LanguageButton` (Moritz, 25.11.2026: „ein tipp einfach“). Ein Tipp wählt seine Sprache
+    (`LanguageManager.Choose`), der Spielstand speichert sie sofort, und jedes `LocalizedText`, das
+    an ist, zeigt gleich ihre Texte, die übrigen beim nächsten Einschalten. Der Button der gezeigten
+    Sprache steht in der Leuchtfarbe wie LAUNCH, der andere weiß wie die übrigen Buttons. Das färbt
+    der `SettingsScreen` beim Einschalten und bei jedem Wechsel über die Rollen des Buttons, wie
+    SELECT im Hangar. Bis v1.6.0 war die Zeile ausgegraut, mit „SOON“.
+  - **Texte:** An einem festen Text sitzt ein `LocalizedText` mit seinem Schlüssel, er setzt den
+    Text beim Einschalten und bei jedem Wechsel, über `text`, das einen gleichen Text nicht neu
+    aufbaut (`SetText` baut immer neu). In der Szene steht Englisch, das prüft `SceneTests`.
+  - **Was Skripte setzen,** geht über das `LocalizedText` des Texts: `Show(key)` zeigt einen
+    anderen Schlüssel (ON und OFF, SELECT), `Show(key, a, b)` einen mit Zahlen und `ShowNumbers(a, b)`
+    dieselben mit neuen Zahlen. Die Formate stehen in der Sprache
+    (`"death.runEnded": "RUN ENDED · {0}:{1:00}"`), die Zahlen füllt `NumberFormat` mit den
+    Trennern der Sprache ein (`number.groupSeparator`, `number.decimalSeparator`: „9,142“ und „9.142“,
+    „×1,4“), in einen Puffer, den TextMesh Pro über `SetCharArray` nimmt, ohne neuen String. `SetText`
+    kennt weder die Trenner einer Sprache noch Tausender. Bei einem Wechsel der Sprache zeigt das `LocalizedText` sein neues
+    Format mit denselben Zahlen. In der Szene steht ein Beispiel auf Englisch (`RUN ENDED · 2:05`, `1,938 m`). Ein Skript,
+    das den Text färbt, erreicht ihn über `LocalizedText.Text`, auch vor dessen `Awake`. Auch reine
+    Zahlen gehen so, mit Formaten unter `number`: `number.whole` („{0}“: Score, Münzen, Highscore),
+    `number.gain` („+{0}“: Münzen des Runs, Belohnungen), `number.time` („{0}:{1:00}“),
+    `number.multiplier` („×{0:0.0}“) und `number.percent` („{0}%“, auf Deutsch „{0} %“ mit
+    geschütztem Leerzeichen wie nach DIN 5008). Kein Skript schreibt Zahlen mehr mit `SetText`, einen Text mit
+    Ziffern ohne Schlüssel meldet `SceneTests`. Setzt kein Skript die Zahlen eines Formats, zeigt es 0, so der
+    Anteil der Collectibles („0%“).
+  - **Schlüssel** nennen Screen und Element (`death.title`, `settings.classicMode.description`).
+    Was auf mehreren Screens dasselbe meint, steht unter `common` (`common.soon`, `common.score`),
+    ein Titel und ein Button mit demselben Wort haben je einen eigenen (`hangar.title`,
+    `common.hangar`). In der Datei stehen sie nach Screens in der Reihenfolge des Spiels.
+  - **Was in jeder Sprache gleich bleibt,** trägt statt eines Schlüssels ein `UntranslatedText`: Namen
+    von Personen, Schiffen, Farbschemata und Schriften, die Titel der Achievements und die Lizenzen
+    in den Credits (Moritz, 25.11.2026). Eine Rolle in den Credits wird übersetzt, auch neben Namen
+    („Icons · Cole Bemis · MIT License“). Seit Schritt 4b auch die Version in den Settings und die Zähler
+    der Collectibles („0 / 5“), bis v1.8.0 echte Zahlen bringt.
+  - **Deutsch** ist mein Entwurf, Moritz hat ihn fürs Erste abgenommen (27.11.2026: „ja passt
+    erstmal fürs erste“). Er spricht mit „du“ im Imperativ („Fliege ein gekauftes Schiff“), Achievements heißen Erfolge wie bei Google Play, ein Run
+    ein Flug. In Großbuchstaben steht „SS“ statt ẞ, Audiowide hat kein ẞ. Button der Pause und Titel
+    der Settings heißen OPTIONEN, EINSTELLUNGEN war auf dem Button 2,8 Einheiten zu breit. Seit Schritt 6
+    legt `LayoutTests` jeden Screen auch auf Deutsch aus. Der Titel der Farbschemata heißt FARBSCHEMA wie ihre
+    Zeile in den Settings: FARBSCHEMATA passte, begann aber nur 9 Einheiten hinter dem Zurück-Button (Moritz,
+    27.11.2026).
+  - **Im Editor** meldet `Application.systemLanguage` die Sprache von Windows, hier Deutsch. Ein
+    Test, der Texte prüft, setzt seine Sprache deshalb selbst.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
-  Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`:
-  TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
-  legt es dabei zusätzlich einen String für den Inspector an (`#if UNITY_EDITOR` im
-  Paket), Allokationen also auf dem Handy messen, nicht im Editor. Kommazahlen bekommen
-  dort immer einen Punkt, egal welche Sprache das Handy hat. Ein neuer Legacy-`Text`
+  Die Screens halten sie als `TMP_Text`, Texte mit Wörtern oder Zahlen seit v1.6.0 als `LocalizedText` (siehe
+  „Sprachen“): `NumberFormat` füllt die Zahlen in einen Puffer, den TextMesh Pro über `SetCharArray` nimmt,
+  ohne neuen String. Nur im Editor legt TextMesh Pro dabei zusätzlich einen String für den Inspector an
+  (`#if UNITY_EDITOR` im Paket), Allokationen also auf dem Handy messen, nicht im Editor. Bis v1.6.0 schrieben die
+  Screens Zahlen mit `SetText("{0}", zahl)`. Dort bekommen Kommazahlen immer einen Punkt, egal welche Sprache das
+  Handy hat, und Tausender keine Trenner. Ein neuer Legacy-`Text`
   fällt in `SceneTests` auf.
   - **Schriften** liegen als Font Asset neben ihrer Schriftdatei und deren Lizenztext
     in `UI/Fonts/` (seit Schritt 3 von v1.5.1): `TitleSDF` (Audiowide) für Titel,
@@ -1769,7 +1908,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     Screens verschiebt es höchstens 6 % eines Buchstabens. Der Atlas ist nicht lesbar,
     liegt also nur auf der GPU, und die Schriftdatei selbst kommt nicht mehr in den Build.
     Ein fehlendes Zeichen zeichnet TextMesh Pro aus `LiberationSans SDF`, der
-    Standardschrift in den TMP Settings, so das große ẞ in Audiowide. `TitleSDFShadow`
+    Standardschrift in den TMP Settings, so das große ẞ in Audiowide. Seit v1.6.0 meldet
+    `SceneTests` jedes solche Zeichen. `TitleSDFShadow`
     ist ein Material-Preset mit Schatten (Underlay) für den Score im Run. Neuropol X und
     Good Times, die Schriften bis v1.5.0, sind seit Schritt 4 von v1.5.1 samt Font Assets
     gelöscht, ihre kostenlose Lizenz deckt keine Apps ab.
@@ -1785,6 +1925,11 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Überlauf:** Die Texte stehen auf „Overflow“. Bei „Truncate“ verschwindet eine
     Zeile ganz, sobald sie nach den Zeilenmaßen von TextMesh Pro nicht in ihr Rechteck
     passt. Ob ein Text überläuft, meldet `TMP_Text.isTextOverflowing`.
+  - **Senkrecht:** Titel und Buttons stehen auf „Midline“: TextMesh Pro setzt die Mitte der Glyphen in die
+    Mitte des Rechtecks, Umlautpunkte zählen mit. Deutsche Wörter mit Umlaut sitzen deshalb tiefer als ihr
+    englisches, ZERSTÖRT 2,9 Einheiten tiefer als CRASHED, GEWÄHLT 2,1, FUNDSTÜCKE 1,6, MENÜ 1,2 und
+    MÜNZEN 1,0 (gemessen in v1.6.0). Auf „Capline“, der Mitte der Großbuchstaben, säßen sie gleich, das
+    bleibt vorerst so (Moritz, 27.11.2026: „dann passt erstmal“).
   - **Umgestellt in v1.5.1:** Alle 9 Texte stehen an derselben Stelle und sind gleich
     groß, gemessen im Play Mode an den Glyphen (Mitten höchstens 0,5 Einheiten
     verschoben). TextMesh Pro setzt die Laufweiten ungerundet, „Volume“ wurde dadurch
@@ -1926,8 +2071,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     einen Schein von 30 Einheiten um eine Platte mit Radius 20 bei Faktor 2: Faktor
     40 / Radius passt ihn an eine Platte an, er reicht dann 1,5 Radien hinaus. Seit v1.5.4
     hat jedes Farbschema eigene Leuchten (siehe „Farbschemata“).
-  - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Vibration, Sprache und
-    Datenschutz in den Settings, der Inhalt der Collectibles und seit v1.5.3 die vier
+  - **Was erst später kommt, ist ausgegraut** (seit Schritt 3b): Vibration und
+    Datenschutz in den Settings (bis v1.6.0 auch die Sprache), der Inhalt der Collectibles und seit v1.5.3 die vier
     Achievements der Collectibles und SPACE ACHIEVER (siehe oben), bis zu ihren Screens in
     v1.5.2 auch Credits, Achievements und Collectibles.
     Ausgegraut heißt feste Farben, wie CSS `opacity: 0.4` auf dem Untergrund aussähe, keine
@@ -2065,6 +2210,17 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   `ScreenCapture.CaptureScreenshot` rufen, das am Ende des nächsten Frames
   aufnimmt. Was in der Zeit des Spiels läuft (Plattform, Einblendungen im Run), verlangsamt
   `Time.captureDeltaTime`, Übergänge und Blende nicht, sie laufen in unskalierter Zeit.
+  **Bilder aller Screens in beiden Sprachen** (v1.6.0, 1080 × 2400 über `GameView.SetCustomResolution` per
+  Reflection, danach `selectedSizeIndex` zurück und die Größe mit `RemoveCustomSize` entfernen): Die Wahl einer
+  Sprache speichert sofort, die Bilder nehmen deshalb einen eigenen Spielstand wie `RunTests`. Eine vorbereitete
+  `SaveData.json` in einem Ordner unter `Application.temporaryCachePath`, `SaveSystem.LoadFrom` per Reflection, dann
+  die Szene neu laden. Der echte Spielstand blieb unberührt (Hash vorher und nachher gleich). Das `AudioSystem`
+  überlebt das Neuladen mit den Reglern des echten Spielstands, die Settings zeigen dessen Werte, bis man sie setzt
+  (`SetMusicVolume`). Ebenso überlebt `PlayerMotor.IsInvincible`, der Schalter steht nach einem Run mit Haken
+  in den Settings an. Leiste und Popup im Run stehen 2,5 s, kürzer, als ein paar Aufrufe der CLI dauern: ihre
+  Endzeit vorstellen (`m_highscoreBarEndTime`, `m_achievementPopupEndTime` im `GameMenuScreen`) und
+  `Time.timeScale` auf 0, dann aufnehmen. Die Credits stehen mit `m_speed` 0 in der `CreditsRoll`, die Rolle an der
+  Stelle, die `anchoredPosition` ihres Inhalts setzt.
 
 ## Eingabe (Input System)
 

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: Forager
   m_title: FORAGER
-  m_description: Find every plant
+  m_descriptionKey: achievements.forager.description
   m_icon: {fileID: 21300000, guid: a650d42a42ed48b4d8a33acd278d786c, type: 3}
   m_goal: 8
   m_target: 2
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 200
   m_isComingSoon: 1

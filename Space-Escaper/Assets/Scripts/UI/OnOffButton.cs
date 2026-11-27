@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,14 +9,14 @@ namespace SpaceEscaper
     /// </summary>
     public class OnOffButton : MonoBehaviour
     {
-        private const string k_OnText = "ON";
-        private const string k_OffText = "OFF";
+        private const string k_OnKey = "common.on";
+        private const string k_OffKey = "common.off";
 
         [SerializeField] private Graphic m_fill;
         [SerializeField] private Graphic m_border;
         [Tooltip("Icon, label and state, which all take the color of the text.")]
         [SerializeField] private Graphic[] m_texts;
-        [SerializeField] private TMP_Text m_stateText;
+        [SerializeField] private LocalizedText m_stateText;
         [SerializeField] private ColorwayColor m_onFillColor = new ColorwayColor(ColorwayRole.Glow);
         [SerializeField] private ColorwayColor m_onBorderColor = new ColorwayColor(ColorwayRole.Glow);
         [SerializeField] private ColorwayColor m_onTextColor = new ColorwayColor(ColorwayRole.Glow);
@@ -36,7 +35,7 @@ namespace SpaceEscaper
                 text.color = textColor;
             }
 
-            m_stateText.text = isOn ? k_OnText : k_OffText;
+            m_stateText.Show(isOn ? k_OnKey : k_OffKey);
         }
     }
 }

@@ -18,7 +18,7 @@ namespace SpaceEscaper
         [SerializeField] private PlayerShip m_playerShip;
         [Tooltip("Shows the ship on its stand.")]
         [SerializeField] private Hangar m_hangar;
-        [SerializeField] private TMP_Text m_coinText;
+        [SerializeField] private LocalizedText m_coinText;
         [SerializeField] private TMP_Text m_familyNameText;
         [SerializeField] private Button m_backButton;
         [SerializeField] private Button m_previousFamilyButton;
@@ -176,7 +176,7 @@ namespace SpaceEscaper
 
         private void ShowCoins()
         {
-            m_coinText.SetText("{0}", SaveSystem.Data.Coins);
+            m_coinText.ShowNumbers(SaveSystem.Data.Coins);
         }
 
         // The buttons of the other families are switched off, but they show the right state when they come on.

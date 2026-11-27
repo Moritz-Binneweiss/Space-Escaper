@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -14,22 +15,25 @@ namespace SpaceEscaper
     {
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         private const string k_InvincibleToggleName = "InvincibleToggle";
-        private const string k_InvincibleLabel = "INVINCIBLE";
-        private const string k_InvincibleDescription = "Fly through obstacles, test builds only";
+        private const string k_InvincibleTitleKey = "settings.invincible.title";
+        private const string k_InvincibleDescriptionKey = "settings.invincible.description";
 #endif
 
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private Button m_backButton;
         [SerializeField] private Slider m_musicSlider;
-        [SerializeField] private TMP_Text m_musicVolumeText;
+        [SerializeField] private LocalizedText m_musicVolumeText;
         [SerializeField] private Slider m_sfxSlider;
-        [SerializeField] private TMP_Text m_sfxVolumeText;
+        [SerializeField] private LocalizedText m_sfxVolumeText;
         [Tooltip("The sounds of the 2020 original. Its look comes with the remaster in v1.7.0.")]
         [SerializeField] private Toggle m_classicModeToggle;
         [SerializeField] private Button m_colorwayButton;
         [Tooltip("The name of the colorway the UI shows.")]
         [SerializeField] private TMP_Text m_colorwayText;
+        [SerializeField] private LanguageManager m_languageManager;
+        [Tooltip("One per language, in the order of the catalog.")]
+        [SerializeField] private LanguageButton[] m_languageButtons;
         [SerializeField] private Button m_creditsButton;
         [SerializeField] private TMP_Text m_versionText;
 
@@ -43,6 +47,7 @@ namespace SpaceEscaper
         internal Button ColorwayButton => m_colorwayButton;
 
         internal TMP_Text ColorwayText => m_colorwayText;
+        internal IReadOnlyList<LanguageButton> LanguageButtons => m_languageButtons;
 
         internal Toggle ClassicModeToggle => m_classicModeToggle;
 
@@ -50,14 +55,15 @@ namespace SpaceEscaper
         // The switch is a copy of the classic mode row made at runtime, so the scene stays as it is and release
         // builds have no trace of it. The layout of its section puts it below. On a phone it is easier to hit than
         // the three-finger double tap of the test panel, and it does not need the Rendering Debugger, whose first
-        // opening costs a long frame and several megabytes.
+        // opening costs a long frame and several megabytes. The copy has the keys of the classic mode row, so its
+        // texts get keys of their own.
         private void Awake()
         {
             m_invincibleToggle = Instantiate(m_classicModeToggle, m_classicModeToggle.transform.parent);
             m_invincibleToggle.name = k_InvincibleToggleName;
-            TMP_Text[] texts = m_invincibleToggle.GetComponentsInChildren<TMP_Text>();
-            texts[0].text = k_InvincibleLabel;
-            texts[1].text = k_InvincibleDescription;
+            LocalizedText[] texts = m_invincibleToggle.GetComponentsInChildren<LocalizedText>();
+            texts[0].Show(k_InvincibleTitleKey);
+            texts[1].Show(k_InvincibleDescriptionKey);
         }
 #endif
 
@@ -69,6 +75,12 @@ namespace SpaceEscaper
             m_classicModeToggle.onValueChanged.AddListener(ClassicModeToggle_ValueChanged);
             m_colorwayButton.onClick.AddListener(m_screens.ShowColorways);
             m_creditsButton.onClick.AddListener(m_screens.ShowCredits);
+            foreach (LanguageButton languageButton in m_languageButtons)
+            {
+                languageButton.Clicked += LanguageButton_Clicked;
+            }
+
+            LanguageManager.LanguageChanged += LanguageManager_LanguageChanged;
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.AddListener(InvincibleToggle_ValueChanged);
             m_invincibleToggle.SetIsOnWithoutNotify(PlayerMotor.IsInvincible);
@@ -76,6 +88,7 @@ namespace SpaceEscaper
             m_versionText.SetText(Application.version);
             m_colorwayText.SetText(ColorwayManager.Current.Title);
             ShowCurrentSettings();
+            ShowLanguage();
         }
 
         private void OnDisable()
@@ -86,6 +99,12 @@ namespace SpaceEscaper
             m_classicModeToggle.onValueChanged.RemoveListener(ClassicModeToggle_ValueChanged);
             m_colorwayButton.onClick.RemoveListener(m_screens.ShowColorways);
             m_creditsButton.onClick.RemoveListener(m_screens.ShowCredits);
+            foreach (LanguageButton languageButton in m_languageButtons)
+            {
+                languageButton.Clicked -= LanguageButton_Clicked;
+            }
+
+            LanguageManager.LanguageChanged -= LanguageManager_LanguageChanged;
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.RemoveListener(InvincibleToggle_ValueChanged);
 #endif
@@ -93,6 +112,24 @@ namespace SpaceEscaper
 
         // The settings leave the state of the game as it is, so going back shows the screen of the state:
         // the pause menu during a run, the main menu otherwise.
+        private void LanguageButton_Clicked(LanguageData language)
+        {
+            m_languageManager.Choose(language);
+        }
+
+        private void LanguageManager_LanguageChanged()
+        {
+            ShowLanguage();
+        }
+
+        private void ShowLanguage()
+        {
+            foreach (LanguageButton languageButton in m_languageButtons)
+            {
+                languageButton.ShowState(languageButton.Language == LanguageManager.Current);
+            }
+        }
+
         private void BackButton_Clicked()
         {
             m_screens.Show(m_gameManager.State);
@@ -141,9 +178,9 @@ namespace SpaceEscaper
             m_classicModeToggle.SetIsOnWithoutNotify(!audioSystem.UseNewSounds);
         }
 
-        private static void ShowPercent(TMP_Text text, float sliderPosition)
+        private static void ShowPercent(LocalizedText text, float sliderPosition)
         {
-            text.SetText("{0}%", Mathf.Round(sliderPosition * 100f));
+            text.ShowNumbers(Mathf.Round(sliderPosition * 100f));
         }
     }
 }

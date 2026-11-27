@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using TMPro;
 using UnityEditor;
@@ -12,14 +14,20 @@ namespace SpaceEscaper.Tests
 {
     /// <summary>
     /// Lays the screens out the way displays of other shapes show them, from tablets in 4:3 to the narrow
-    /// outer screen of a foldable phone, some with a camera cutout.
+    /// outer screen of a foldable phone, some with a camera cutout, in every language of the game.
     /// </summary>
+    [TestFixtureSource(nameof(LanguageIds))]
     public class LayoutTests
     {
         private const string k_ScenePath = "Assets/Scenes/Game.unity";
+        private const string k_LanguageCatalogPath = "Assets/Data/Languages/LanguageCatalog.asset";
         private const string k_UiRootName = "UI";
         private const string k_SettingsName = "Settings";
         private const string k_AchievementCatalogPath = "Assets/Data/Achievements/AchievementCatalog.asset";
+        private const string k_GroupSeparatorKey = "number.groupSeparator";
+        private const string k_DecimalSeparatorKey = "number.decimalSeparator";
+        private const string k_ProgressKey = "achievements.progress";
+        private const string k_RewardsBadgeLabelPath = "RewardsBadge/Label";
 
         // Android asks for touch targets of at least 48 dp. The narrowest common phones are 360 dp wide.
         private const float k_MinTapSizeDp = 48f;
@@ -44,10 +52,39 @@ namespace SpaceEscaper.Tests
             new Device("Tablet with a bar at the bottom", 2048, 2732, new Rect(0, 40, 2048, 2692)),
         };
 
+        // Moritz, 27.11.2026: a score, a highscore and the coins up to six digits, a distance up to five, as runs of
+        // half an hour and years of coins bring them, with a multiplier up to x99.9 and up to 59:59 minutes. The coins
+        // of a run grow with its distance, about 6,000 in 99,999 m. Texts that share a key are told apart by name.
+        private static readonly LongestNumbers[] s_LongestNumbers =
+        {
+            new LongestNumbers("number.whole", "ScoreText", 999999f),
+            new LongestNumbers("number.whole", "HighscoreText", 999999f),
+            new LongestNumbers("number.whole", "CoinText", 999999f),
+            new LongestNumbers("number.gain", "CoinText", 9999f),
+            new LongestNumbers("run.pointsToGo", null, 999999f),
+            new LongestNumbers("common.meters", null, 99999f),
+            new LongestNumbers("number.multiplier", null, 99.9f),
+            new LongestNumbers("number.time", null, 59f, 59f),
+            new LongestNumbers("pause.time", null, 59f, 59f),
+            new LongestNumbers("death.runEnded", null, 59f, 59f),
+            new LongestNumbers("number.percent", null, 100f),
+        };
+
+        private readonly string m_languageId;
         private Scene m_scene;
         private bool m_isOpenedByTest;
         private Scene m_layoutScene;
         private GameObject m_ui;
+        private int m_achievementCount;
+
+        // Every language of the catalog lays the screens out, so a new one comes with the others.
+        private static IEnumerable<string> LanguageIds => AssetDatabase
+            .LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath).Languages.Select(language => language.Id);
+
+        public LayoutTests(string languageId)
+        {
+            m_languageId = languageId;
+        }
 
         // The test lays out a copy of the UI in a preview scene, so the game scene stays as it is, also
         // when it is open in the editor. On a canvas in world space the size is free, so the copy can
@@ -55,6 +92,13 @@ namespace SpaceEscaper.Tests
         [OneTimeSetUp]
         public void CopyUi()
         {
+            // Until the next compile the editor keeps the texts of a language it has shown, also after a change to its
+            // file, so the test reads them again.
+            LanguageCatalog languages = AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath);
+            LanguageManager.Reload(languages, languages.Find(m_languageId, SystemLanguage.Unknown));
+            m_achievementCount = AssetDatabase.LoadAssetAtPath<AchievementCatalog>(k_AchievementCatalogPath)
+                .Achievements.Count;
+
             m_scene = SceneManager.GetSceneByPath(k_ScenePath);
             m_isOpenedByTest = !m_scene.isLoaded;
             if (m_isOpenedByTest)
@@ -73,6 +117,7 @@ namespace SpaceEscaper.Tests
                 child.gameObject.SetActive(true);
             }
 
+            ShowLanguage(new LanguageTexts(languages.Default.Texts.text));
             m_ui.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
             RectTransform root = (RectTransform)m_ui.transform;
             root.SetPositionAndRotation(Vector3.zero, Quaternion.identity);
@@ -97,29 +142,8 @@ namespace SpaceEscaper.Tests
         public void EverythingShownLiesInTheSafeArea(Device device)
         {
             Rect safeArea = LayOut(device);
-            Rect screen = GetRect((RectTransform)m_ui.transform);
             List<string> problems = new List<string>();
-            foreach (Graphic graphic in m_ui.GetComponentsInChildren<Graphic>(true))
-            {
-                string path = GetPath(graphic.transform);
-                Rect box = GetRect(graphic.rectTransform);
-                if (!graphic.enabled || IsSameRect(box, screen))
-                {
-                    continue;
-                }
-
-                bool isTapArea = graphic.raycastTarget && graphic.GetComponentInParent<Selectable>(true) != null;
-                if (isTapArea && TryClip(graphic, box, out Rect tapArea))
-                {
-                    ReportOutside(problems, path + " (tap area)", tapArea, safeArea);
-                }
-
-                if (IsShown(graphic) && TryClip(graphic, GetShownRect(graphic), out Rect shown))
-                {
-                    ReportOutside(problems, path, shown, safeArea);
-                }
-            }
-
+            AddShownOutside(problems, safeArea);
             Assert.That(problems, Is.Empty);
         }
 
@@ -128,16 +152,62 @@ namespace SpaceEscaper.Tests
         {
             LayOut(device);
             List<string> problems = new List<string>();
-            foreach (TMP_Text text in m_ui.GetComponentsInChildren<TMP_Text>(true))
+            AddTextsTooLarge(problems);
+            Assert.That(problems, Is.Empty);
+        }
+
+        // Without texts of its own the copy would show the scene, English, in every language and measure nothing new.
+        [Test]
+        public void EveryTextShowsTheLanguage()
+        {
+            Assert.That(LanguageManager.Current.Id, Is.EqualTo(m_languageId), "The test shows another language");
+            List<string> problems = new List<string>();
+            foreach (LocalizedText text in m_ui.GetComponentsInChildren<LocalizedText>(true))
             {
-                AddIfTooLarge(problems, text);
+                string expected = LanguageManager.Get(text.Key);
+                Regex pattern = TextWithNumbers.GetPattern(expected, GetSeparator(k_GroupSeparatorKey),
+                    GetSeparator(k_DecimalSeparatorKey));
+                if (!pattern.IsMatch(text.Text.text))
+                {
+                    problems.Add(GetPath(text.transform) + " shows \"" + text.Text.text + "\" instead of \"" +
+                        expected + "\"");
+                }
             }
 
             Assert.That(problems, Is.Empty);
         }
 
-        // The card on the death screen shows one achievement at a time, with the label for more than one, but the
-        // scene keeps only the first. The card is as wide on every display, so one of them is enough.
+        // The examples in the scene are short, a long run or years of coins bring longer numbers. Each text shows its
+        // longest ones here, laid out on every display like the examples.
+        [TestCaseSource(nameof(s_Devices))]
+        public void EveryNumberFitsAtItsLongest(Device device)
+        {
+            LocalizedText[] texts = m_ui.GetComponentsInChildren<LocalizedText>(true);
+            string[] savedTexts = System.Array.ConvertAll(texts, text => text.Text.text);
+            try
+            {
+                foreach (LocalizedText text in texts)
+                {
+                    ShowLongestNumbers(text);
+                }
+
+                Rect safeArea = LayOut(device);
+                List<string> problems = new List<string>();
+                AddTextsTooLarge(problems);
+                AddShownOutside(problems, safeArea);
+                Assert.That(problems, Is.Empty);
+            }
+            finally
+            {
+                for (int i = 0; i < texts.Length; i++)
+                {
+                    texts[i].Text.text = savedTexts[i];
+                }
+            }
+        }
+
+        // The card on the death screen shows one achievement at a time and counts the others on its label, at
+        // most all of them. The scene keeps only the first. The card is as wide on every display, so one is enough.
         [Test]
         public void EveryAchievementFitsTheCardOfTheDeathScreen()
         {
@@ -146,13 +216,15 @@ namespace SpaceEscaper.Tests
             RectTransform card = (RectTransform)deathMenu.UnlockedCard.transform;
             TMP_Text[] texts = card.GetComponentsInChildren<TMP_Text>(true);
             string[] savedTexts = System.Array.ConvertAll(texts, text => text.text);
+            LocalizedText label = deathMenu.UnlockedLabelText.GetComponent<LocalizedText>();
+            string labelKey = label.Key;
             AchievementCatalog catalog = AssetDatabase.LoadAssetAtPath<AchievementCatalog>(k_AchievementCatalogPath);
             List<string> problems = new List<string>();
             try
             {
                 foreach (AchievementData achievement in catalog.Achievements)
                 {
-                    deathMenu.ShowUnlocked(achievement, 2);
+                    deathMenu.ShowUnlocked(achievement, catalog.Achievements.Count);
                     LayoutRebuilder.ForceRebuildLayoutImmediate(card);
                     foreach (TMP_Text text in texts)
                     {
@@ -163,6 +235,8 @@ namespace SpaceEscaper.Tests
             }
             finally
             {
+                // For more than one achievement the label shows a key of its own.
+                label.Show(labelKey);
                 for (int i = 0; i < texts.Length; i++)
                 {
                     texts[i].text = savedTexts[i];
@@ -305,6 +379,81 @@ namespace SpaceEscaper.Tests
                 device.SafeAreaInPixels.size / scaleFactor);
         }
 
+        private void AddShownOutside(List<string> problems, Rect safeArea)
+        {
+            Rect screen = GetRect((RectTransform)m_ui.transform);
+            foreach (Graphic graphic in m_ui.GetComponentsInChildren<Graphic>(true))
+            {
+                string path = GetPath(graphic.transform);
+                Rect box = GetRect(graphic.rectTransform);
+                if (!graphic.enabled || IsSameRect(box, screen))
+                {
+                    continue;
+                }
+
+                bool isTapArea = graphic.raycastTarget && graphic.GetComponentInParent<Selectable>(true) != null;
+                if (isTapArea && TryClip(graphic, box, out Rect tapArea))
+                {
+                    ReportOutside(problems, path + " (tap area)", tapArea, safeArea);
+                }
+
+                if (IsShown(graphic) && TryClip(graphic, GetShownRect(graphic), out Rect shown))
+                {
+                    ReportOutside(problems, path, shown, safeArea);
+                }
+            }
+        }
+
+        private void AddTextsTooLarge(List<string> problems)
+        {
+            foreach (TMP_Text text in m_ui.GetComponentsInChildren<TMP_Text>(true))
+            {
+                AddIfTooLarge(problems, text);
+            }
+        }
+
+        // Unity wakes no script in edit mode, so the copy shows the scene, in the default language. Each text shows its
+        // key in the language of the test, with the numbers of its example.
+        private void ShowLanguage(LanguageTexts defaultTexts)
+        {
+            char groupSeparator = defaultTexts.Get(k_GroupSeparatorKey)[0];
+            char decimalSeparator = defaultTexts.Get(k_DecimalSeparatorKey)[0];
+            foreach (LocalizedText text in m_ui.GetComponentsInChildren<LocalizedText>(true))
+            {
+                TextWithNumbers.TryRead(text.Text.text, defaultTexts.Get(text.Key), groupSeparator, decimalSeparator,
+                    out float first, out float second);
+                text.Show(text.Key, first, second);
+            }
+        }
+
+        // A progress is one less than its target at most, and the medal counts all achievements. Rewards and prices
+        // show their data, as the scene does.
+        private void ShowLongestNumbers(LocalizedText text)
+        {
+            TextWithNumbers.TryRead(text.Text.text, LanguageManager.Get(text.Key), GetSeparator(k_GroupSeparatorKey),
+                GetSeparator(k_DecimalSeparatorKey), out float first, out float second);
+            string path = GetPath(text.transform);
+            if (text.Key.StartsWith(k_ProgressKey))
+            {
+                first = second - 1f;
+            }
+            else if (path.EndsWith("/" + k_RewardsBadgeLabelPath))
+            {
+                first = m_achievementCount;
+            }
+
+            foreach (LongestNumbers longest in s_LongestNumbers)
+            {
+                if (longest.Key == text.Key && (longest.Name == null || path.EndsWith("/" + longest.Name)))
+                {
+                    first = longest.First;
+                    second = longest.Second;
+                }
+            }
+
+            text.Show(text.Key, first, second);
+        }
+
         private GameObject GetUiRoot()
         {
             foreach (GameObject root in m_scene.GetRootGameObjects())
@@ -363,6 +512,11 @@ namespace SpaceEscaper.Tests
                     "{0} \"{1}\" is {2:0.#} wide in a box of {3:0.#}", GetPath(text.transform), text.text, glyphs.width,
                     box.width));
             }
+        }
+
+        private static char GetSeparator(string key)
+        {
+            return LanguageManager.Get(key)[0];
         }
 
         private static bool IsShown(Graphic graphic)
@@ -495,6 +649,28 @@ namespace SpaceEscaper.Tests
             {
                 return Name + " " + ScreenSize.x + "x" + ScreenSize.y;
             }
+        }
+
+        /// <summary>
+        /// The longest numbers a text with a key shows. A name picks one of the texts that share a key.
+        /// </summary>
+        private class LongestNumbers
+        {
+            public LongestNumbers(string key, string name, float first, float second = 0f)
+            {
+                Key = key;
+                Name = name;
+                First = first;
+                Second = second;
+            }
+
+            public string Key { get; }
+
+            public string Name { get; }
+
+            public float First { get; }
+
+            public float Second { get; }
         }
     }
 }

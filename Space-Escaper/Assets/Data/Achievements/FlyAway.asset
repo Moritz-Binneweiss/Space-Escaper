@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: FlyAway
   m_title: FLY AWAY
-  m_description: Fly 1998 m in one run
+  m_descriptionKey: achievements.flyAway.description
   m_icon: {fileID: 21300000, guid: c6ec26ea3c97361469d780a0dc730193, type: 3}
   m_goal: 3
   m_target: 1998
-  m_unit: m
+  m_progressKey: achievements.progressInMeters
   m_reward: 198
   m_isComingSoon: 0

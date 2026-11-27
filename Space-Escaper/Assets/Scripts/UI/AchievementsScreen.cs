@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -27,7 +26,7 @@ namespace SpaceEscaper
         [SerializeField] private GameObject m_ringStart;
         [Tooltip("The round end of the fill where it stops.")]
         [SerializeField] private RectTransform m_ringEnd;
-        [SerializeField] private TMP_Text m_shareText;
+        [SerializeField] private LocalizedText m_shareText;
         [SerializeField] private AchievementLook m_inProgressLook;
         [SerializeField] private AchievementLook m_toClaimLook;
         [SerializeField] private AchievementLook m_claimedLook;
@@ -127,7 +126,7 @@ namespace SpaceEscaper
             m_ringEnd.anchoredPosition = new Vector2(k_RingRadius * Mathf.Sin(angle), k_RingRadius * Mathf.Cos(angle));
 
             // Rounded down, so 100 % means all of them.
-            m_shareText.SetText("{0}%", Mathf.Floor(share * 100f));
+            m_shareText.ShowNumbers(Mathf.Floor(share * 100f));
         }
 
         private AchievementLook GetLook(AchievementState state)
