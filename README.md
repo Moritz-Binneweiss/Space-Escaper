@@ -18,7 +18,7 @@ a re-release.
 >
 > This project is still actively being developed and may change frequently.
 
-**Version:** 1.5.5 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
+**Version:** 1.6.0 &nbsp;·&nbsp; **Unity:** 6000.6.0f1 &nbsp;·&nbsp; **Render Pipeline:** URP 17.6.0 &nbsp;·&nbsp; **Platform:** Android
 
 ---
 
@@ -147,10 +147,13 @@ The full license texts roll at the end of the credits in the game and lie next t
   - [ ] Buy new Ship
   - [ ] Engine
 
-### **v1.6.0** | Localization _(------- --, 2026)_
+### **v1.6.0** | Localization _(November 27, 2026)_
 
-- [ ] German language support
-- [ ] English language support
+- 🌍 German and English language support
+- 🔘 Choose the language in the settings, German phones start in German
+- 🔢 Numbers in the format of the language, like 1,234 or 1.234
+- 🪶 Lightweight own localization with one JSON file per language
+- 📏 Every screen tested in both languages, also with the longest numbers
 
 #### **v1.5.5** | Transitions & Polish _(November 24, 2026)_
 

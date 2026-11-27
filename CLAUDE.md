@@ -52,7 +52,7 @@ Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 - Keine destruktiven Git-/Dateioperationen ohne ausdrückliche Aufforderung.
 - **Tests auf dem Handy** ausführlich erst kurz vor v2.0 (Entscheidung Oktober 2026).
   Bis dahin reichen Tests im Editor und kurze Stichproben auf dem Handy. Test-APKs
-  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 bis v1.5.5
+  nur bauen, wenn danach gefragt wird. Die letzte Stichprobe war v1.5.0, v1.5.1 bis v1.6.0
   sind nur im Editor geprüft, die nächste kommt vielleicht mit v1.7.0 (Entscheidung
   18.11.2026).
 
@@ -1925,6 +1925,11 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Überlauf:** Die Texte stehen auf „Overflow“. Bei „Truncate“ verschwindet eine
     Zeile ganz, sobald sie nach den Zeilenmaßen von TextMesh Pro nicht in ihr Rechteck
     passt. Ob ein Text überläuft, meldet `TMP_Text.isTextOverflowing`.
+  - **Senkrecht:** Titel und Buttons stehen auf „Midline“: TextMesh Pro setzt die Mitte der Glyphen in die
+    Mitte des Rechtecks, Umlautpunkte zählen mit. Deutsche Wörter mit Umlaut sitzen deshalb tiefer als ihr
+    englisches, ZERSTÖRT 2,9 Einheiten tiefer als CRASHED, GEWÄHLT 2,1, FUNDSTÜCKE 1,6, MENÜ 1,2 und
+    MÜNZEN 1,0 (gemessen in v1.6.0). Auf „Capline“, der Mitte der Großbuchstaben, säßen sie gleich, das
+    bleibt vorerst so (Moritz, 27.11.2026: „dann passt erstmal“).
   - **Umgestellt in v1.5.1:** Alle 9 Texte stehen an derselben Stelle und sind gleich
     groß, gemessen im Play Mode an den Glyphen (Mitten höchstens 0,5 Einheiten
     verschoben). TextMesh Pro setzt die Laufweiten ungerundet, „Volume“ wurde dadurch
@@ -2205,6 +2210,17 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   `ScreenCapture.CaptureScreenshot` rufen, das am Ende des nächsten Frames
   aufnimmt. Was in der Zeit des Spiels läuft (Plattform, Einblendungen im Run), verlangsamt
   `Time.captureDeltaTime`, Übergänge und Blende nicht, sie laufen in unskalierter Zeit.
+  **Bilder aller Screens in beiden Sprachen** (v1.6.0, 1080 × 2400 über `GameView.SetCustomResolution` per
+  Reflection, danach `selectedSizeIndex` zurück und die Größe mit `RemoveCustomSize` entfernen): Die Wahl einer
+  Sprache speichert sofort, die Bilder nehmen deshalb einen eigenen Spielstand wie `RunTests`. Eine vorbereitete
+  `SaveData.json` in einem Ordner unter `Application.temporaryCachePath`, `SaveSystem.LoadFrom` per Reflection, dann
+  die Szene neu laden. Der echte Spielstand blieb unberührt (Hash vorher und nachher gleich). Das `AudioSystem`
+  überlebt das Neuladen mit den Reglern des echten Spielstands, die Settings zeigen dessen Werte, bis man sie setzt
+  (`SetMusicVolume`). Ebenso überlebt `PlayerMotor.IsInvincible`, der Schalter steht nach einem Run mit Haken
+  in den Settings an. Leiste und Popup im Run stehen 2,5 s, kürzer, als ein paar Aufrufe der CLI dauern: ihre
+  Endzeit vorstellen (`m_highscoreBarEndTime`, `m_achievementPopupEndTime` im `GameMenuScreen`) und
+  `Time.timeScale` auf 0, dann aufnehmen. Die Credits stehen mit `m_speed` 0 in der `CreditsRoll`, die Rolle an der
+  Stelle, die `anchoredPosition` ihres Inhalts setzt.
 
 ## Eingabe (Input System)
 
