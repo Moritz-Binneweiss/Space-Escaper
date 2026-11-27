@@ -14,8 +14,8 @@ namespace SpaceEscaper
     {
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
         private const string k_InvincibleToggleName = "InvincibleToggle";
-        private const string k_InvincibleLabel = "INVINCIBLE";
-        private const string k_InvincibleDescription = "Fly through obstacles, test builds only";
+        private const string k_InvincibleTitleKey = "settings.invincible.title";
+        private const string k_InvincibleDescriptionKey = "settings.invincible.description";
 #endif
 
         [SerializeField] private GameManager m_gameManager;
@@ -50,14 +50,15 @@ namespace SpaceEscaper
         // The switch is a copy of the classic mode row made at runtime, so the scene stays as it is and release
         // builds have no trace of it. The layout of its section puts it below. On a phone it is easier to hit than
         // the three-finger double tap of the test panel, and it does not need the Rendering Debugger, whose first
-        // opening costs a long frame and several megabytes.
+        // opening costs a long frame and several megabytes. The copy has the keys of the classic mode row, so its
+        // texts get keys of their own.
         private void Awake()
         {
             m_invincibleToggle = Instantiate(m_classicModeToggle, m_classicModeToggle.transform.parent);
             m_invincibleToggle.name = k_InvincibleToggleName;
-            TMP_Text[] texts = m_invincibleToggle.GetComponentsInChildren<TMP_Text>();
-            texts[0].text = k_InvincibleLabel;
-            texts[1].text = k_InvincibleDescription;
+            LocalizedText[] texts = m_invincibleToggle.GetComponentsInChildren<LocalizedText>();
+            texts[0].Key = k_InvincibleTitleKey;
+            texts[1].Key = k_InvincibleDescriptionKey;
         }
 #endif
 

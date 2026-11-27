@@ -9,7 +9,7 @@ Arbeit passiert in unregelmäßigen Sessions.
 
 Repo-Root ≠ Unity-Projekt: das Unity-Projekt liegt in `Space-Escaper/`.
 
-- `Space-Escaper/Assets/Scripts/` - 70 Skripte, ~7100 Zeilen, alle im Namespace
+- `Space-Escaper/Assets/Scripts/` - 71 Skripte, ~7100 Zeilen, alle im Namespace
   `SpaceEscaper` (Stil siehe „Code-Stil“), in Ordnern nach Bereich (siehe
   „Ordnerstruktur“). Einstiegspunkte: `Game/GameManager.cs` (Spielzustand),
   `Game/RunScore.cs` (Score und Münzen eines Runs), `Ship/PlayerMotor.cs` und
@@ -210,7 +210,8 @@ unbekannter Schlüssel sich selbst zeigt. `LanguageCatalogTests` prüft die echt
 deutsche Handys starten deutsch und alle anderen englisch, die gewählte Sprache schlägt das Handy,
 jede Sprache hat genau die Texte der Standardsprache, keinen leeren, mit denselben Platzhaltern,
 und was dort in Großbuchstaben steht, steht in jeder Sprache so. `SaveDataTests` prüft die Wahl im
-Spielstand, `SceneTests` genau einen `LanguageManager` mit dem Katalog.
+Spielstand, `SceneTests` genau einen `LanguageManager` mit dem Katalog und dass jeder `LocalizedText` einen
+Schlüssel hat, den Englisch kennt, und in der Szene dessen Text zeigt.
 Seit v1.5.0 prüft `StaticFieldTests`, dass
 sich jedes statische Feld des Spiels beim Start des Play Mode zurücksetzt (siehe
 „Code-Stil“): Der Test füllt alle, Enums mit ihrem letzten Wert (seit v1.5.1), ruft die
@@ -376,7 +377,8 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
     Dreifinger-Doppeltipp. Im Editor steht es im Play Mode unter Window > Analysis
     > Rendering Debugger und gilt nur für den laufenden Play Mode.
   - **In den Settings** steht seit v1.5.0 dafür auch ein Schalter „Invincible“. Der
-    `SettingsScreen` legt ihn in `Awake` als Kopie der Zeile „Classic Mode“ an, die
+    `SettingsScreen` legt ihn in `Awake` als Kopie der Zeile „Classic Mode“ an, mit eigenen
+    Schlüsseln für seine Texte (seit v1.6.0, die Kopie hätte sonst die der Vorlage), die
     Layout-Gruppe ihres Abschnitts setzt ihn als letzte Zeile unter GAME (seit v1.5.1), in
     der Szene steht er nicht. Auf dem Handy ist er leichter zu treffen
     als der Dreifinger-Doppeltipp, der auf dem Pixel 9 Pro nicht immer klappte, und er
@@ -509,7 +511,9 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   Platzhalter, Kleinbuchstaben und ein ß in einem Titel, eine Sprache doppelt, Deutsch als
   Standard, Deutsch mit der ID und der Systemsprache von Englisch, eine Sprache, die der Spielstand
   nicht speichert oder schon gewählt hat, in `StaticFieldTests` die Texte aus dem letzten Play Mode
-  und in `SceneTests` eine Szene ohne `LanguageManager`.
+  und in `SceneTests` eine Szene ohne `LanguageManager`. Der Test der Schlüssel in `SceneTests` fand einen
+  Schlüssel, den Englisch nicht hat, den Schlüssel eines anderen Texts, einen leeren Schlüssel, einen anderen
+  Text in der Szene und einen Text, der in `en.json` fehlt.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -1791,7 +1795,17 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     (`Application.systemLanguage`) oder Englisch. Die Texte liest er nur bei einem Wechsel, ein
     Neuladen der Szene behält sie. `LanguageManager.Get(key)` gibt den Text eines Schlüssels.
   - **Texte:** An einem festen Text sitzt ein `LocalizedText` mit seinem Schlüssel, er setzt den
-    Text beim Einschalten und bei jedem Wechsel. In der Szene steht Englisch.
+    Text beim Einschalten und bei jedem Wechsel, über `text`, das einen gleichen Text nicht neu
+    aufbaut (`SetText` baut immer neu). In der Szene steht Englisch, das prüft `SceneTests`.
+  - **Schlüssel** nennen Screen und Element (`death.title`, `settings.classicMode.description`).
+    Was auf mehreren Screens dasselbe meint, steht unter `common` (`common.soon`, `common.score`),
+    ein Titel und ein Button mit demselben Wort haben je einen eigenen (`hangar.title`,
+    `common.hangar`). In der Datei stehen sie nach Screens in der Reihenfolge des Spiels.
+  - **Was in jeder Sprache gleich bleibt,** trägt statt eines Schlüssels ein `UntranslatedText`: Namen
+    von Personen, Schiffen, Farbschemata und Schriften, die Titel der Achievements und die Lizenzen
+    in den Credits (Moritz, 25.11.2026). Eine Rolle in den Credits wird übersetzt, auch neben Namen
+    („Icons · Cole Bemis · MIT License“).
+  - **Bis zu den deutschen Texten** steht in `de.json` Englisch, so hat jede Sprache jeden Text.
   - **Im Editor** meldet `Application.systemLanguage` die Sprache von Windows, hier Deutsch. Ein
     Test, der Texte prüft, setzt seine Sprache deshalb selbst.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).

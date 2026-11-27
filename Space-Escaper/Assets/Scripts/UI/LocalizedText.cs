@@ -59,7 +59,8 @@ namespace SpaceEscaper
                 return;
             }
 
-            m_text.SetText(LanguageManager.Get(m_key));
+            // Unlike SetText, the property takes a text it already shows without building it again.
+            m_text.text = LanguageManager.Get(m_key);
         }
     }
 }

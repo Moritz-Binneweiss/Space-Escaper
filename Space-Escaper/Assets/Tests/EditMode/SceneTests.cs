@@ -416,6 +416,35 @@ namespace SpaceEscaper.Tests
                 "The language manager does not know the catalog");
         }
 
+        // The scene holds the default language, so the editor and the tests see what an English phone shows. A key
+        // that the default language does not have would show itself.
+        [Test]
+        public void EveryLocalizedTextShowsTheDefaultLanguage()
+        {
+            LanguageData language = AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath).Default;
+            LanguageTexts texts = new LanguageTexts(language.Texts.text);
+            List<string> problems = new List<string>();
+            foreach (LocalizedText localized in GetComponentsInScene<LocalizedText>())
+            {
+                string path = GetPath(localized.transform);
+                if (!texts.Contains(localized.Key))
+                {
+                    problems.Add(path + " has the key \"" + localized.Key + "\", which " + language.name +
+                        " does not have");
+                    continue;
+                }
+
+                string shown = localized.GetComponent<TMP_Text>().text;
+                if (shown != texts.Get(localized.Key))
+                {
+                    problems.Add(path + " shows \"" + shown + "\" instead of \"" + texts.Get(localized.Key) +
+                        "\" of " + localized.Key);
+                }
+            }
+
+            Assert.That(problems, Is.Empty);
+        }
+
         private GameObject GetUiRoot()
         {
             foreach (GameObject root in m_scene.GetRootGameObjects())
