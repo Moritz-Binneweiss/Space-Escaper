@@ -167,7 +167,8 @@ von Tablets in 4:3 bis zum schmalen Außendisplay eines Klapphandys, fünf davon
 Kameraloch oder Balken: Alles Sichtbare und jede Tippfläche liegt in der Safe Area, kein
 Text läuft aus seinem Rechteck, und jedes Bedienelement nimmt Tipps auf mindestens 48 dp
 an (siehe „Layout für alle Seitenverhältnisse“ unter „UI“). Was eine Maske abschneidet,
-zählt dabei nicht (seit Schritt 3b von v1.5.1). Die Settings passen auf jedem der zehn
+zählt dabei nicht (seit Schritt 3b von v1.5.1). Seit v1.6.0 prüft er jede Sprache des Katalogs, auch mit
+den längsten Zahlen, die ein Text zeigen kann (siehe „Layout im Test“). Die Settings passen auf jedem der zehn
 Displays ohne Scrollen unter ihren Titel (ebenso seit 3b).
 Seit v1.5.2 prüft `CreditsTests`, dass oben in der README dieselben Credits stehen wie im
 Screen der Credits: dieselben Abschnitte mit denselben Einträgen in derselben Reihenfolge
@@ -303,7 +304,7 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   `completed` meldet. Bis der neue Lauf läuft, zeigt es noch das Ergebnis des letzten.
   Synchron lehnt die CLI PlayMode-Tests ab, ein Domain Reload beim Start des Play Mode
   verlöre die Anfrage. `--mode all --async-tests true` führt beide Modi in einem Lauf
-  aus (in v1.5.5 166 Tests in rund 46 s). Mit dem Wechsel in den Play Mode dauern die
+  aus (in v1.5.5 166 Tests in rund 46 s, in v1.6.0 283 in rund 50 s). Mit dem Wechsel in den Play Mode dauern die
   elf PlayMode-Tests rund 45 s, also
   vor Commits, die Run, Tod, Revive, das Spawnen, die Achievements, die Farbschemata, die
   Übergänge oder den Hangar ändern. Meldet ein asynchroner
@@ -321,9 +322,15 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   speichert sie und legt danach den alten Stand zurück.
 - **Layout im Test:** `LayoutTests` legt eine Kopie der UI in eine Vorschau-Szene
   (`EditorSceneManager.NewPreviewScene`), so bleibt `Game.unity` unberührt, auch wenn
-  sie offen ist. Seit v1.6.0 zeigt er die Standardsprache (`LanguageManager.Show`), sonst zeigten
-  Texte, die er über ein `LocalizedText` setzt, die Sprache des letzten Play Mode. Feste Texte zeigen in der Kopie die der Szene,
-  denn im Edit Mode ruft Unity `OnEnable` nicht auf. Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
+  sie offen ist. Seit v1.6.0 läuft er einmal pro Sprache des Katalogs (`TestFixtureSource`, Namen wie
+  `LayoutTests("de")`) und liest ihre Texte frisch (`LanguageManager.Reload`): Ohne Kompilieren behält der Editor
+  die Texte einer gezeigten Sprache, auch nach einer Änderung an ihrer Datei. Im Edit Mode ruft Unity `OnEnable`
+  nicht auf, die Kopie zeigte also in jeder Sprache die Szene, Englisch. Jedes `LocalizedText` zeigt deshalb seinen
+  Schlüssel in der Sprache des Tests, mit den Zahlen seines Beispiels, die `TextWithNumbers` mit den Trennern von
+  Englisch liest. Das prüft `EveryTextShowsTheLanguage`. `EveryNumberFitsAtItsLongest` setzt die längsten Zahlen
+  ein, nach Moritz (27.11.2026) Score, Highscore und Münzen mit sechs Stellen, die Strecke mit fünf, „×99.9“,
+  „59:59“ und 100 %, dazu einen Fortschritt eins unter seinem Ziel und an der Medaille alle Achievements.
+  Der Root-Canvas der Kopie steht auf World Space, mit der Größe, die der
   `CanvasScaler` auf dem Display ergäbe, und `SafeArea.Fit` bekommt dessen Safe Area. In
   der Kopie ist jeder Screen an, denn TextMesh Pro rechnet einen Text erst, wenn er
   einmal an war. Die Displays stehen oben im Test, die Safe Areas mit Kameraloch stammen
@@ -541,7 +548,11 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   `LocalizedText`, das noch `SetText` nimmt, `SceneTests` sechs Beispiele in der Szene ohne Trenner. Für die reinen
   Zahlen der Screens fand `SceneTests` vorher jeden Text mit Ziffern ohne Schlüssel, danach zehn Beispiele ohne
   Trenner, darunter die Belohnungen von COLLECTOR und SPACE ACHIEVER, `RunTests` ein Hauptmenü, das seine Münzen
-  selbst mit `SetText` schreibt, und ein `LocalizedText` mit den Trennern von Englisch.
+  selbst mit `SetText` schreibt, und ein `LocalizedText` mit den Trennern von Englisch. In Schritt 6 fand `LayoutTests`
+  eine Kopie, die in jeder Sprache die Szene zeigt, einen deutschen Titel, der nicht passt, und eine Strecke mit sechs
+  Stellen auf dem Todesbildschirm. Ohne frisches Lesen blieb er nach einer Änderung an `de.json` grün, mit `Reload`
+  war er rot. `EveryTextShowsTheLanguage` fand gleich zu Beginn einen Test, der das Label der Karte mit dem Schlüssel
+  für mehrere Achievements zurückließ.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -911,7 +922,7 @@ bei 8.
   ihre Platten. Seit v1.5.1 öffnet sie auch den
   EditMode-Tests `internal`, für `SafeArea.Fit`, seit v1.5.3 für `DeathMenuScreen.ShowUnlocked` und
   `GameMenuScreen.ShowAchievement`, seit v1.5.5 für `Easing.CubicBezier`, `SwayEffect.GetOffset`,
-  `ScreenManager.GetAlphaBelow` und `DragThreshold.GetPixels`, seit v1.6.0 für `LanguageManager.Show`,
+  `ScreenManager.GetAlphaBelow` und `DragThreshold.GetPixels`, seit v1.6.0 für `LanguageManager.Show` und `Reload`,
   und `SceneTests` liest dort das
   Sheet der Pause (`ScreenManager.PauseSheet`). Test-Assemblies kommen an
   `Assembly-CSharp` nicht heran. Neue Skripte in `Scripts/` landen von selbst in
@@ -1868,7 +1879,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Deutsch** ist mein Entwurf, Moritz hat ihn fürs Erste abgenommen (27.11.2026: „ja passt
     erstmal fürs erste“). Er spricht mit „du“ im Imperativ („Fliege ein gekauftes Schiff“), Achievements heißen Erfolge wie bei Google Play, ein Run
     ein Flug. In Großbuchstaben steht „SS“ statt ẞ, Audiowide hat kein ẞ. Button der Pause und Titel
-    der Settings heißen OPTIONEN, EINSTELLUNGEN war auf dem Button 2,8 Einheiten zu breit.
+    der Settings heißen OPTIONEN, EINSTELLUNGEN war auf dem Button 2,8 Einheiten zu breit. Seit Schritt 6
+    legt `LayoutTests` jeden Screen auch auf Deutsch aus.
   - **Im Editor** meldet `Application.systemLanguage` die Sprache von Windows, hier Deutsch. Ein
     Test, der Texte prüft, setzt seine Sprache deshalb selbst.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).

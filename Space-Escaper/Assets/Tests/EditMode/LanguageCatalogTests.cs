@@ -16,9 +16,6 @@ namespace SpaceEscaper.Tests
         private const string k_DefaultId = "en";
         private const string k_GermanId = "de";
 
-        // A placeholder of TextMesh Pro, like {0} or {1:00}.
-        private static readonly Regex s_placeholder = new Regex(@"\{[^}]*\}");
-
         private LanguageCatalog m_catalog;
 
         [SetUp]
@@ -168,7 +165,7 @@ namespace SpaceEscaper.Tests
 
         private static IEnumerable<string> GetPlaceholders(string text)
         {
-            return s_placeholder.Matches(text).Cast<Match>().Select(match => match.Value)
+            return TextWithNumbers.Placeholder.Matches(text).Cast<Match>().Select(match => match.Value)
                 .OrderBy(value => value, StringComparer.Ordinal);
         }
 

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using NUnit.Framework;
 using TMPro;
 using UnityEditor;
@@ -27,10 +26,9 @@ namespace SpaceEscaper.Tests
         private const string k_ScriptProperty = "m_Script";
         private const string k_StoredCallsProperty = "m_PersistentCalls.m_Calls";
 
-        // A number as TextMesh Pro writes it into a placeholder like {0} or {1:00}.
-        private const string k_NumberPattern = @"[-+]?\d{1,3}(?:,\d{3})*(?:\.\d+)?";
-
-        private static readonly Regex s_placeholder = new Regex(@"\{[^}]*\}");
+        // The scene shows English, which groups thousands with a comma.
+        private const char k_EnglishGroupSeparator = ',';
+        private const char k_EnglishDecimalSeparator = '.';
 
         private Scene m_scene;
         private bool m_isOpenedByTest;
@@ -554,10 +552,9 @@ namespace SpaceEscaper.Tests
             Assert.That(problems, Is.Empty);
         }
 
-        // The scene shows English, which groups thousands with a comma.
         private static string FormatInEnglish(float number)
         {
-            return NumberFormat.Format("{0}", number, 0f, ',', '.');
+            return NumberFormat.Format("{0}", number, 0f, k_EnglishGroupSeparator, k_EnglishDecimalSeparator);
         }
 
         private static LanguageData GetDefaultLanguage()
@@ -574,7 +571,7 @@ namespace SpaceEscaper.Tests
                 return;
             }
 
-            string shown = s_placeholder.Replace(text ?? string.Empty, "0");
+            string shown = TextWithNumbers.Placeholder.Replace(text ?? string.Empty, "0");
             SortedSet<string> missing = new SortedSet<string>();
             for (int i = 0; i < shown.Length; i += char.IsSurrogatePair(shown, i) ? 2 : 1)
             {
@@ -593,13 +590,7 @@ namespace SpaceEscaper.Tests
 
         private static bool MatchesText(string shown, string text)
         {
-            if (!s_placeholder.IsMatch(text))
-            {
-                return shown == text;
-            }
-
-            string pattern = string.Join(k_NumberPattern, s_placeholder.Split(text).Select(Regex.Escape));
-            return Regex.IsMatch(shown, "^" + pattern + "$");
+            return TextWithNumbers.GetPattern(text, k_EnglishGroupSeparator, k_EnglishDecimalSeparator).IsMatch(shown);
         }
 
         private GameObject GetUiRoot()

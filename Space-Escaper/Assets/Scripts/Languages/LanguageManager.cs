@@ -81,6 +81,16 @@ namespace SpaceEscaper
             OnLanguageChanged();
         }
 
+        /// <summary>
+        /// Reads the texts of a language again and shows them, for tests that need its file as it is now. Until the
+        /// next compile the editor keeps the texts of a language it has shown, also after a change to the file.
+        /// </summary>
+        internal static void Reload(LanguageCatalog catalog, LanguageData language)
+        {
+            Current = null;
+            Show(catalog, language);
+        }
+
         private static void OnLanguageChanged()
         {
             LanguageChanged?.Invoke();
