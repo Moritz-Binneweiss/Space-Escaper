@@ -7,6 +7,7 @@ namespace SpaceEscaper.Tests
     public class AchievementCatalogTests
     {
         private const string k_CatalogPath = "Assets/Data/Achievements/AchievementCatalog.asset";
+        private const string k_LanguageCatalogPath = "Assets/Data/Languages/LanguageCatalog.asset";
 
         // Nothing counts these before the collectibles come with v1.8.0.
         private static readonly AchievementGoal[] s_collectibleGoals =
@@ -45,16 +46,24 @@ namespace SpaceEscaper.Tests
             }
         }
 
-        // Titles are capitals, like everything else in Audiowide.
+        // Titles are capitals, like everything else in Audiowide. A description that names its target needs one, or
+        // it would read like Crash 0 times.
         [Test]
         public void EveryAchievementHasTitleDescriptionIconAndReward()
         {
+            LanguageData language = AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath).Default;
+            LanguageTexts texts = new LanguageTexts(language.Texts.text);
             foreach (AchievementData achievement in m_catalog.Achievements)
             {
                 Assert.That(achievement.Title, Is.Not.Empty, $"{achievement.name} has no title");
                 Assert.That(achievement.Title, Is.EqualTo(achievement.Title.ToUpperInvariant()),
                     $"The title of {achievement.name} is not in capitals");
-                Assert.That(achievement.Description, Is.Not.Empty, $"{achievement.name} has no description");
+                Assert.That(texts.Contains(achievement.DescriptionKey), Is.True,
+                    $"{achievement.name} has no description in {language.name}");
+                Assert.That(texts.Get(achievement.DescriptionKey).Contains("{0}") && achievement.Target == 0,
+                    Is.False, $"The description of {achievement.name} names a target it does not have");
+                Assert.That(texts.Contains(achievement.ProgressKey), Is.True,
+                    $"{achievement.name} has no text for its progress in {language.name}");
                 Assert.That(achievement.Icon, Is.Not.Null, $"{achievement.name} has no icon");
                 Assert.That(achievement.Reward, Is.GreaterThan(0), $"{achievement.name} pays out nothing");
             }

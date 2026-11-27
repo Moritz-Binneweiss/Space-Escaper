@@ -17,11 +17,11 @@ namespace SpaceEscaper
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private RunScore m_runScore;
-        [SerializeField] private TMP_Text m_timeText;
+        [SerializeField] private LocalizedText m_timeText;
         [SerializeField] private TMP_Text m_scoreText;
         [SerializeField] private TMP_Text m_coinText;
         [SerializeField] private TMP_Text m_highscoreText;
-        [SerializeField] private TMP_Text m_distanceText;
+        [SerializeField] private LocalizedText m_distanceText;
         [SerializeField] private Button m_musicButton;
         [SerializeField] private Button m_sfxButton;
         [SerializeField] private Button m_continueButton;
@@ -46,11 +46,11 @@ namespace SpaceEscaper
             int seconds = (int)m_runScore.FlightTime;
             float minutes = seconds / 60;
             float secondsOfMinute = seconds % 60;
-            m_timeText.SetText("TIME {0}:{1:00}", minutes, secondsOfMinute);
+            m_timeText.ShowNumbers(minutes, secondsOfMinute);
             m_scoreText.SetText("{0}", m_runScore.Score);
             m_coinText.SetText("+{0}", m_runScore.Coins);
             m_highscoreText.SetText("{0}", m_runScore.Highscore);
-            m_distanceText.SetText("{0} m", m_runScore.Distance);
+            m_distanceText.ShowNumbers(m_runScore.Distance);
             ShowAudioSwitches();
         }
 

@@ -30,7 +30,7 @@ namespace SpaceEscaper
         [Tooltip("The way to the highscore, shown for a moment.")]
         [SerializeField] private GameObject m_highscoreBar;
         [SerializeField] private TMP_Text m_highscoreBarText;
-        [SerializeField] private TMP_Text m_pointsToGoText;
+        [SerializeField] private LocalizedText m_pointsToGoText;
         [Tooltip("Filled as far as the score has come, by its right anchor.")]
         [SerializeField] private RectTransform m_highscoreBarFill;
         [SerializeField] private GameObject m_newHighscoreBanner;
@@ -210,7 +210,7 @@ namespace SpaceEscaper
 
             if (m_highscoreBar.activeSelf)
             {
-                m_pointsToGoText.SetText("{0} TO GO", highscore - m_shownScore);
+                m_pointsToGoText.ShowNumbers(highscore - m_shownScore);
                 m_highscoreBarFill.anchorMax = new Vector2((float)m_shownScore / highscore, 1f);
             }
         }

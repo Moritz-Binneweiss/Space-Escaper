@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: AnotherHappyLanding
   m_title: ANOTHER HAPPY LANDING
-  m_description: Crash 3 times
+  m_descriptionKey: achievements.anotherHappyLanding.description
   m_icon: {fileID: 21300000, guid: 9e3940636a4e9774aa98a3f2b5f313d9, type: 3}
   m_goal: 2
   m_target: 3
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 66
   m_isComingSoon: 0

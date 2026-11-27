@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,15 +9,16 @@ namespace SpaceEscaper
     /// </summary>
     public class SelectOrBuyButton : MonoBehaviour
     {
-        private const string k_SelectText = "SELECT";
-        private const string k_SelectedText = "SELECTED";
+        private const string k_PriceKey = "hangar.price";
+        private const string k_SelectKey = "hangar.select";
+        private const string k_SelectedKey = "hangar.selected";
         private const float k_TooExpensiveAlpha = 0.5f;
 
         [Tooltip("Fades the whole button while the ship costs more coins than the player has.")]
         [SerializeField] private CanvasGroup m_canvasGroup;
         [SerializeField] private Graphic m_plate;
         [SerializeField] private Graphic m_shadow;
-        [SerializeField] private TMP_Text m_label;
+        [SerializeField] private LocalizedText m_label;
         [Tooltip("The coin before the price.")]
         [SerializeField] private GameObject m_priceIcon;
         [Tooltip("The check before Selected.")]
@@ -44,20 +44,20 @@ namespace SpaceEscaper
         public void ShowPrice(int price, bool canAfford)
         {
             Show(false, true);
-            m_label.SetText("{0}", price);
+            m_label.Show(k_PriceKey, price);
             m_canvasGroup.alpha = canAfford ? 1f : k_TooExpensiveAlpha;
         }
 
         public void ShowSelect()
         {
             Show(false, false);
-            m_label.SetText(k_SelectText);
+            m_label.Show(k_SelectKey);
         }
 
         public void ShowSelected()
         {
             Show(true, false);
-            m_label.SetText(k_SelectedText);
+            m_label.Show(k_SelectedKey);
         }
 
         private void Show(bool isSelected, bool hasPrice)
@@ -74,7 +74,7 @@ namespace SpaceEscaper
             ColorwayData colorway = ColorwayManager.Current;
             m_plate.color = (m_isSelected ? m_selectedPlateColor : m_plateColor).Resolve(colorway);
             m_shadow.color = (m_isSelected ? m_selectedShadowColor : m_shadowColor).Resolve(colorway);
-            m_label.color = (m_isSelected ? m_selectedTextColor : m_textColor).Resolve(colorway);
+            m_label.Text.color = (m_isSelected ? m_selectedTextColor : m_textColor).Resolve(colorway);
         }
     }
 }

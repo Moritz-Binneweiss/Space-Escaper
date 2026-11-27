@@ -11,20 +11,23 @@ namespace SpaceEscaper
     /// </summary>
     public class DeathMenuScreen : MonoBehaviour
     {
+        private const string k_AchievementUnlockedKey = "common.achievementUnlocked";
+        private const string k_AchievementsUnlockedKey = "death.achievementsUnlocked";
+
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private RunScore m_runScore;
         [SerializeField] private AchievementTracker m_achievements;
         [Tooltip("Run ended, with the time of the run.")]
-        [SerializeField] private TMP_Text m_runEndedText;
+        [SerializeField] private LocalizedText m_runEndedText;
         [SerializeField] private TMP_Text m_scoreText;
         [SerializeField] private GameObject m_newHighscoreBadge;
         [SerializeField] private TMP_Text m_coinText;
         [SerializeField] private TMP_Text m_timeText;
-        [SerializeField] private TMP_Text m_distanceText;
+        [SerializeField] private LocalizedText m_distanceText;
         [Tooltip("The first achievement the run has unlocked, with its reward. Hidden while it has unlocked none.")]
         [SerializeField] private GameObject m_unlockedCard;
-        [SerializeField] private TMP_Text m_unlockedLabelText;
+        [SerializeField] private LocalizedText m_unlockedLabelText;
         [SerializeField] private TMP_Text m_unlockedTitleText;
         [SerializeField] private TMP_Text m_unlockedRewardText;
         [SerializeField] private Button m_reviveButton;
@@ -50,7 +53,7 @@ namespace SpaceEscaper
         // For tests, which check what the run has unlocked.
         internal GameObject UnlockedCard => m_unlockedCard;
 
-        internal TMP_Text UnlockedLabelText => m_unlockedLabelText;
+        internal TMP_Text UnlockedLabelText => m_unlockedLabelText.Text;
 
         internal TMP_Text UnlockedTitleText => m_unlockedTitleText;
 
@@ -77,7 +80,7 @@ namespace SpaceEscaper
             int seconds = (int)m_runScore.FlightTime;
             float minutes = seconds / 60;
             float secondsOfMinute = seconds % 60;
-            m_runEndedText.SetText("RUN ENDED · {0}:{1:00}", minutes, secondsOfMinute);
+            m_runEndedText.ShowNumbers(minutes, secondsOfMinute);
             m_timeText.SetText("{0}:{1:00}", minutes, secondsOfMinute);
             m_scoreText.SetText("{0}", m_runScore.Score);
             if (m_runScore.IsNewHighscore)
@@ -86,7 +89,7 @@ namespace SpaceEscaper
             }
 
             m_coinText.SetText("+{0}", m_runScore.Coins);
-            m_distanceText.SetText("{0} m", m_runScore.Distance);
+            m_distanceText.ShowNumbers(m_runScore.Distance);
             m_reviveButton.gameObject.SetActive(m_gameManager.CanRevive);
         }
 
@@ -106,11 +109,11 @@ namespace SpaceEscaper
         {
             if (count > 1)
             {
-                m_unlockedLabelText.SetText("ACHIEVEMENT UNLOCKED · +{0}", count - 1);
+                m_unlockedLabelText.Show(k_AchievementsUnlockedKey, count - 1);
             }
             else
             {
-                m_unlockedLabelText.SetText("ACHIEVEMENT UNLOCKED");
+                m_unlockedLabelText.Show(k_AchievementUnlockedKey);
             }
 
             m_unlockedTitleText.SetText(first.Title);

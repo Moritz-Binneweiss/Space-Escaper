@@ -1,4 +1,7 @@
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using NUnit.Framework;
 using TMPro;
 using UnityEditor;
@@ -24,6 +27,11 @@ namespace SpaceEscaper.Tests
         // Serialized names in Unity's own components, which have no other way in.
         private const string k_ScriptProperty = "m_Script";
         private const string k_StoredCallsProperty = "m_PersistentCalls.m_Calls";
+
+        // A number as TextMesh Pro writes it into a placeholder like {0} or {1:00}.
+        private const string k_NumberPattern = @"[-+]?\d+(?:\.\d+)?";
+
+        private static readonly Regex s_placeholder = new Regex(@"\{[^}]*\}");
 
         private Scene m_scene;
         private bool m_isOpenedByTest;
@@ -283,6 +291,7 @@ namespace SpaceEscaper.Tests
         [Test]
         public void EveryAchievementHasOneEntryThatShowsIt()
         {
+            LanguageTexts texts = new LanguageTexts(GetDefaultLanguage().Texts.text);
             AchievementCatalog catalog = AssetDatabase.LoadAssetAtPath<AchievementCatalog>(k_AchievementCatalogPath);
             List<AchievementData> shown = new List<AchievementData>();
             List<string> problems = new List<string>();
@@ -293,7 +302,10 @@ namespace SpaceEscaper.Tests
                 shown.Add(achievement);
                 string path = GetPath(entry.transform);
                 CompareText(problems, path, serialized, "m_titleText", achievement.Title);
-                CompareText(problems, path, serialized, "m_descriptionText", achievement.Description);
+                CompareKey(problems, path, serialized, "m_descriptionText", achievement.DescriptionKey);
+                CompareText(problems, path, serialized, "m_descriptionText", texts.Get(achievement.DescriptionKey)
+                    .Replace("{0}", achievement.Target.ToString(CultureInfo.InvariantCulture)));
+                CompareKey(problems, path, serialized, "m_progressText", achievement.ProgressKey);
                 CompareText(problems, path, serialized, "m_rewardText", "+" + achievement.Reward);
                 CompareText(problems, path, serialized, "m_claimText", achievement.Reward.ToString());
                 Image icon = (Image)serialized.FindProperty("m_icon").objectReferenceValue;
@@ -417,11 +429,12 @@ namespace SpaceEscaper.Tests
         }
 
         // The scene holds the default language, so the editor and the tests see what an English phone shows. A key
-        // that the default language does not have would show itself.
+        // that the default language does not have would show itself. A text with numbers holds an example of them,
+        // like RUN ENDED · 2:05.
         [Test]
         public void EveryLocalizedTextShowsTheDefaultLanguage()
         {
-            LanguageData language = AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath).Default;
+            LanguageData language = GetDefaultLanguage();
             LanguageTexts texts = new LanguageTexts(language.Texts.text);
             List<string> problems = new List<string>();
             foreach (LocalizedText localized in GetComponentsInScene<LocalizedText>())
@@ -434,8 +447,8 @@ namespace SpaceEscaper.Tests
                     continue;
                 }
 
-                string shown = localized.GetComponent<TMP_Text>().text;
-                if (shown != texts.Get(localized.Key))
+                string shown = localized.Text.text;
+                if (!MatchesText(shown, texts.Get(localized.Key)))
                 {
                     problems.Add(path + " shows \"" + shown + "\" instead of \"" + texts.Get(localized.Key) +
                         "\" of " + localized.Key);
@@ -443,6 +456,72 @@ namespace SpaceEscaper.Tests
             }
 
             Assert.That(problems, Is.Empty);
+        }
+
+        // The settings have one button per language, in the order of the catalog, with the tag of its language on it.
+        [Test]
+        public void EveryLanguageHasOneButtonThatChoosesIt()
+        {
+            LanguageCatalog catalog = AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath);
+            SerializedProperty buttons = new SerializedObject(GetComponentsInScene<SettingsScreen>()[0])
+                .FindProperty("m_languageButtons");
+            List<LanguageData> shown = new List<LanguageData>();
+            List<string> problems = new List<string>();
+            for (int i = 0; i < buttons.arraySize; i++)
+            {
+                LanguageButton button = (LanguageButton)buttons.GetArrayElementAtIndex(i).objectReferenceValue;
+                shown.Add(button.Language);
+                string label = button.GetComponentInChildren<TMP_Text>(true).text;
+                if (label != button.Language.Id.ToUpperInvariant())
+                {
+                    problems.Add(GetPath(button.transform) + " shows " + label + " for " + button.Language.Id);
+                }
+            }
+
+            Assert.That(GetComponentsInScene<LanguageButton>(), Has.Count.EqualTo(buttons.arraySize),
+                "A language button the settings do not know");
+            Assert.That(shown, Is.EqualTo(catalog.Languages),
+                "Not one button per language in the order of the catalog");
+            Assert.That(problems, Is.Empty);
+        }
+
+        // A text without a key shows English in every language. Names and license texts stay the same in every
+        // language and say so with UntranslatedText.
+        [Test]
+        public void EveryTextWithLettersHasAKeyOrStaysTheSame()
+        {
+            List<string> problems = new List<string>();
+            foreach (TMP_Text text in GetComponentsInScene<TMP_Text>())
+            {
+                bool hasKey = text.GetComponent<LocalizedText>() != null;
+                bool staysTheSame = text.GetComponent<UntranslatedText>() != null;
+                if (hasKey && staysTheSame)
+                {
+                    problems.Add(GetPath(text.transform) + " has a key, but stays the same in every language");
+                }
+                else if (!hasKey && !staysTheSame && text.text.Any(char.IsLetter))
+                {
+                    problems.Add(GetPath(text.transform) + " has no key for \"" + text.text + "\"");
+                }
+            }
+
+            Assert.That(problems, Is.Empty);
+        }
+
+        private static LanguageData GetDefaultLanguage()
+        {
+            return AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath).Default;
+        }
+
+        private static bool MatchesText(string shown, string text)
+        {
+            if (!s_placeholder.IsMatch(text))
+            {
+                return shown == text;
+            }
+
+            string pattern = string.Join(k_NumberPattern, s_placeholder.Split(text).Select(Regex.Escape));
+            return Regex.IsMatch(shown, "^" + pattern + "$");
         }
 
         private GameObject GetUiRoot()
@@ -481,14 +560,15 @@ namespace SpaceEscaper.Tests
             return path;
         }
 
-        // What scripts color by state takes the colorway from roles of its own instead of a ColorwayTint.
+        // What scripts color by state takes the colorway from roles of its own instead of a ColorwayTint, also a text
+        // they reach through its LocalizedText.
         private HashSet<Object> GetGraphicsColoredByScripts()
         {
             HashSet<Object> graphics = new HashSet<Object>();
             foreach (MonoBehaviour behaviour in GetUiRoot().GetComponentsInChildren<MonoBehaviour>(true))
             {
                 if (!(behaviour is AchievementEntry || behaviour is OnOffButton || behaviour is SelectOrBuyButton ||
-                    behaviour is ToggleSwitch))
+                    behaviour is ToggleSwitch || behaviour is LanguageButton))
                 {
                     continue;
                 }
@@ -496,10 +576,18 @@ namespace SpaceEscaper.Tests
                 SerializedProperty property = new SerializedObject(behaviour).GetIterator();
                 while (property.Next(true))
                 {
-                    if (property.propertyType == SerializedPropertyType.ObjectReference &&
-                        property.objectReferenceValue is Graphic)
+                    if (property.propertyType != SerializedPropertyType.ObjectReference)
+                    {
+                        continue;
+                    }
+
+                    if (property.objectReferenceValue is Graphic)
                     {
                         graphics.Add(property.objectReferenceValue);
+                    }
+                    else if (property.objectReferenceValue is LocalizedText localized)
+                    {
+                        graphics.Add(localized.Text);
                     }
                 }
             }
@@ -527,10 +615,21 @@ namespace SpaceEscaper.Tests
         private static void CompareText(List<string> problems, string path, SerializedObject entry, string field,
             string expected)
         {
-            TMP_Text text = (TMP_Text)entry.FindProperty(field).objectReferenceValue;
+            Object value = entry.FindProperty(field).objectReferenceValue;
+            TMP_Text text = value is LocalizedText localized ? localized.Text : (TMP_Text)value;
             if (text.text != expected)
             {
                 problems.Add(path + "." + field + " shows \"" + text.text + "\" instead of \"" + expected + "\"");
+            }
+        }
+
+        private static void CompareKey(List<string> problems, string path, SerializedObject entry, string field,
+            string expected)
+        {
+            LocalizedText text = (LocalizedText)entry.FindProperty(field).objectReferenceValue;
+            if (text.Key != expected)
+            {
+                problems.Add(path + "." + field + " shows " + text.Key + " instead of " + expected);
             }
         }
     }

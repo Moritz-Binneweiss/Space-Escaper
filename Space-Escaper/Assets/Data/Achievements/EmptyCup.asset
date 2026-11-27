@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: EmptyCup
   m_title: "IT\u2019S JUST AN EMPTY CUP"
-  m_description: Launch 200 times
+  m_descriptionKey: achievements.emptyCup.description
   m_icon: {fileID: 21300000, guid: 3fda6c09335a7084f824248846676383, type: 3}
   m_goal: 0
   m_target: 200
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 200
   m_isComingSoon: 0

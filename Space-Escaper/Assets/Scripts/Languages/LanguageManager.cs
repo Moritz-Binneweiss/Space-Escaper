@@ -39,7 +39,7 @@ namespace SpaceEscaper
 
         private void Awake()
         {
-            Show(m_catalog.Find(SaveSystem.Data.LanguageId, Application.systemLanguage));
+            Show(m_catalog, m_catalog.Find(SaveSystem.Data.LanguageId, Application.systemLanguage));
         }
 
         /// <summary>
@@ -59,18 +59,22 @@ namespace SpaceEscaper
         {
             SaveSystem.Data.LanguageId = language.Id;
             SaveSystem.Save();
-            Show(language);
+            Show(m_catalog, language);
         }
 
-        private void Show(LanguageData language)
+        /// <summary>
+        /// Shows a language of a catalog, for tests also without a scene. The texts the language lacks come from the
+        /// default of the catalog.
+        /// </summary>
+        internal static void Show(LanguageCatalog catalog, LanguageData language)
         {
             if (language == Current)
             {
                 return;
             }
 
-            LanguageTexts defaultTexts = new LanguageTexts(m_catalog.Default.Texts.text);
-            s_texts = language == m_catalog.Default
+            LanguageTexts defaultTexts = new LanguageTexts(catalog.Default.Texts.text);
+            s_texts = language == catalog.Default
                 ? defaultTexts
                 : new LanguageTexts(language.Texts.text, defaultTexts);
             Current = language;

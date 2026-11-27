@@ -184,6 +184,7 @@ GameObject:
   - component: {fileID: 5311202655047718036}
   - component: {fileID: 4166246847072083948}
   - component: {fileID: 7381982277002405418}
+  - component: {fileID: 8076263075112578671}
   m_Layer: 5
   m_Name: State
   m_TagString: Untagged
@@ -310,6 +311,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8076263075112578671
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4915578491656957926}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: common.on
 --- !u!1 &6898153123269423102
 GameObject:
   m_ObjectHideFlags: 0
@@ -712,10 +726,46 @@ MonoBehaviour:
   - {fileID: 7482734400004273736}
   - {fileID: 1264786754622795695}
   - {fileID: 7381982277002405418}
-  m_stateText: {fileID: 7381982277002405418}
-  m_onFillColor: {r: 0.34117648, g: 1, b: 0.36078432, a: 0.030538637}
-  m_onBorderColor: {r: 0.34117648, g: 1, b: 0.36078432, a: 1}
-  m_onTextColor: {r: 0.34117648, g: 1, b: 0.36078432, a: 1}
-  m_offFillColor: {r: 1, g: 1, b: 1, a: 0.005961604}
-  m_offBorderColor: {r: 1, g: 1, b: 1, a: 0.099556595}
-  m_offTextColor: {r: 0.6039216, g: 0.654902, b: 0.7411765, a: 1}
+  m_stateText: {fileID: 8076263075112578671}
+  m_onFillColor:
+    m_role: 2
+    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_onBorderColor:
+    m_role: 2
+    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_onTextColor:
+    m_role: 2
+    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_offFillColor:
+    m_role: 0
+    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_offBorderColor:
+    m_role: 0
+    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_offTextColor:
+    m_role: 0
+    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0

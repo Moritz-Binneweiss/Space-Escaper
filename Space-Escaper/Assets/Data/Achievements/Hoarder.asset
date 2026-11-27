@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: Hoarder
   m_title: HOARDER
-  m_description: Own every ship
+  m_descriptionKey: achievements.hoarder.description
   m_icon: {fileID: 21300000, guid: 694153988ff7643499a21dd15a17a826, type: 3}
   m_goal: 5
   m_target: 0
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 900
   m_isComingSoon: 0

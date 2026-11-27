@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: ItsWorking
   m_title: "IT\u2019S WORKING! IT\u2019S WORKING!"
-  m_description: Fly a ship you bought
+  m_descriptionKey: achievements.itsWorking.description
   m_icon: {fileID: 21300000, guid: 124b4779d9e92664791dc127d8172d90, type: 3}
   m_goal: 1
   m_target: 1
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 20
   m_isComingSoon: 0

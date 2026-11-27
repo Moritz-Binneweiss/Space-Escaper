@@ -17,6 +17,7 @@ namespace SpaceEscaper.Tests
     public class LayoutTests
     {
         private const string k_ScenePath = "Assets/Scenes/Game.unity";
+        private const string k_LanguageCatalogPath = "Assets/Data/Languages/LanguageCatalog.asset";
         private const string k_UiRootName = "UI";
         private const string k_SettingsName = "Settings";
         private const string k_AchievementCatalogPath = "Assets/Data/Achievements/AchievementCatalog.asset";
@@ -55,6 +56,11 @@ namespace SpaceEscaper.Tests
         [OneTimeSetUp]
         public void CopyUi()
         {
+            // A text a test sets through its LocalizedText would show the language left from the last play mode,
+            // so the test shows the default language, the one in the scene.
+            LanguageCatalog languages = AssetDatabase.LoadAssetAtPath<LanguageCatalog>(k_LanguageCatalogPath);
+            LanguageManager.Show(languages, languages.Default);
+
             m_scene = SceneManager.GetSceneByPath(k_ScenePath);
             m_isOpenedByTest = !m_scene.isLoaded;
             if (m_isOpenedByTest)

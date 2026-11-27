@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -30,6 +31,9 @@ namespace SpaceEscaper
         [SerializeField] private Button m_colorwayButton;
         [Tooltip("The name of the colorway the UI shows.")]
         [SerializeField] private TMP_Text m_colorwayText;
+        [SerializeField] private LanguageManager m_languageManager;
+        [Tooltip("One per language, in the order of the catalog.")]
+        [SerializeField] private LanguageButton[] m_languageButtons;
         [SerializeField] private Button m_creditsButton;
         [SerializeField] private TMP_Text m_versionText;
 
@@ -43,6 +47,7 @@ namespace SpaceEscaper
         internal Button ColorwayButton => m_colorwayButton;
 
         internal TMP_Text ColorwayText => m_colorwayText;
+        internal IReadOnlyList<LanguageButton> LanguageButtons => m_languageButtons;
 
         internal Toggle ClassicModeToggle => m_classicModeToggle;
 
@@ -57,8 +62,8 @@ namespace SpaceEscaper
             m_invincibleToggle = Instantiate(m_classicModeToggle, m_classicModeToggle.transform.parent);
             m_invincibleToggle.name = k_InvincibleToggleName;
             LocalizedText[] texts = m_invincibleToggle.GetComponentsInChildren<LocalizedText>();
-            texts[0].Key = k_InvincibleTitleKey;
-            texts[1].Key = k_InvincibleDescriptionKey;
+            texts[0].Show(k_InvincibleTitleKey);
+            texts[1].Show(k_InvincibleDescriptionKey);
         }
 #endif
 
@@ -70,6 +75,12 @@ namespace SpaceEscaper
             m_classicModeToggle.onValueChanged.AddListener(ClassicModeToggle_ValueChanged);
             m_colorwayButton.onClick.AddListener(m_screens.ShowColorways);
             m_creditsButton.onClick.AddListener(m_screens.ShowCredits);
+            foreach (LanguageButton languageButton in m_languageButtons)
+            {
+                languageButton.Clicked += LanguageButton_Clicked;
+            }
+
+            LanguageManager.LanguageChanged += LanguageManager_LanguageChanged;
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.AddListener(InvincibleToggle_ValueChanged);
             m_invincibleToggle.SetIsOnWithoutNotify(PlayerMotor.IsInvincible);
@@ -77,6 +88,7 @@ namespace SpaceEscaper
             m_versionText.SetText(Application.version);
             m_colorwayText.SetText(ColorwayManager.Current.Title);
             ShowCurrentSettings();
+            ShowLanguage();
         }
 
         private void OnDisable()
@@ -87,6 +99,12 @@ namespace SpaceEscaper
             m_classicModeToggle.onValueChanged.RemoveListener(ClassicModeToggle_ValueChanged);
             m_colorwayButton.onClick.RemoveListener(m_screens.ShowColorways);
             m_creditsButton.onClick.RemoveListener(m_screens.ShowCredits);
+            foreach (LanguageButton languageButton in m_languageButtons)
+            {
+                languageButton.Clicked -= LanguageButton_Clicked;
+            }
+
+            LanguageManager.LanguageChanged -= LanguageManager_LanguageChanged;
 #if UNITY_EDITOR || UNITY_ENABLE_CHECKS
             m_invincibleToggle.onValueChanged.RemoveListener(InvincibleToggle_ValueChanged);
 #endif
@@ -94,6 +112,24 @@ namespace SpaceEscaper
 
         // The settings leave the state of the game as it is, so going back shows the screen of the state:
         // the pause menu during a run, the main menu otherwise.
+        private void LanguageButton_Clicked(LanguageData language)
+        {
+            m_languageManager.Choose(language);
+        }
+
+        private void LanguageManager_LanguageChanged()
+        {
+            ShowLanguage();
+        }
+
+        private void ShowLanguage()
+        {
+            foreach (LanguageButton languageButton in m_languageButtons)
+            {
+                languageButton.ShowState(languageButton.Language == LanguageManager.Current);
+            }
+        }
+
         private void BackButton_Clicked()
         {
             m_screens.Show(m_gameManager.State);

@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: Cartographer
   m_title: CARTOGRAPHER
-  m_description: Find every star-system card
+  m_descriptionKey: achievements.cartographer.description
   m_icon: {fileID: 21300000, guid: ef6bb3654e6e4f9418823005e1e78672, type: 3}
   m_goal: 7
   m_target: 3
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 300
   m_isComingSoon: 1

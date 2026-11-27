@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: MoneyMoneyMoney
   m_title: MONEY, MONEY, MONEY
-  m_description: Collect 1976 coins in total
+  m_descriptionKey: achievements.moneyMoneyMoney.description
   m_icon: {fileID: 21300000, guid: cd73d3b268c633245a0c2d0480c3a584, type: 3}
   m_goal: 4
   m_target: 1976
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 300
   m_isComingSoon: 0

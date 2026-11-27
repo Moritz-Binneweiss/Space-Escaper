@@ -400,6 +400,7 @@ GameObject:
   - component: {fileID: 9829453}
   - component: {fileID: 9829454}
   - component: {fileID: 9829455}
+  - component: {fileID: 9829456}
   m_Layer: 5
   m_Name: DistanceText
   m_TagString: Untagged
@@ -546,6 +547,19 @@ MonoBehaviour:
     m_isOverWorld: 0
     m_underlayWhite: 0
   m_isGlow: 0
+--- !u!114 &9829456
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9829451}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: common.meters
 --- !u!1 &10647960
 GameObject:
   m_ObjectHideFlags: 0
@@ -6031,7 +6045,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1195917460}
   m_icon: {fileID: 165400834}
   m_titleText: {fileID: 1120343662}
-  m_descriptionText: {fileID: 2104911225}
+  m_descriptionText: {fileID: 2104911227}
   m_reward: {fileID: 662578200}
   m_rewardCoin: {fileID: 1507641930}
   m_rewardText: {fileID: 1117309663}
@@ -6039,7 +6053,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 2026549296}
   m_progress: {fileID: 585574174}
   m_progressFill: {fileID: 2073430038}
-  m_progressText: {fileID: 1989647620}
+  m_progressText: {fileID: 1989647622}
   m_claimButton: {fileID: 2076572294}
   m_claimText: {fileID: 1598852125}
 --- !u!114 &109825169
@@ -6379,6 +6393,7 @@ GameObject:
   - component: {fileID: 114152872}
   - component: {fileID: 114152874}
   - component: {fileID: 114152873}
+  - component: {fileID: 114152875}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -6505,6 +6520,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 114152871}
   m_CullTransparentMesh: 1
+--- !u!114 &114152875
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 114152871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.bookworm.description
 --- !u!1 &116290910
 GameObject:
   m_ObjectHideFlags: 0
@@ -10928,85 +10956,6 @@ MonoBehaviour:
     m_isOverWorld: 0
     m_underlayWhite: 0
   m_isGlow: 0
---- !u!1 &195749811
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 195749812}
-  - component: {fileID: 195749814}
-  - component: {fileID: 195749813}
-  m_Layer: 5
-  m_Name: Soon
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &195749812
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 195749811}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1496306543}
-  - {fileID: 1910734947}
-  m_Father: {fileID: 1173776149}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 121.316895, y: 0}
-  m_SizeDelta: {x: 51.5, y: 20}
-  m_Pivot: {x: 0, y: 0.5}
---- !u!114 &195749813
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 195749811}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
-  m_HorizontalFit: 2
-  m_VerticalFit: 0
---- !u!114 &195749814
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 195749811}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
-  m_Padding:
-    m_Left: 8
-    m_Right: 8
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 4
-  m_Spacing: 0
-  m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 0
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
-  m_ReverseArrangement: 0
 --- !u!1 &196069314 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8851936849317367597, guid: 608e0e62a4c84dd4290447b12ecaae43, type: 3}
@@ -13637,6 +13586,7 @@ GameObject:
   - component: {fileID: 257409601}
   - component: {fileID: 257409603}
   - component: {fileID: 257409602}
+  - component: {fileID: 257409604}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -13763,6 +13713,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 257409600}
   m_CullTransparentMesh: 1
+--- !u!114 &257409604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 257409600}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &257765450
 GameObject:
   m_ObjectHideFlags: 0
@@ -15744,7 +15707,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 593671911}
   m_icon: {fileID: 270999015}
   m_titleText: {fileID: 1270111558}
-  m_descriptionText: {fileID: 1929908188}
+  m_descriptionText: {fileID: 1929908190}
   m_reward: {fileID: 168995191}
   m_rewardCoin: {fileID: 855728298}
   m_rewardText: {fileID: 851451730}
@@ -15752,7 +15715,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1103826420}
   m_progress: {fileID: 1695320470}
   m_progressFill: {fileID: 980327667}
-  m_progressText: {fileID: 1254530574}
+  m_progressText: {fileID: 1254530576}
   m_claimButton: {fileID: 1577657351}
   m_claimText: {fileID: 599882780}
 --- !u!114 &276996032
@@ -17189,6 +17152,7 @@ GameObject:
   - component: {fileID: 318026056}
   - component: {fileID: 318026058}
   - component: {fileID: 318026057}
+  - component: {fileID: 318026059}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -17315,6 +17279,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 318026055}
   m_CullTransparentMesh: 1
+--- !u!114 &318026059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 318026055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &318619037
 GameObject:
   m_ObjectHideFlags: 0
@@ -18582,6 +18559,7 @@ GameObject:
   - component: {fileID: 329591544}
   - component: {fileID: 329591545}
   - component: {fileID: 329591546}
+  - component: {fileID: 329591547}
   m_Layer: 5
   m_Name: PointsToGoText
   m_TagString: Untagged
@@ -18708,6 +18686,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &329591547
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 329591543}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: run.pointsToGo
 --- !u!1 &330020822
 GameObject:
   m_ObjectHideFlags: 0
@@ -19315,6 +19306,7 @@ GameObject:
   - component: {fileID: 338806643}
   - component: {fileID: 338806645}
   - component: {fileID: 338806644}
+  - component: {fileID: 338806646}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -19441,6 +19433,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 338806642}
   m_CullTransparentMesh: 1
+--- !u!114 &338806646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 338806642}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.flyAway.description
 --- !u!1 &340325502
 GameObject:
   m_ObjectHideFlags: 0
@@ -19979,6 +19984,7 @@ GameObject:
   - component: {fileID: 347950301}
   - component: {fileID: 347950302}
   - component: {fileID: 347950303}
+  - component: {fileID: 347950304}
   m_Layer: 5
   m_Name: DistanceText
   m_TagString: Untagged
@@ -20125,6 +20131,19 @@ MonoBehaviour:
     m_isOverWorld: 0
     m_underlayWhite: 0
   m_isGlow: 0
+--- !u!114 &347950304
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 347950299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: common.meters
 --- !u!1 &347951165
 GameObject:
   m_ObjectHideFlags: 0
@@ -20486,6 +20505,7 @@ GameObject:
   - component: {fileID: 356820639}
   - component: {fileID: 356820641}
   - component: {fileID: 356820640}
+  - component: {fileID: 356820642}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -20612,6 +20632,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 356820638}
   m_CullTransparentMesh: 1
+--- !u!114 &356820642
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 356820638}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &360379900
 GameObject:
   m_ObjectHideFlags: 0
@@ -20982,7 +21015,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1894098765}
   m_icon: {fileID: 17873292}
   m_titleText: {fileID: 2103616261}
-  m_descriptionText: {fileID: 1876155130}
+  m_descriptionText: {fileID: 1876155132}
   m_reward: {fileID: 833356808}
   m_rewardCoin: {fileID: 1561978713}
   m_rewardText: {fileID: 1237488639}
@@ -20990,7 +21023,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1420541080}
   m_progress: {fileID: 1629403681}
   m_progressFill: {fileID: 1693341414}
-  m_progressText: {fileID: 318026057}
+  m_progressText: {fileID: 318026059}
   m_claimButton: {fileID: 2020020619}
   m_claimText: {fileID: 1027239761}
 --- !u!114 &375521853
@@ -21644,7 +21677,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1474736484}
   m_icon: {fileID: 1299641836}
   m_titleText: {fileID: 1905304582}
-  m_descriptionText: {fileID: 338806644}
+  m_descriptionText: {fileID: 338806646}
   m_reward: {fileID: 1431417645}
   m_rewardCoin: {fileID: 363728216}
   m_rewardText: {fileID: 968188747}
@@ -21652,7 +21685,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1465640462}
   m_progress: {fileID: 197459572}
   m_progressFill: {fileID: 1469489024}
-  m_progressText: {fileID: 973853133}
+  m_progressText: {fileID: 973853135}
   m_claimButton: {fileID: 71726731}
   m_claimText: {fileID: 1024769190}
 --- !u!114 &401361878
@@ -22826,6 +22859,19 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 120, y: 20}
   m_Pivot: {x: 1, y: 0.5}
+--- !u!114 &429548813
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1748574957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: hangar.selected
 --- !u!1 &429675293
 GameObject:
   m_ObjectHideFlags: 0
@@ -26153,6 +26199,7 @@ GameObject:
   - component: {fileID: 488921342}
   - component: {fileID: 488921344}
   - component: {fileID: 488921343}
+  - component: {fileID: 488921345}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -26279,6 +26326,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 488921341}
   m_CullTransparentMesh: 1
+--- !u!114 &488921345
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 488921341}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &490609176
 GameObject:
   m_ObjectHideFlags: 0
@@ -30458,7 +30518,6 @@ GameObject:
   - component: {fileID: 577766698}
   - component: {fileID: 577766700}
   - component: {fileID: 577766699}
-  - component: {fileID: 577766701}
   - component: {fileID: 577766702}
   m_Layer: 5
   m_Name: Label
@@ -30516,7 +30575,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 0.09411765, g: 0.094901964, b: 0.11137255, a: 1}
+  m_fontColor: {r: 0.105882354, g: 0.101960786, b: 0.1254902, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -30586,26 +30645,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 577766697}
   m_CullTransparentMesh: 1
---- !u!114 &577766701
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 577766697}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501b382296ed19f47ae06e9b2a14fff5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayTint
-  m_color:
-    m_role: 0
-    m_fixedColor: {r: 0.105882354, g: 0.101960786, b: 0.1254902, a: 1}
-    m_opacity: 0.46459058
-    m_isMixedOpaque: 1
-    m_isOverWorld: 0
-    m_underlayWhite: 0.07
-  m_isGlow: 0
 --- !u!114 &577766702
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -34686,7 +34725,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1494291240}
   m_icon: {fileID: 18873527}
   m_titleText: {fileID: 1720100022}
-  m_descriptionText: {fileID: 731805980}
+  m_descriptionText: {fileID: 731805982}
   m_reward: {fileID: 1453933453}
   m_rewardCoin: {fileID: 834641219}
   m_rewardText: {fileID: 1923753270}
@@ -34694,7 +34733,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1575498725}
   m_progress: {fileID: 1083209937}
   m_progressFill: {fileID: 263506918}
-  m_progressText: {fileID: 1142411474}
+  m_progressText: {fileID: 1142411476}
   m_claimButton: {fileID: 554659141}
   m_claimText: {fileID: 1235259451}
 --- !u!114 &648418083
@@ -35040,7 +35079,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 571622016}
   m_icon: {fileID: 326786050}
   m_titleText: {fileID: 1113149140}
-  m_descriptionText: {fileID: 708013385}
+  m_descriptionText: {fileID: 708013387}
   m_reward: {fileID: 100980700}
   m_rewardCoin: {fileID: 1080364266}
   m_rewardText: {fileID: 2131168274}
@@ -35048,7 +35087,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 571725260}
   m_progress: {fileID: 1150253637}
   m_progressFill: {fileID: 254780619}
-  m_progressText: {fileID: 1168706892}
+  m_progressText: {fileID: 1168706894}
   m_claimButton: {fileID: 472694440}
   m_claimText: {fileID: 656175172}
 --- !u!114 &658212095
@@ -37377,6 +37416,7 @@ GameObject:
   - component: {fileID: 708013384}
   - component: {fileID: 708013386}
   - component: {fileID: 708013385}
+  - component: {fileID: 708013387}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -37503,6 +37543,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 708013383}
   m_CullTransparentMesh: 1
+--- !u!114 &708013387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 708013383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.liftoff.description
 --- !u!1 &708159283
 GameObject:
   m_ObjectHideFlags: 0
@@ -38895,6 +38948,7 @@ GameObject:
   - component: {fileID: 731805979}
   - component: {fileID: 731805981}
   - component: {fileID: 731805980}
+  - component: {fileID: 731805982}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -39021,6 +39075,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 731805978}
   m_CullTransparentMesh: 1
+--- !u!114 &731805982
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 731805978}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.moneyMoneyMoney.description
 --- !u!1 &733872067
 GameObject:
   m_ObjectHideFlags: 0
@@ -40924,7 +40991,9 @@ GameObject:
   - component: {fileID: 770267682}
   - component: {fileID: 770267684}
   - component: {fileID: 770267683}
+  - component: {fileID: 770267686}
   - component: {fileID: 770267685}
+  - component: {fileID: 770267687}
   m_Layer: 5
   m_Name: German
   m_TagString: Untagged
@@ -40965,8 +41034,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.4517647, g: 0.45411766, b: 0.46117648, a: 1}
-  m_RaycastTarget: 0
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -40999,17 +41068,111 @@ MonoBehaviour:
   m_GameObject: {fileID: 770267681}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501b382296ed19f47ae06e9b2a14fff5, type: 3}
+  m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayTint
-  m_color:
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ButtonClickSound
+--- !u!114 &770267686
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 770267681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_PressedColor: {r: 0.82, g: 0.82, b: 0.82, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.08
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 770267683}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &770267687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 770267681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7542db99c85e0fc4f8cd9c34e86b184b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LanguageButton
+  m_language: {fileID: 11400000, guid: a535889d19aa05a4abb9fd7de3024ac7, type: 2}
+  m_plate: {fileID: 770267683}
+  m_shadow: {fileID: 1493229078}
+  m_label: {fileID: 577766699}
+  m_plateColor:
     m_role: 0
     m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_opacity: 0.44256338
-    m_isMixedOpaque: 1
+    m_opacity: 1
+    m_isMixedOpaque: 0
     m_isOverWorld: 0
     m_underlayWhite: 0
-  m_isGlow: 0
+  m_shadowColor:
+    m_role: 0
+    m_fixedColor: {r: 0.43529412, g: 0.4509804, b: 0.5019608, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_labelColor:
+    m_role: 0
+    m_fixedColor: {r: 0.105882354, g: 0.101960786, b: 0.1254902, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0.07
+  m_chosenPlateColor:
+    m_role: 2
+    m_fixedColor: {r: 0.34117648, g: 1, b: 0.36078432, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0.07
+  m_chosenShadowColor:
+    m_role: 3
+    m_fixedColor: {r: 0.16862746, g: 0.49803922, b: 0.18039216, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0.07
+  m_chosenLabelColor:
+    m_role: 4
+    m_fixedColor: {r: 0.023529412, g: 0.16862746, b: 0.03137255, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0.07
 --- !u!1 &774573055
 GameObject:
   m_ObjectHideFlags: 0
@@ -41021,6 +41184,7 @@ GameObject:
   - component: {fileID: 774573056}
   - component: {fileID: 774573058}
   - component: {fileID: 774573057}
+  - component: {fileID: 774573059}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -41147,6 +41311,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 774573055}
   m_CullTransparentMesh: 1
+--- !u!114 &774573059
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 774573055}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.cartographer.description
 --- !u!1 &775256787
 GameObject:
   m_ObjectHideFlags: 0
@@ -41351,7 +41528,6 @@ GameObject:
   - component: {fileID: 776739778}
   - component: {fileID: 776739780}
   - component: {fileID: 776739779}
-  - component: {fileID: 776739781}
   m_Layer: 5
   m_Name: EnglishShadow
   m_TagString: Untagged
@@ -41391,7 +41567,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.11921569, g: 0.25333333, b: 0.13333334, a: 1}
+  m_Color: {r: 0.16862746, g: 0.49803922, b: 0.18039216, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -41416,26 +41592,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 776739777}
   m_CullTransparentMesh: 1
---- !u!114 &776739781
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 776739777}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501b382296ed19f47ae06e9b2a14fff5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayTint
-  m_color:
-    m_role: 3
-    m_fixedColor: {r: 0.16862746, g: 0.49803922, b: 0.18039216, a: 1}
-    m_opacity: 0.39900327
-    m_isMixedOpaque: 1
-    m_isOverWorld: 0
-    m_underlayWhite: 0.07
-  m_isGlow: 0
 --- !u!1 &780285071
 GameObject:
   m_ObjectHideFlags: 0
@@ -41695,6 +41851,7 @@ GameObject:
   - component: {fileID: 781579862}
   - component: {fileID: 781579864}
   - component: {fileID: 781579863}
+  - component: {fileID: 781579865}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -41821,6 +41978,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 781579861}
   m_CullTransparentMesh: 1
+--- !u!114 &781579865
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 781579861}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &783388126
 GameObject:
   m_ObjectHideFlags: 0
@@ -46973,6 +47143,7 @@ GameObject:
   - component: {fileID: 919739730}
   - component: {fileID: 919739731}
   - component: {fileID: 919739732}
+  - component: {fileID: 919739733}
   m_Layer: 5
   m_Name: LabelText
   m_TagString: Untagged
@@ -47119,6 +47290,19 @@ MonoBehaviour:
     m_isOverWorld: 0
     m_underlayWhite: 0
   m_isGlow: 0
+--- !u!114 &919739733
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 919739728}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: common.achievementUnlocked
 --- !u!1 &926720114
 GameObject:
   m_ObjectHideFlags: 0
@@ -48277,7 +48461,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1911168700}
   m_icon: {fileID: 425885921}
   m_titleText: {fileID: 28684351}
-  m_descriptionText: {fileID: 114152873}
+  m_descriptionText: {fileID: 114152875}
   m_reward: {fileID: 415102224}
   m_rewardCoin: {fileID: 1240056524}
   m_rewardText: {fileID: 1477401382}
@@ -48285,7 +48469,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1948351618}
   m_progress: {fileID: 1276886425}
   m_progressFill: {fileID: 255687956}
-  m_progressText: {fileID: 1191188711}
+  m_progressText: {fileID: 1191188713}
   m_claimButton: {fileID: 1577318361}
   m_claimText: {fileID: 247760419}
 --- !u!114 &960059383
@@ -49230,6 +49414,7 @@ GameObject:
   - component: {fileID: 973853132}
   - component: {fileID: 973853134}
   - component: {fileID: 973853133}
+  - component: {fileID: 973853135}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -49356,6 +49541,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 973853131}
   m_CullTransparentMesh: 1
+--- !u!114 &973853135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 973853131}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progressInMeters
 --- !u!1 &978837297
 GameObject:
   m_ObjectHideFlags: 0
@@ -51655,7 +51853,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1696728312}
   m_icon: {fileID: 329290127}
   m_titleText: {fileID: 572428455}
-  m_descriptionText: {fileID: 774573057}
+  m_descriptionText: {fileID: 774573059}
   m_reward: {fileID: 1050308010}
   m_rewardCoin: {fileID: 788821931}
   m_rewardText: {fileID: 1665899224}
@@ -51663,7 +51861,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1996338824}
   m_progress: {fileID: 1255197301}
   m_progressFill: {fileID: 483474991}
-  m_progressText: {fileID: 488921343}
+  m_progressText: {fileID: 488921345}
   m_claimButton: {fileID: 1991106030}
   m_claimText: {fileID: 1316233601}
 --- !u!114 &1019146847
@@ -55127,6 +55325,10 @@ MonoBehaviour:
   m_classicModeToggle: {fileID: 1606026653}
   m_colorwayButton: {fileID: 1910006156}
   m_colorwayText: {fileID: 508925553}
+  m_languageManager: {fileID: 1281772494}
+  m_languageButtons:
+  - {fileID: 1234401414}
+  - {fileID: 770267687}
   m_creditsButton: {fileID: 1717286506}
   m_versionText: {fileID: 427666437}
 --- !u!114 &1074951831
@@ -55635,7 +55837,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1090669584}
   m_icon: {fileID: 137488508}
   m_titleText: {fileID: 805561676}
-  m_descriptionText: {fileID: 1350774576}
+  m_descriptionText: {fileID: 1350774578}
   m_reward: {fileID: 1480474382}
   m_rewardCoin: {fileID: 1424396487}
   m_rewardText: {fileID: 1778462909}
@@ -55643,7 +55845,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1815445633}
   m_progress: {fileID: 1664859227}
   m_progressFill: {fileID: 1590263363}
-  m_progressText: {fileID: 781579863}
+  m_progressText: {fileID: 781579865}
   m_claimButton: {fileID: 917125819}
   m_claimText: {fileID: 631467761}
 --- !u!114 &1082542017
@@ -57745,6 +57947,7 @@ GameObject:
   - component: {fileID: 1142411473}
   - component: {fileID: 1142411475}
   - component: {fileID: 1142411474}
+  - component: {fileID: 1142411476}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -57871,6 +58074,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1142411472}
   m_CullTransparentMesh: 1
+--- !u!114 &1142411476
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1142411472}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &1148390331
 GameObject:
   m_ObjectHideFlags: 0
@@ -58595,6 +58811,7 @@ GameObject:
   - component: {fileID: 1168706891}
   - component: {fileID: 1168706893}
   - component: {fileID: 1168706892}
+  - component: {fileID: 1168706894}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -58721,6 +58938,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1168706890}
   m_CullTransparentMesh: 1
+--- !u!114 &1168706894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1168706890}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &1170976105
 GameObject:
   m_ObjectHideFlags: 0
@@ -58962,7 +59192,6 @@ GameObject:
   - component: {fileID: 1173776149}
   - component: {fileID: 1173776151}
   - component: {fileID: 1173776150}
-  - component: {fileID: 1173776152}
   - component: {fileID: 1173776153}
   m_Layer: 5
   m_Name: Label
@@ -58982,8 +59211,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 195749812}
+  m_Children: []
   m_Father: {fileID: 687542105}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
@@ -59021,7 +59249,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4285953139
-  m_fontColor: {r: 0.4517647, g: 0.45411766, b: 0.46117648, a: 1}
+  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -59091,26 +59319,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1173776148}
   m_CullTransparentMesh: 1
---- !u!114 &1173776152
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1173776148}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501b382296ed19f47ae06e9b2a14fff5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayTint
-  m_color:
-    m_role: 0
-    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
-    m_opacity: 0.44256338
-    m_isMixedOpaque: 1
-    m_isOverWorld: 0
-    m_underlayWhite: 0
-  m_isGlow: 0
 --- !u!114 &1173776153
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -59419,6 +59627,7 @@ GameObject:
   - component: {fileID: 1191188710}
   - component: {fileID: 1191188712}
   - component: {fileID: 1191188711}
+  - component: {fileID: 1191188713}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -59545,6 +59754,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1191188709}
   m_CullTransparentMesh: 1
+--- !u!114 &1191188713
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1191188709}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &1195061556
 GameObject:
   m_ObjectHideFlags: 0
@@ -61051,7 +61273,9 @@ GameObject:
   - component: {fileID: 1234401409}
   - component: {fileID: 1234401411}
   - component: {fileID: 1234401410}
+  - component: {fileID: 1234401413}
   - component: {fileID: 1234401412}
+  - component: {fileID: 1234401414}
   m_Layer: 5
   m_Name: English
   m_TagString: Untagged
@@ -61092,8 +61316,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.1882353, g: 0.45411766, b: 0.2054902, a: 1}
-  m_RaycastTarget: 0
+  m_Color: {r: 0.34117648, g: 1, b: 0.36078432, a: 1}
+  m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -61126,17 +61350,111 @@ MonoBehaviour:
   m_GameObject: {fileID: 1234401408}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501b382296ed19f47ae06e9b2a14fff5, type: 3}
+  m_Script: {fileID: 11500000, guid: b35d5cb8e7b551748895b8af3b33b0b0, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayTint
-  m_color:
-    m_role: 2
-    m_fixedColor: {r: 0.34117648, g: 1, b: 0.36078432, a: 1}
-    m_opacity: 0.39979896
-    m_isMixedOpaque: 1
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ButtonClickSound
+--- !u!114 &1234401413
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1234401408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_Navigation:
+    m_Mode: 0
+    m_WrapAround: 0
+    m_SelectOnUp: {fileID: 0}
+    m_SelectOnDown: {fileID: 0}
+    m_SelectOnLeft: {fileID: 0}
+    m_SelectOnRight: {fileID: 0}
+  m_Transition: 1
+  m_Colors:
+    m_NormalColor: {r: 1, g: 1, b: 1, a: 1}
+    m_HighlightedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_PressedColor: {r: 0.82, g: 0.82, b: 0.82, a: 1}
+    m_SelectedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_DisabledColor: {r: 0.78, g: 0.78, b: 0.78, a: 0.5}
+    m_ColorMultiplier: 1
+    m_FadeDuration: 0.08
+  m_SpriteState:
+    m_HighlightedSprite: {fileID: 0}
+    m_PressedSprite: {fileID: 0}
+    m_SelectedSprite: {fileID: 0}
+    m_DisabledSprite: {fileID: 0}
+  m_AnimationTriggers:
+    m_NormalTrigger: Normal
+    m_HighlightedTrigger: Highlighted
+    m_PressedTrigger: Pressed
+    m_SelectedTrigger: Selected
+    m_DisabledTrigger: Disabled
+  m_Interactable: 1
+  m_TargetGraphic: {fileID: 1234401410}
+  m_OnClick:
+    m_PersistentCalls:
+      m_Calls: []
+--- !u!114 &1234401414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1234401408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7542db99c85e0fc4f8cd9c34e86b184b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LanguageButton
+  m_language: {fileID: 11400000, guid: 1f6ecb41d8eea0a4a8595aa6cc9b0d93, type: 2}
+  m_plate: {fileID: 1234401410}
+  m_shadow: {fileID: 776739779}
+  m_label: {fileID: 1810391451}
+  m_plateColor:
+    m_role: 0
+    m_fixedColor: {r: 1, g: 1, b: 1, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_shadowColor:
+    m_role: 0
+    m_fixedColor: {r: 0.43529412, g: 0.4509804, b: 0.5019608, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0
+  m_labelColor:
+    m_role: 0
+    m_fixedColor: {r: 0.105882354, g: 0.101960786, b: 0.1254902, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
     m_isOverWorld: 0
     m_underlayWhite: 0.07
-  m_isGlow: 0
+  m_chosenPlateColor:
+    m_role: 2
+    m_fixedColor: {r: 0.34117648, g: 1, b: 0.36078432, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0.07
+  m_chosenShadowColor:
+    m_role: 3
+    m_fixedColor: {r: 0.16862746, g: 0.49803922, b: 0.18039216, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0.07
+  m_chosenLabelColor:
+    m_role: 4
+    m_fixedColor: {r: 0.023529412, g: 0.16862746, b: 0.03137255, a: 1}
+    m_opacity: 1
+    m_isMixedOpaque: 0
+    m_isOverWorld: 0
+    m_underlayWhite: 0.07
 --- !u!1 &1235259449
 GameObject:
   m_ObjectHideFlags: 0
@@ -61927,6 +62245,7 @@ GameObject:
   - component: {fileID: 1248314461}
   - component: {fileID: 1248314462}
   - component: {fileID: 1248314463}
+  - component: {fileID: 1248314464}
   m_Layer: 5
   m_Name: TimeText
   m_TagString: Untagged
@@ -62053,6 +62372,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1248314464
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1248314460}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: pause.time
 --- !u!1 &1253071592
 GameObject:
   m_ObjectHideFlags: 0
@@ -62129,6 +62461,7 @@ GameObject:
   - component: {fileID: 1254530573}
   - component: {fileID: 1254530575}
   - component: {fileID: 1254530574}
+  - component: {fileID: 1254530576}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -62255,6 +62588,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1254530572}
   m_CullTransparentMesh: 1
+--- !u!114 &1254530576
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1254530572}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &1255197301
 GameObject:
   m_ObjectHideFlags: 0
@@ -65611,6 +65957,7 @@ GameObject:
   - component: {fileID: 1350774575}
   - component: {fileID: 1350774577}
   - component: {fileID: 1350774576}
+  - component: {fileID: 1350774578}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -65737,6 +66084,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1350774574}
   m_CullTransparentMesh: 1
+--- !u!114 &1350774578
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1350774574}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.emptyCup.description
 --- !u!1 &1352756705
 GameObject:
   m_ObjectHideFlags: 0
@@ -68205,11 +68565,11 @@ MonoBehaviour:
   m_gameManager: {fileID: 1727939685}
   m_screens: {fileID: 1423978557}
   m_runScore: {fileID: 2107079580}
-  m_timeText: {fileID: 1248314463}
+  m_timeText: {fileID: 1248314464}
   m_scoreText: {fileID: 1539484406}
   m_coinText: {fileID: 1880119726}
   m_highscoreText: {fileID: 462316185}
-  m_distanceText: {fileID: 347950302}
+  m_distanceText: {fileID: 347950304}
   m_musicButton: {fileID: 2040664216}
   m_sfxButton: {fileID: 1761035897}
   m_continueButton: {fileID: 310940475}
@@ -71843,7 +72203,6 @@ GameObject:
   - component: {fileID: 1493229077}
   - component: {fileID: 1493229079}
   - component: {fileID: 1493229078}
-  - component: {fileID: 1493229080}
   m_Layer: 5
   m_Name: GermanShadow
   m_TagString: Untagged
@@ -71883,7 +72242,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0.22588235, g: 0.23450981, b: 0.2619608, a: 1}
+  m_Color: {r: 0.43529412, g: 0.4509804, b: 0.5019608, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -71908,26 +72267,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1493229076}
   m_CullTransparentMesh: 1
---- !u!114 &1493229080
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1493229076}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501b382296ed19f47ae06e9b2a14fff5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayTint
-  m_color:
-    m_role: 0
-    m_fixedColor: {r: 0.43529412, g: 0.4509804, b: 0.5019608, a: 1}
-    m_opacity: 0.49461308
-    m_isMixedOpaque: 1
-    m_isOverWorld: 0
-    m_underlayWhite: 0
-  m_isGlow: 0
 --- !u!1 &1494291237
 GameObject:
   m_ObjectHideFlags: 0
@@ -72243,104 +72582,6 @@ MonoBehaviour:
     m_isOverWorld: 0
     m_underlayWhite: 0
   m_isGlow: 0
---- !u!1 &1496306542
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1496306543}
-  - component: {fileID: 1496306546}
-  - component: {fileID: 1496306545}
-  - component: {fileID: 1496306544}
-  m_Layer: 5
-  m_Name: Plate
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1496306543
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1496306542}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 195749812}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1496306544
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1496306542}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
-  m_IgnoreLayout: 1
-  m_MinWidth: -1
-  m_MinHeight: -1
-  m_PreferredWidth: -1
-  m_PreferredHeight: -1
-  m_FlexibleWidth: -1
-  m_FlexibleHeight: -1
-  m_LayoutPriority: 1
-  m_MaxWidth: -1
-  m_MaxHeight: -1
---- !u!114 &1496306545
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1496306542}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.16862746, g: 0.18431373, b: 0.21176471, a: 1}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 169204f69b7f4a347a2dbdaa66ab25d9, type: 3}
-  m_Type: 1
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 6.4
---- !u!222 &1496306546
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1496306542}
-  m_CullTransparentMesh: 1
 --- !u!1 &1506473801
 GameObject:
   m_ObjectHideFlags: 0
@@ -72826,6 +73067,7 @@ GameObject:
   - component: {fileID: 1518864685}
   - component: {fileID: 1518864686}
   - component: {fileID: 1518864687}
+  - component: {fileID: 1518864688}
   m_Layer: 5
   m_Name: RunEndedText
   m_TagString: Untagged
@@ -72952,6 +73194,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &1518864688
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1518864684}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: death.runEnded
 --- !u!1 &1522450718
 GameObject:
   m_ObjectHideFlags: 0
@@ -73403,6 +73658,7 @@ GameObject:
   - component: {fileID: 1531653603}
   - component: {fileID: 1531653605}
   - component: {fileID: 1531653604}
+  - component: {fileID: 1531653606}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -73529,6 +73785,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1531653602}
   m_CullTransparentMesh: 1
+--- !u!114 &1531653606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1531653602}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &1532127292
 GameObject:
   m_ObjectHideFlags: 0
@@ -78051,6 +78320,7 @@ GameObject:
   - component: {fileID: 1633343618}
   - component: {fileID: 1633343620}
   - component: {fileID: 1633343619}
+  - component: {fileID: 1633343621}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -78177,6 +78447,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1633343617}
   m_CullTransparentMesh: 1
+--- !u!114 &1633343621
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1633343617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.anotherHappyLanding.description
 --- !u!1 &1633502073
 GameObject:
   m_ObjectHideFlags: 0
@@ -79621,7 +79904,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 735361821}
   m_icon: {fileID: 397086029}
   m_titleText: {fileID: 1455555440}
-  m_descriptionText: {fileID: 2000252757}
+  m_descriptionText: {fileID: 2000252759}
   m_reward: {fileID: 1222170820}
   m_rewardCoin: {fileID: 1746483317}
   m_rewardText: {fileID: 2055353159}
@@ -79629,7 +79912,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 221197475}
   m_progress: {fileID: 14835050}
   m_progressFill: {fileID: 490609177}
-  m_progressText: {fileID: 1531653604}
+  m_progressText: {fileID: 1531653606}
   m_claimButton: {fileID: 325337726}
   m_claimText: {fileID: 330073224}
 --- !u!114 &1671852674
@@ -80923,7 +81206,7 @@ MonoBehaviour:
   m_highscoreBarStep: 100
   m_highscoreBar: {fileID: 1125339083}
   m_highscoreBarText: {fileID: 1802009586}
-  m_pointsToGoText: {fileID: 329591546}
+  m_pointsToGoText: {fileID: 329591547}
   m_highscoreBarFill: {fileID: 189318423}
   m_newHighscoreBanner: {fileID: 82851195}
   m_achievements: {fileID: 1005391812}
@@ -83334,6 +83617,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6203856915048682099, guid: e518fd537c353b14f83bb33eaa0d043e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1748574963}
+    - targetCorrespondingSourceObject: {fileID: 6784287233677998649, guid: e518fd537c353b14f83bb33eaa0d043e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 429548813}
   m_SourcePrefab: {fileID: 100100000, guid: e518fd537c353b14f83bb33eaa0d043e, type: 3}
 --- !u!224 &1748574954 stripped
 RectTransform:
@@ -83350,17 +83636,11 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 1528605937073363872, guid: e518fd537c353b14f83bb33eaa0d043e, type: 3}
   m_PrefabInstance: {fileID: 1748574953}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &1748574957 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3274982383740397974, guid: e518fd537c353b14f83bb33eaa0d043e, type: 3}
+--- !u!1 &1748574957 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6784287233677998649, guid: e518fd537c353b14f83bb33eaa0d043e, type: 3}
   m_PrefabInstance: {fileID: 1748574953}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &1748574958 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 158670509679079822, guid: e518fd537c353b14f83bb33eaa0d043e, type: 3}
@@ -83414,7 +83694,7 @@ MonoBehaviour:
   m_canvasGroup: {fileID: 1748574963}
   m_plate: {fileID: 1748574959}
   m_shadow: {fileID: 1748574958}
-  m_label: {fileID: 1748574957}
+  m_label: {fileID: 429548813}
   m_priceIcon: {fileID: 1748574956}
   m_selectedIcon: {fileID: 1354392783}
   m_plateColor:
@@ -86740,7 +87020,6 @@ GameObject:
   - component: {fileID: 1810391450}
   - component: {fileID: 1810391452}
   - component: {fileID: 1810391451}
-  - component: {fileID: 1810391453}
   - component: {fileID: 1810391454}
   m_Layer: 5
   m_Name: Label
@@ -86798,7 +87077,7 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 0.06117647, g: 0.12156863, b: 0.07372549, a: 1}
+  m_fontColor: {r: 0.023529412, g: 0.16862746, b: 0.03137255, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -86868,26 +87147,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1810391449}
   m_CullTransparentMesh: 1
---- !u!114 &1810391453
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1810391449}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 501b382296ed19f47ae06e9b2a14fff5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.ColorwayTint
-  m_color:
-    m_role: 4
-    m_fixedColor: {r: 0.023529412, g: 0.16862746, b: 0.03137255, a: 1}
-    m_opacity: 0.38244927
-    m_isMixedOpaque: 1
-    m_isOverWorld: 0
-    m_underlayWhite: 0.07
-  m_isGlow: 0
 --- !u!114 &1810391454
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -87731,14 +87990,14 @@ MonoBehaviour:
   m_screens: {fileID: 1423978557}
   m_runScore: {fileID: 2107079580}
   m_achievements: {fileID: 1005391812}
-  m_runEndedText: {fileID: 1518864687}
+  m_runEndedText: {fileID: 1518864688}
   m_scoreText: {fileID: 563823880}
   m_newHighscoreBadge: {fileID: 1150782067}
   m_coinText: {fileID: 2052238777}
   m_timeText: {fileID: 1898929530}
-  m_distanceText: {fileID: 9829454}
+  m_distanceText: {fileID: 9829456}
   m_unlockedCard: {fileID: 1905435083}
-  m_unlockedLabelText: {fileID: 919739731}
+  m_unlockedLabelText: {fileID: 919739733}
   m_unlockedTitleText: {fileID: 286276015}
   m_unlockedRewardText: {fileID: 1782164384}
   m_reviveButton: {fileID: 268680459}
@@ -88831,6 +89090,7 @@ GameObject:
   - component: {fileID: 1857924140}
   - component: {fileID: 1857924142}
   - component: {fileID: 1857924141}
+  - component: {fileID: 1857924143}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -88957,6 +89217,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1857924139}
   m_CullTransparentMesh: 1
+--- !u!114 &1857924143
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1857924139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.collector.description
 --- !u!1 &1860324183
 GameObject:
   m_ObjectHideFlags: 0
@@ -90226,6 +90499,7 @@ GameObject:
   - component: {fileID: 1876155129}
   - component: {fileID: 1876155131}
   - component: {fileID: 1876155130}
+  - component: {fileID: 1876155132}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -90352,6 +90626,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1876155128}
   m_CullTransparentMesh: 1
+--- !u!114 &1876155132
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1876155128}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.forager.description
 --- !u!1 &1878989405
 GameObject:
   m_ObjectHideFlags: 0
@@ -92661,157 +92948,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c9bc59856bbafb469986f6e9c4b4205, type: 3}
   m_Name: 
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.UntranslatedText
---- !u!1 &1910734946
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1910734947}
-  - component: {fileID: 1910734949}
-  - component: {fileID: 1910734948}
-  - component: {fileID: 1910734950}
-  m_Layer: 5
-  m_Name: Label
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1910734947
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1910734946}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 195749812}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 1}
-  m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 25.75, y: -10}
-  m_SizeDelta: {x: 35.5, y: 15}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1910734948
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1910734946}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_text: SOON
-  m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 2fab5c58471d85b4488374ed249e25a6, type: 2}
-  m_sharedMaterial: {fileID: 5781109077187546486, guid: 2fab5c58471d85b4488374ed249e25a6, type: 2}
-  m_fontSharedMaterials: []
-  m_fontMaterial: {fileID: 0}
-  m_fontMaterials: []
-  m_fontColor32:
-    serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 0.7176471, g: 0.7529412, b: 0.8117647, a: 1}
-  m_enableVertexGradient: 0
-  m_colorMode: 3
-  m_fontColorGradient:
-    topLeft: {r: 1, g: 1, b: 1, a: 1}
-    topRight: {r: 1, g: 1, b: 1, a: 1}
-    bottomLeft: {r: 1, g: 1, b: 1, a: 1}
-    bottomRight: {r: 1, g: 1, b: 1, a: 1}
-  m_fontColorGradientPreset: {fileID: 0}
-  m_spriteAsset: {fileID: 0}
-  m_tintAllSprites: 0
-  m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: -1183493901
-  m_overrideHtmlColors: 0
-  m_faceColor:
-    serializedVersion: 2
-    rgba: 4294967295
-  m_fontSize: 11
-  m_fontSizeBase: 11
-  m_fontWeight: 400
-  m_enableAutoSizing: 0
-  m_fontSizeMin: 18
-  m_fontSizeMax: 72
-  m_fontStyle: 0
-  m_HorizontalAlignment: 2
-  m_VerticalAlignment: 4096
-  m_textAlignment: 65535
-  m_characterSpacing: 13.636364
-  m_characterHorizontalScale: 1
-  m_wordSpacing: 0
-  m_lineSpacing: 0
-  m_lineSpacingMax: 0
-  m_paragraphSpacing: 0
-  m_charWidthMaxAdj: 0
-  m_TextWrappingMode: 0
-  m_wordWrappingRatios: 0.4
-  m_overflowMode: 0
-  m_linkedTextComponent: {fileID: 0}
-  parentLinkedComponent: {fileID: 0}
-  m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656bu
-  m_enableExtraPadding: 0
-  checkPaddingRequired: 0
-  m_isRichText: 1
-  m_EmojiFallbackSupport: 1
-  m_parseCtrlCharacters: 1
-  m_isOrthographic: 1
-  m_isCullingEnabled: 0
-  m_horizontalMapping: 0
-  m_verticalMapping: 0
-  m_uvLineOffset: 0
-  m_geometrySortingOrder: 0
-  m_IsTextObjectScaleStatic: 0
-  m_VertexBufferAutoSizeReduction: 0
-  m_useMaxVisibleDescender: 1
-  m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 1.5, w: 0}
-  m_isUsingLegacyAnimationComponent: 0
-  m_isVolumetricText: 0
-  m_hasFontAssetChanged: 0
-  m_baseMaterial: {fileID: 0}
-  m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
---- !u!222 &1910734949
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1910734946}
-  m_CullTransparentMesh: 1
---- !u!114 &1910734950
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1910734946}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
-  m_key: common.soon
 --- !u!1 &1911168697
 GameObject:
   m_ObjectHideFlags: 0
@@ -93938,6 +94074,7 @@ GameObject:
   - component: {fileID: 1929908187}
   - component: {fileID: 1929908189}
   - component: {fileID: 1929908188}
+  - component: {fileID: 1929908190}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -94064,6 +94201,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1929908186}
   m_CullTransparentMesh: 1
+--- !u!114 &1929908190
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1929908186}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.hoarder.description
 --- !u!1 &1932766040
 GameObject:
   m_ObjectHideFlags: 0
@@ -94924,7 +95074,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1383144258}
   m_icon: {fileID: 1708677591}
   m_titleText: {fileID: 1113937979}
-  m_descriptionText: {fileID: 1633343619}
+  m_descriptionText: {fileID: 1633343621}
   m_reward: {fileID: 1795187649}
   m_rewardCoin: {fileID: 1733859478}
   m_rewardText: {fileID: 2122531469}
@@ -94932,7 +95082,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 879298454}
   m_progress: {fileID: 1589182287}
   m_progressFill: {fileID: 1079771778}
-  m_progressText: {fileID: 257409602}
+  m_progressText: {fileID: 257409604}
   m_claimButton: {fileID: 2070666753}
   m_claimText: {fileID: 468055565}
 --- !u!114 &1961917062
@@ -95542,7 +95692,7 @@ MonoBehaviour:
   m_iconTile: {fileID: 1612086588}
   m_icon: {fileID: 1665751441}
   m_titleText: {fileID: 613741482}
-  m_descriptionText: {fileID: 1857924141}
+  m_descriptionText: {fileID: 1857924143}
   m_reward: {fileID: 269433030}
   m_rewardCoin: {fileID: 178788712}
   m_rewardText: {fileID: 561009232}
@@ -95550,7 +95700,7 @@ MonoBehaviour:
   m_soonChip: {fileID: 1034486422}
   m_progress: {fileID: 944923689}
   m_progressFill: {fileID: 1276362258}
-  m_progressText: {fileID: 356820640}
+  m_progressText: {fileID: 356820642}
   m_claimButton: {fileID: 955597813}
   m_claimText: {fileID: 881819669}
 --- !u!114 &1978902825
@@ -95841,6 +95991,7 @@ GameObject:
   - component: {fileID: 1989647619}
   - component: {fileID: 1989647621}
   - component: {fileID: 1989647620}
+  - component: {fileID: 1989647622}
   m_Layer: 5
   m_Name: CountText
   m_TagString: Untagged
@@ -95967,6 +96118,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1989647618}
   m_CullTransparentMesh: 1
+--- !u!114 &1989647622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1989647618}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.progress
 --- !u!1 &1990390420
 GameObject:
   m_ObjectHideFlags: 0
@@ -97033,6 +97197,7 @@ GameObject:
   - component: {fileID: 2000252756}
   - component: {fileID: 2000252758}
   - component: {fileID: 2000252757}
+  - component: {fileID: 2000252759}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -97159,6 +97324,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2000252755}
   m_CullTransparentMesh: 1
+--- !u!114 &2000252759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2000252755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.spaceAchiever.description
 --- !u!1 &2004001259
 GameObject:
   m_ObjectHideFlags: 0
@@ -102555,6 +102733,7 @@ GameObject:
   - component: {fileID: 2104911224}
   - component: {fileID: 2104911226}
   - component: {fileID: 2104911225}
+  - component: {fileID: 2104911227}
   m_Layer: 5
   m_Name: DescriptionText
   m_TagString: Untagged
@@ -102681,6 +102860,19 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2104911223}
   m_CullTransparentMesh: 1
+--- !u!114 &2104911227
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2104911223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 65a3ff85cc6c8ec4fbdeda3ba0a3296f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.LocalizedText
+  m_key: achievements.itsWorking.description
 --- !u!1 &2107079579
 GameObject:
   m_ObjectHideFlags: 0

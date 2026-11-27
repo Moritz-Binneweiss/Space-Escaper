@@ -14,10 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: SpaceEscaper::SpaceEscaper.AchievementData
   m_id: Liftoff
   m_title: LIFTOFF! WE HAVE A LIFTOFF!
-  m_description: Launch for the first time
+  m_descriptionKey: achievements.liftoff.description
   m_icon: {fileID: 21300000, guid: c3d9b3cb7e4e7484aafe8b6e305f4dfa, type: 3}
   m_goal: 0
   m_target: 1
-  m_unit: 
+  m_progressKey: achievements.progress
   m_reward: 11
   m_isComingSoon: 0
