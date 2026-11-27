@@ -21,7 +21,7 @@ namespace SpaceEscaper
         [Tooltip("The coins next to the title while the achievement is on its way or comes later.")]
         [SerializeField] private GameObject m_reward;
         [SerializeField] private Image m_rewardCoin;
-        [SerializeField] private TMP_Text m_rewardText;
+        [SerializeField] private LocalizedText m_rewardText;
         [Tooltip("The check next to the title once the reward is claimed.")]
         [SerializeField] private GameObject m_claimedCheck;
         [SerializeField] private GameObject m_soonChip;
@@ -32,7 +32,7 @@ namespace SpaceEscaper
         [SerializeField] private LocalizedText m_progressText;
         [SerializeField] private Button m_claimButton;
         [Tooltip("The coins of the reward on the claim button.")]
-        [SerializeField] private TMP_Text m_claimText;
+        [SerializeField] private LocalizedText m_claimText;
 
         public AchievementData Achievement => m_achievement;
 
@@ -59,8 +59,8 @@ namespace SpaceEscaper
             m_icon.sprite = m_achievement.Icon;
             m_titleText.SetText(m_achievement.Title);
             m_descriptionText.Show(m_achievement.DescriptionKey, m_achievement.Target);
-            m_rewardText.SetText("+{0}", m_achievement.Reward);
-            m_claimText.SetText("{0}", m_achievement.Reward);
+            m_rewardText.ShowNumbers(m_achievement.Reward);
+            m_claimText.ShowNumbers(m_achievement.Reward);
 
             m_reward.SetActive(state == AchievementState.InProgress || state == AchievementState.ComingSoon);
             m_claimedCheck.SetActive(state == AchievementState.Claimed);
@@ -83,7 +83,7 @@ namespace SpaceEscaper
             m_icon.color = look.Icon.Resolve(colorway);
             m_titleText.color = look.Title.Resolve(colorway);
             m_descriptionText.Text.color = look.Description.Resolve(colorway);
-            m_rewardText.color = look.Reward.Resolve(colorway);
+            m_rewardText.Text.color = look.Reward.Resolve(colorway);
             m_rewardCoin.color = look.RewardCoin.Resolve(colorway);
         }
 

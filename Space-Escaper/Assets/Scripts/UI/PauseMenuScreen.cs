@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -18,9 +17,9 @@ namespace SpaceEscaper
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private RunScore m_runScore;
         [SerializeField] private LocalizedText m_timeText;
-        [SerializeField] private TMP_Text m_scoreText;
-        [SerializeField] private TMP_Text m_coinText;
-        [SerializeField] private TMP_Text m_highscoreText;
+        [SerializeField] private LocalizedText m_scoreText;
+        [SerializeField] private LocalizedText m_coinText;
+        [SerializeField] private LocalizedText m_highscoreText;
         [SerializeField] private LocalizedText m_distanceText;
         [SerializeField] private Button m_musicButton;
         [SerializeField] private Button m_sfxButton;
@@ -47,9 +46,9 @@ namespace SpaceEscaper
             float minutes = seconds / 60;
             float secondsOfMinute = seconds % 60;
             m_timeText.ShowNumbers(minutes, secondsOfMinute);
-            m_scoreText.SetText("{0}", m_runScore.Score);
-            m_coinText.SetText("+{0}", m_runScore.Coins);
-            m_highscoreText.SetText("{0}", m_runScore.Highscore);
+            m_scoreText.ShowNumbers(m_runScore.Score);
+            m_coinText.ShowNumbers(m_runScore.Coins);
+            m_highscoreText.ShowNumbers(m_runScore.Highscore);
             m_distanceText.ShowNumbers(m_runScore.Distance);
             ShowAudioSwitches();
         }

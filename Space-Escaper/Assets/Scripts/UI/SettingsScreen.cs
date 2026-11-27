@@ -23,9 +23,9 @@ namespace SpaceEscaper
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private Button m_backButton;
         [SerializeField] private Slider m_musicSlider;
-        [SerializeField] private TMP_Text m_musicVolumeText;
+        [SerializeField] private LocalizedText m_musicVolumeText;
         [SerializeField] private Slider m_sfxSlider;
-        [SerializeField] private TMP_Text m_sfxVolumeText;
+        [SerializeField] private LocalizedText m_sfxVolumeText;
         [Tooltip("The sounds of the 2020 original. Its look comes with the remaster in v1.7.0.")]
         [SerializeField] private Toggle m_classicModeToggle;
         [SerializeField] private Button m_colorwayButton;
@@ -178,9 +178,9 @@ namespace SpaceEscaper
             m_classicModeToggle.SetIsOnWithoutNotify(!audioSystem.UseNewSounds);
         }
 
-        private static void ShowPercent(TMP_Text text, float sliderPosition)
+        private static void ShowPercent(LocalizedText text, float sliderPosition)
         {
-            text.SetText("{0}%", Mathf.Round(sliderPosition * 100f));
+            text.ShowNumbers(Mathf.Round(sliderPosition * 100f));
         }
     }
 }

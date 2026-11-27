@@ -1,6 +1,11 @@
 {
   "number.groupSeparator": ".",
   "number.decimalSeparator": ",",
+  "number.whole": "{0}",
+  "number.gain": "+{0}",
+  "number.time": "{0}:{1:00}",
+  "number.multiplier": "×{0:0.0}",
+  "number.percent": "{0}\u00a0%",
 
   "common.score": "PUNKTE",
   "common.coins": "MÜNZEN",

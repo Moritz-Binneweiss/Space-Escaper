@@ -213,7 +213,7 @@ jede Sprache hat genau die Texte der Standardsprache, keinen leeren, mit denselb
 und was dort in Großbuchstaben steht, steht in jeder Sprache so. `SaveDataTests` prüft die Wahl im
 Spielstand, `SceneTests` genau einen `LanguageManager` mit dem Katalog und dass jeder `LocalizedText` einen
 Schlüssel hat, den Englisch kennt, und in der Szene dessen Text zeigt, ein Text mit Zahlen ein Beispiel
-davon. Jeder Text mit Buchstaben hat einen Schlüssel oder bleibt mit `UntranslatedText` in jeder Sprache
+davon. Jeder Text mit Buchstaben oder Ziffern hat einen Schlüssel oder bleibt mit `UntranslatedText` in jeder Sprache
 gleich, nie beides. Die Settings haben je Sprache einen Button, in der Reihenfolge des Katalogs und mit ihrem
 Kürzel darauf. Jedes Zeichen jedes Texts steht in jeder Sprache in seiner Schrift, ein Schlüssel, den nur
 Skripte zeigen, in jeder Schrift der Texte mit Schlüssel. `NumberFormatTests` prüft die Zahlen in den Formaten:
@@ -281,7 +281,8 @@ sichtbar wird und nach seiner Zeit wieder hinaufsteigt und ausblendet, bevor das
 erste Test prüft seit v1.5.5 auch, dass „NEW HIGHSCORE“ und die Karte der Achievements auf dem
 Todesbildschirm erst nach ihm hereinfallen (siehe „Bewegungen“ unter „UI“). Seit v1.6.0 tippt ein elfter
 (`TheLanguageButtonsSwitchTheLanguage`) in den Settings DE und prüft Sprache, Spielstand, die Farben der
-Buttons und die Texte des Screens, nach dem Neuladen der Szene noch einmal, dann wieder EN.
+Buttons und die Texte des Screens, nach dem Neuladen der Szene noch einmal, dann wieder EN. Das Hauptmenü zeigt
+dabei 1234 Münzen auf Englisch als „1,234“, nach dem Neuladen auf Deutsch als „1.234“.
 Ebenfalls seit v1.5.5 prüft `EasingTests` die Kurven der Bewegungen gegen Werte, die ein
 Browser für dieselben Kurven zeigt (unabhängig in Python mit exakten Brüchen gerechnet),
 `SwayEffectTests` das Pendeln des Wisch-Hinweises gegen die Keyframes des Mockups,
@@ -537,7 +538,10 @@ genau, was der obere nicht zeigt, und hinter zwei fast deckenden Gründen schein
   Farben behalten oder sie vertauschen, und einen Test ohne eigene Sprache. Der Test der Zeichen fand ein ẞ in
   einem Titel in Audiowide und in einem Schlüssel, den nur Skripte zeigen. `NumberFormatTests` fand Zahlen ohne
   Gruppen, den Punkt von TextMesh Pro auf Deutsch, Zahlen ohne ihre Stellen, Runden zur geraden Zahl und ein
-  `LocalizedText`, das noch `SetText` nimmt, `SceneTests` sechs Beispiele in der Szene ohne Trenner.
+  `LocalizedText`, das noch `SetText` nimmt, `SceneTests` sechs Beispiele in der Szene ohne Trenner. Für die reinen
+  Zahlen der Screens fand `SceneTests` vorher jeden Text mit Ziffern ohne Schlüssel, danach zehn Beispiele ohne
+  Trenner, darunter die Belohnungen von COLLECTOR und SPACE ACHIEVER, `RunTests` ein Hauptmenü, das seine Münzen
+  selbst mit `SetText` schreibt, und ein `LocalizedText` mit den Trennern von Englisch.
 - Die Tests brauchen eigene Assemblies, siehe „Assembly Definitions“ unter
   „Unity-Besonderheiten“.
 
@@ -1694,7 +1698,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     `LayoutTests` misst, was das Spiel zeigt, `SceneTests` prüft, dass sie übereinstimmen.
   - **Ein neues Achievement:** ein `AchievementData` anlegen und in den Katalog eintragen, im
     Screen einen Eintrag duplizieren, ihm das neue `AchievementData` geben und Titel,
-    Beschreibung, Symbol und Belohnung (auch die im CLAIM-Button) angleichen, den Kasten
+    Beschreibung, Symbol und Belohnung (auch die im CLAIM-Button, ab 1000 mit Trennern wie „+1,000“)
+    angleichen, den Kasten
     `Side` so breit wie die Belohnung. Seine Beschreibung bekommt einen Text in jeder Sprache.
     Zählt es etwas Neues, bekommt `AchievementGoal` einen
     Wert am Ende (die Assets speichern seine Nummer) und `AchievementProgress.GetProgress`
@@ -1844,8 +1849,13 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
     „×1,4“), in einen Puffer, den TextMesh Pro über `SetCharArray` nimmt, ohne neuen String. `SetText`
     kennt weder die Trenner einer Sprache noch Tausender. Bei einem Wechsel der Sprache zeigt das `LocalizedText` sein neues
     Format mit denselben Zahlen. In der Szene steht ein Beispiel auf Englisch (`RUN ENDED · 2:05`, `1,938 m`). Ein Skript,
-    das den Text färbt, erreicht ihn über `LocalizedText.Text`, auch vor dessen `Awake`. Reine Zahlen
-    wie der Score setzen die Screens noch selbst mit `SetText`, ohne Trenner (bis Schritt 4b von v1.6.0).
+    das den Text färbt, erreicht ihn über `LocalizedText.Text`, auch vor dessen `Awake`. Auch reine
+    Zahlen gehen so, mit Formaten unter `number`: `number.whole` („{0}“: Score, Münzen, Highscore),
+    `number.gain` („+{0}“: Münzen des Runs, Belohnungen), `number.time` („{0}:{1:00}“),
+    `number.multiplier` („×{0:0.0}“) und `number.percent` („{0}%“, auf Deutsch „{0} %“ mit
+    geschütztem Leerzeichen wie nach DIN 5008). Kein Skript schreibt Zahlen mehr mit `SetText`, einen Text mit
+    Ziffern ohne Schlüssel meldet `SceneTests`. Setzt kein Skript die Zahlen eines Formats, zeigt es 0, so der
+    Anteil der Collectibles („0%“).
   - **Schlüssel** nennen Screen und Element (`death.title`, `settings.classicMode.description`).
     Was auf mehreren Screens dasselbe meint, steht unter `common` (`common.soon`, `common.score`),
     ein Titel und ein Button mit demselben Wort haben je einen eigenen (`hangar.title`,
@@ -1853,7 +1863,8 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Was in jeder Sprache gleich bleibt,** trägt statt eines Schlüssels ein `UntranslatedText`: Namen
     von Personen, Schiffen, Farbschemata und Schriften, die Titel der Achievements und die Lizenzen
     in den Credits (Moritz, 25.11.2026). Eine Rolle in den Credits wird übersetzt, auch neben Namen
-    („Icons · Cole Bemis · MIT License“).
+    („Icons · Cole Bemis · MIT License“). Seit Schritt 4b auch die Version in den Settings und die Zähler
+    der Collectibles („0 / 5“), bis v1.8.0 echte Zahlen bringt.
   - **Deutsch** ist mein Entwurf, Moritz hat ihn fürs Erste abgenommen (27.11.2026: „ja passt
     erstmal fürs erste“). Er spricht mit „du“ im Imperativ („Fliege ein gekauftes Schiff“), Achievements heißen Erfolge wie bei Google Play, ein Run
     ein Flug. In Großbuchstaben steht „SS“ statt ẞ, Audiowide hat kein ẞ. Button der Pause und Titel
@@ -1861,13 +1872,12 @@ Canvas, und sechs Animatoren schoben die gerade nicht gebrauchten aus dem Bild.
   - **Im Editor** meldet `Application.systemLanguage` die Sprache von Windows, hier Deutsch. Ein
     Test, der Texte prüft, setzt seine Sprache deshalb selbst.
 - **Texte sind TextMesh Pro** (`TextMeshProUGUI`, seit v1.5.1, bis dahin Legacy-`Text`).
-  Die Screens halten sie als `TMP_Text` und schreiben Zahlen mit `SetText("{0}", zahl)`, Texte mit
-  Wörtern seit v1.6.0 über ihr `LocalizedText` (siehe „Sprachen“):
-  TextMesh Pro formatiert dann in einen eigenen Puffer, ohne neuen String. Nur im Editor
-  legt es dabei zusätzlich einen String für den Inspector an (`#if UNITY_EDITOR` im
-  Paket), Allokationen also auf dem Handy messen, nicht im Editor. Kommazahlen bekommen
-  dort immer einen Punkt, egal welche Sprache das Handy hat, und Tausender keine Trenner. Die Formate eines
-  `LocalizedText` füllt deshalb seit v1.6.0 `NumberFormat`. Ein neuer Legacy-`Text`
+  Die Screens halten sie als `TMP_Text`, Texte mit Wörtern oder Zahlen seit v1.6.0 als `LocalizedText` (siehe
+  „Sprachen“): `NumberFormat` füllt die Zahlen in einen Puffer, den TextMesh Pro über `SetCharArray` nimmt,
+  ohne neuen String. Nur im Editor legt TextMesh Pro dabei zusätzlich einen String für den Inspector an
+  (`#if UNITY_EDITOR` im Paket), Allokationen also auf dem Handy messen, nicht im Editor. Bis v1.6.0 schrieben die
+  Screens Zahlen mit `SetText("{0}", zahl)`. Dort bekommen Kommazahlen immer einen Punkt, egal welche Sprache das
+  Handy hat, und Tausender keine Trenner. Ein neuer Legacy-`Text`
   fällt in `SceneTests` auf.
   - **Schriften** liegen als Font Asset neben ihrer Schriftdatei und deren Lizenztext
     in `UI/Fonts/` (seit Schritt 3 von v1.5.1): `TitleSDF` (Audiowide) für Titel,

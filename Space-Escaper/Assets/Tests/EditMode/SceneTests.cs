@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Text.RegularExpressions;
 using NUnit.Framework;
@@ -306,8 +305,8 @@ namespace SpaceEscaper.Tests
                 CompareText(problems, path, serialized, "m_descriptionText", texts.Get(achievement.DescriptionKey)
                     .Replace("{0}", FormatInEnglish(achievement.Target)));
                 CompareKey(problems, path, serialized, "m_progressText", achievement.ProgressKey);
-                CompareText(problems, path, serialized, "m_rewardText", "+" + achievement.Reward);
-                CompareText(problems, path, serialized, "m_claimText", achievement.Reward.ToString());
+                CompareText(problems, path, serialized, "m_rewardText", "+" + FormatInEnglish(achievement.Reward));
+                CompareText(problems, path, serialized, "m_claimText", FormatInEnglish(achievement.Reward));
                 Image icon = (Image)serialized.FindProperty("m_icon").objectReferenceValue;
                 if (icon.sprite != achievement.Icon)
                 {
@@ -532,10 +531,10 @@ namespace SpaceEscaper.Tests
             Assert.That(problems, Is.Empty);
         }
 
-        // A text without a key shows English in every language. Names and license texts stay the same in every
-        // language and say so with UntranslatedText.
+        // A text without a key shows English in every language, a number the separators of English. Names, the
+        // version and license texts stay the same in every language and say so with UntranslatedText.
         [Test]
-        public void EveryTextWithLettersHasAKeyOrStaysTheSame()
+        public void EveryTextWithLettersOrDigitsHasAKeyOrStaysTheSame()
         {
             List<string> problems = new List<string>();
             foreach (TMP_Text text in GetComponentsInScene<TMP_Text>())
@@ -546,7 +545,7 @@ namespace SpaceEscaper.Tests
                 {
                     problems.Add(GetPath(text.transform) + " has a key, but stays the same in every language");
                 }
-                else if (!hasKey && !staysTheSame && text.text.Any(char.IsLetter))
+                else if (!hasKey && !staysTheSame && text.text.Any(char.IsLetterOrDigit))
                 {
                     problems.Add(GetPath(text.transform) + " has no key for \"" + text.text + "\"");
                 }

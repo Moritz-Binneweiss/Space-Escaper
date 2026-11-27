@@ -55,6 +55,9 @@ namespace SpaceEscaper.Tests
         // The first run beats it on the way to its first obstacle, at about 13 points.
         private const int k_HighscoreToBeat = 5;
 
+        // Enough coins for a group of thousands: 1,234 in English, 1.234 in German.
+        private const int k_GroupedCoins = 1234;
+
         // The achievements of the first flight, the third crash and the coins collected, which the runs of the test
         // reach.
         private const string k_FirstFlightId = "Liftoff";
@@ -788,14 +791,17 @@ namespace SpaceEscaper.Tests
         }
 
         // Moritz, 25.11.2026: one tap switches the language. The button of the chosen one stands in the glow color, the
-        // choice is saved right away, and a reload keeps it.
+        // choice is saved right away, and a reload keeps it. Numbers take the separators of the language.
         [UnityTest]
         public IEnumerator TheLanguageButtonsSwitchTheLanguage()
         {
+            SaveSystem.Data.AddCoins(k_GroupedCoins);
             yield return SceneManager.LoadSceneAsync(k_GameSceneName);
             yield return null;
 
             Assert.That(LanguageManager.Current.Id, Is.EqualTo(k_TestLanguageId), "The test is not in its language");
+            Assert.That(FindScreen<MainMenuScreen>().CoinText.text, Is.EqualTo("1,234"),
+                "The main menu does not group the coins");
             yield return Tap(FindScreen<MainMenuScreen>().SettingsButton);
             yield return null;
             SettingsScreen settings = FindScreen<SettingsScreen>();
@@ -811,6 +817,8 @@ namespace SpaceEscaper.Tests
             oldGameManager.ReturnToMenu();
             yield return WaitForReload(oldGameManager);
             Assert.That(LanguageManager.Current.Id, Is.EqualTo(k_OtherLanguageId), "The reload forgot the language");
+            Assert.That(FindScreen<MainMenuScreen>().CoinText.text, Is.EqualTo("1.234"),
+                "The main menu does not group the coins as the language does");
 
             yield return Tap(FindScreen<MainMenuScreen>().SettingsButton);
             yield return null;

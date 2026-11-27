@@ -20,16 +20,16 @@ namespace SpaceEscaper
         [SerializeField] private AchievementTracker m_achievements;
         [Tooltip("Run ended, with the time of the run.")]
         [SerializeField] private LocalizedText m_runEndedText;
-        [SerializeField] private TMP_Text m_scoreText;
+        [SerializeField] private LocalizedText m_scoreText;
         [SerializeField] private GameObject m_newHighscoreBadge;
-        [SerializeField] private TMP_Text m_coinText;
-        [SerializeField] private TMP_Text m_timeText;
+        [SerializeField] private LocalizedText m_coinText;
+        [SerializeField] private LocalizedText m_timeText;
         [SerializeField] private LocalizedText m_distanceText;
         [Tooltip("The first achievement the run has unlocked, with its reward. Hidden while it has unlocked none.")]
         [SerializeField] private GameObject m_unlockedCard;
         [SerializeField] private LocalizedText m_unlockedLabelText;
         [SerializeField] private TMP_Text m_unlockedTitleText;
-        [SerializeField] private TMP_Text m_unlockedRewardText;
+        [SerializeField] private LocalizedText m_unlockedRewardText;
         [SerializeField] private Button m_reviveButton;
         [SerializeField] private Button m_playAgainButton;
         [SerializeField] private Button m_hangarButton;
@@ -81,14 +81,14 @@ namespace SpaceEscaper
             float minutes = seconds / 60;
             float secondsOfMinute = seconds % 60;
             m_runEndedText.ShowNumbers(minutes, secondsOfMinute);
-            m_timeText.SetText("{0}:{1:00}", minutes, secondsOfMinute);
-            m_scoreText.SetText("{0}", m_runScore.Score);
+            m_timeText.ShowNumbers(minutes, secondsOfMinute);
+            m_scoreText.ShowNumbers(m_runScore.Score);
             if (m_runScore.IsNewHighscore)
             {
                 m_newHighscoreBadgeDrop.Play();
             }
 
-            m_coinText.SetText("+{0}", m_runScore.Coins);
+            m_coinText.ShowNumbers(m_runScore.Coins);
             m_distanceText.ShowNumbers(m_runScore.Distance);
             m_reviveButton.gameObject.SetActive(m_gameManager.CanRevive);
         }
@@ -117,7 +117,7 @@ namespace SpaceEscaper
             }
 
             m_unlockedTitleText.SetText(first.Title);
-            m_unlockedRewardText.SetText("+{0}", first.Reward);
+            m_unlockedRewardText.ShowNumbers(first.Reward);
         }
 
         private void AchievementTracker_Unlocked(IReadOnlyList<AchievementData> achievements)

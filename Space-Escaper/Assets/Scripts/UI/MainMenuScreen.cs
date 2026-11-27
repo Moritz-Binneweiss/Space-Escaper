@@ -14,11 +14,11 @@ namespace SpaceEscaper
         [SerializeField] private GameManager m_gameManager;
         [SerializeField] private ScreenManager m_screens;
         [SerializeField] private AchievementTracker m_achievements;
-        [SerializeField] private TMP_Text m_coinText;
-        [SerializeField] private TMP_Text m_highscoreText;
+        [SerializeField] private LocalizedText m_coinText;
+        [SerializeField] private LocalizedText m_highscoreText;
         [Tooltip("The number of rewards to claim, on the corner of the medal. Hidden while there are none.")]
         [SerializeField] private GameObject m_rewardsBadge;
-        [SerializeField] private TMP_Text m_rewardsText;
+        [SerializeField] private LocalizedText m_rewardsText;
         [SerializeField] private Button m_startButton;
         [SerializeField] private Button m_hangarButton;
         [SerializeField] private Button m_settingsButton;
@@ -34,10 +34,13 @@ namespace SpaceEscaper
 
         internal Button SettingsButton => m_settingsButton;
 
+        // For tests, which check the coins in every language.
+        internal TMP_Text CoinText => m_coinText.Text;
+
         // For tests, which check them before and after claiming.
         internal GameObject RewardsBadge => m_rewardsBadge;
 
-        internal TMP_Text RewardsText => m_rewardsText;
+        internal TMP_Text RewardsText => m_rewardsText.Text;
 
         // Coins change in the hangar. Coins and highscore change with a death, and the way back
         // from there reloads the scene.
@@ -51,8 +54,8 @@ namespace SpaceEscaper
             m_achievements.Unlocked += AchievementTracker_Unlocked;
 
             SaveData saveData = SaveSystem.Data;
-            m_coinText.SetText("{0}", saveData.Coins);
-            m_highscoreText.SetText("{0}", saveData.Highscore);
+            m_coinText.ShowNumbers(saveData.Coins);
+            m_highscoreText.ShowNumbers(saveData.Highscore);
             ShowRewardsToClaim();
         }
 
@@ -82,7 +85,7 @@ namespace SpaceEscaper
         {
             int rewardsToClaim = m_achievements.RewardsToClaim;
             m_rewardsBadge.SetActive(rewardsToClaim > 0);
-            m_rewardsText.SetText("{0}", rewardsToClaim);
+            m_rewardsText.ShowNumbers(rewardsToClaim);
         }
     }
 }
